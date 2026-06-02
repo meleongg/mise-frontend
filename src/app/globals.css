@@ -153,6 +153,7 @@
 }
 
 body {
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   background: linear-gradient(
     135deg,
     hsl(var(--background)) 0%,

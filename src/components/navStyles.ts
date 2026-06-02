@@ -18,7 +18,7 @@ export const navLogoIconClassName =
   "w-5 h-5 sm:w-6 sm:h-6 text-[hsl(var(--paprika))]";
 
 export const navBrandTextClassName =
-  "text-xl sm:text-2xl font-bold text-[hsl(var(--paprika))] truncate tracking-tight";
+  "font-heading font-black text-xl sm:text-2xl text-[#262218] truncate tracking-tight";
 
 export const navMobileMenuPanelClassName =
   "md:hidden border-t border-[hsl(var(--paprika))]/15 bg-gradient-to-b from-amber-100/90 via-orange-50/80 to-amber-50/90 pb-4 -mx-4 sm:-mx-6 px-4 sm:px-6";

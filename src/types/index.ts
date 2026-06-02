@@ -1,4 +1,4 @@
-// ChefPath API Types
+// Mise API Types
 
 // Registration Types
 export interface RegisterRequest {

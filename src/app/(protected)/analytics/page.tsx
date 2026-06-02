@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-primary">
+          <h1 className="font-heading font-bold text-3xl text-[#262218]">
             Your Cooking Journey
           </h1>
           <p className="text-muted-foreground">
@@ -254,7 +254,9 @@ export default function AnalyticsPage() {
         {/* Feedback Distribution */}
         <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Feedback Distribution</CardTitle>
+            <CardTitle className="font-heading text-xl text-[#262218]">
+              Feedback Distribution
+            </CardTitle>
             <CardDescription>
               How you&apos;re finding the recipes
             </CardDescription>
@@ -349,7 +351,9 @@ export default function AnalyticsPage() {
         {user && (
           <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
             <CardHeader className="pb-4">
-              <CardTitle className="text-xl">Your Preferences</CardTitle>
+              <CardTitle className="font-heading text-xl text-[#262218]">
+                Your Preferences
+              </CardTitle>
               <CardDescription>Current cooking profile</CardDescription>
             </CardHeader>
             <CardContent>

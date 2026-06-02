@@ -49,6 +49,7 @@ export function evaluatePassword(value: string): {
   for (const rule of PASSWORD_RULES) {
     results[rule.id] = rule.test(value);
   }
-  const isValid = PASSWORD_RULES.every((r) => results[r.id]) && value.length > 0;
+  const isValid =
+    PASSWORD_RULES.every((r) => results[r.id]) && value.length > 0;
   return { results, isValid };
 }

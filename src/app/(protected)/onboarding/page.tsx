@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import SodieAvatar from "@/components/SodieAvatar";
 import {
   Card,
   CardContent,
@@ -104,7 +105,7 @@ export default function OnboardingPage() {
       try {
         const user = await updateUserProfile(submissionData);
         if (user) {
-          toast.success("Welcome to ChefPath!", {
+          toast.success("Welcome to Mise!", {
             description: "Your cooking journey starts now!",
           });
           router.push("/weekly-plan");
@@ -158,16 +159,15 @@ export default function OnboardingPage() {
         {!isPending && (
           <Card className="w-full max-w-2xl card-recipe shadow-cozy overflow-visible animate-in fade-in duration-300 px-4 md:px-0">
             <CardHeader className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                <span className="text-3xl">🍽️</span>
+              <div className="mx-auto w-16 h-16 bg-[hsl(var(--turmeric))]/15 rounded-full flex items-center justify-center">
+                <SodieAvatar size="md" animate="none" />
               </div>
-              <CardTitle className="text-3xl font-bold text-primary">
-                Welcome to ChefPath!
+              <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
+                Welcome to Mise!
               </CardTitle>
-              <CardDescription className="text-lg text-muted-foreground">
-                Your personalized cooking journey starts here. Let&apos;s get to
-                know you better so we can create the perfect meal plan just for
-                you!
+              <CardDescription className="font-body text-lg text-muted-foreground">
+                I&apos;m Sodie — let&apos;s learn your tastes so we can build
+                the perfect meal plan for you.
               </CardDescription>
             </CardHeader>
 
@@ -318,7 +318,7 @@ export default function OnboardingPage() {
                 {/* Cooking Goal */}
                 <div className="space-y-2">
                   <Label htmlFor="user-goal" className="text-base font-medium">
-                    What is your primary cooking goal with ChefPath?{" "}
+                    What is your primary cooking goal with Mise?{" "}
                     <span className="text-red-500">*</span>
                   </Label>
                   <Select

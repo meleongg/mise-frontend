@@ -9,7 +9,7 @@ import { useUser } from "@/hooks";
 import { useRecipeQuery, useWeeklyRecipeProgressQuery } from "@/hooks/queries";
 import { parseHelpers } from "@/lib/api";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
-import { ChefHat } from "lucide-react";
+import { UtensilsCrossed } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -85,7 +85,7 @@ export default function RecipePage({
         <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="text-3xl font-bold text-primary">
+              <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
                 {recipe.name}
               </CardTitle>
               {user && (
@@ -162,7 +162,7 @@ export default function RecipePage({
                   className="flex-1 h-14 text-lg font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white shadow-lg"
                 >
                   <Link href={`/recipe/${recipe.id}/cook?week=${weekNumber}`}>
-                    <ChefHat className="w-5 h-5 mr-2" />
+                    <UtensilsCrossed className="w-5 h-5 mr-2" />
                     {isInProgress ? "Resume Cooking" : "Start Cooking"}
                   </Link>
                 </Button>

@@ -1,12 +1,9 @@
 "use client";
 
+import BrandLogo from "@/components/BrandLogo";
 import {
-  navBrandTextClassName,
   navContainerClassName,
   navDesktopLinkClassName,
-  navLogoIconBoxClassName,
-  navLogoIconClassName,
-  navLogoLinkClassName,
   navLogoutButtonClassName,
   navMobileMenuPanelClassName,
   navMobileMenuToggleClassName,
@@ -17,15 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { actions, useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  BarChart3,
-  Calendar,
-  ChefHat,
-  Menu,
-  Settings,
-  User,
-  X,
-} from "lucide-react";
+import { BarChart3, Calendar, Menu, Settings, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -61,16 +50,7 @@ export default function Navbar({
     <nav className={navShellClassName}>
       <div className={navContainerClassName}>
         <div className={navRowClassName}>
-          <Link
-            href="/weekly-plan"
-            className={navLogoLinkClassName}
-            onClick={closeMenu}
-          >
-            <div className={navLogoIconBoxClassName}>
-              <ChefHat className={navLogoIconClassName} />
-            </div>
-            <span className={navBrandTextClassName}>ChefPath</span>
-          </Link>
+          <BrandLogo href="/weekly-plan" size="md" onClick={closeMenu} />
 
           {/* Desktop */}
           <div className="hidden md:flex gap-1 lg:gap-2 items-center shrink-0">

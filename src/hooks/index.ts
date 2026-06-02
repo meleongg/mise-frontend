@@ -6,7 +6,7 @@ import { ParsedRecipe, Recipe, UserProfileRequest } from "@/types";
 import { useState } from "react";
 
 /**
- * Custom hooks for ChefPath application
+ * Custom hooks for the Mise application
  *
  * Note: Server data fetching (recipes, plans, progress) is handled by TanStack Query
  * in src/hooks/queries.ts. These hooks provide auth and utility functions.

@@ -1,6 +1,8 @@
 "use client";
 
 import SwapRecipeModal from "@/components/SwapRecipeModal";
+import SodieEmptyState from "@/components/SodieEmptyState";
+import SodieCommandBar from "@/components/SodieCommandBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,7 +29,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRightLeft,
   Check,
-  ChefHat,
   PartyPopper,
   Rocket,
   RotateCcw,
@@ -187,7 +188,9 @@ export default function WeeklyPlanPage() {
   const swapCount = currentPlan?.swap_count ?? 0;
   const progressWidth = `${progressPercentage}%`;
   const swapCounterClass =
-    swapCount >= 3 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700";
+    swapCount >= 3
+      ? "bg-destructive/15 text-destructive"
+      : "bg-[hsl(var(--turmeric))]/20 text-[#262218]";
   const nextWeekPlanText = nextWeekEligibility
     ? `Generate Week ${nextWeekEligibility.next_week} Plan`
     : "Generate Next Week Plan";
@@ -258,7 +261,7 @@ export default function WeeklyPlanPage() {
         queryKey: queryKeys.nextWeekEligibility(user.id),
       });
 
-      // Dispatch event to notify FloatingChat to show pulse animation
+      // Notify Sodie command bar to highlight after first plan
       window.dispatchEvent(new CustomEvent("firstPlanGenerated"));
     } catch (err: unknown) {
       const error =
@@ -360,10 +363,13 @@ export default function WeeklyPlanPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20">
+    <div className="min-h-screen flex flex-col items-center p-4 py-8 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20">
+      <div className="w-full max-w-3xl">
+        <SodieCommandBar />
+      </div>
       <Card className="w-full max-w-3xl shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">
+          <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
             Your Weekly Meal Plan
           </CardTitle>
         </CardHeader>
@@ -422,19 +428,24 @@ export default function WeeklyPlanPage() {
 
               {/* Recipe Statistics & Progress */}
               <div className="mb-6 space-y-3">
-                <div className="text-center text-lg font-semibold text-primary">
+                <div className="text-center font-heading font-semibold text-lg text-[#262218]">
                   Week {currentPlan.week_number}: {totalCount} recipes planned
                 </div>
 
-                {/* Swap Counter */}
-                <div className="flex items-center justify-center gap-2 text-sm">
+                <div className="flex flex-col items-center gap-2">
                   <span
-                    className={`px-3 py-1 rounded-full font-medium ${swapCounterClass}`}
+                    className={`font-body font-semibold tracking-wider uppercase text-xs px-3 py-1 rounded-full ${swapCounterClass}`}
                   >
                     {swapCount}/3 swaps used
                   </span>
+                  {swapCount < 3 && (
+                    <p className="font-body text-sm text-muted-foreground text-center">
+                      {3 - swapCount} swap{3 - swapCount === 1 ? "" : "s"}{" "}
+                      remaining this week
+                    </p>
+                  )}
                   {swapCount >= 3 && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground font-body">
                       (Resets next week)
                     </span>
                   )}
@@ -470,145 +481,139 @@ export default function WeeklyPlanPage() {
               {/* Recipe Cards Grid */}
               <div className="grid gap-6 md:grid-cols-2">
                 {getSortedRecipes(currentPlan).map((recipe: Recipe) => (
-                    <Card
-                      key={recipe.id}
-                      className="overflow-hidden group hover:shadow-2xl hover:border-[hsl(var(--paprika))]/60 transition-all duration-300 h-full flex flex-col relative border-2 border-gray-200"
-                    >
-                      <Link
-                        href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
-                        className="absolute inset-0 z-[1] rounded-[inherit]"
-                        aria-label={`View ${recipe.name}`}
-                      />
-                      {/* Completion Badge */}
-                      {isRecipeCompleted(
+                  <Card
+                    key={recipe.id}
+                    className="overflow-hidden group hover:shadow-2xl hover:border-[hsl(var(--paprika))]/60 transition-all duration-300 h-full flex flex-col relative border-2 border-gray-200"
+                  >
+                    <Link
+                      href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
+                      className="absolute inset-0 z-[1] rounded-[inherit]"
+                      aria-label={`View ${recipe.name}`}
+                    />
+                    {/* Completion Badge */}
+                    {isRecipeCompleted(recipe.id, currentPlan.week_number) && (
+                      <div className="absolute top-3 right-3 z-[2] pointer-events-none bg-[hsl(var(--sage))]/90 text-white px-3 py-1.5 rounded-full font-body font-semibold tracking-wider uppercase text-xs shadow-lg flex items-center gap-1.5">
+                        <Check className="w-3 h-3" />
+                        <span>Completed</span>
+                      </div>
+                    )}
+                    {isRecipeInProgress(recipe.id, currentPlan.week_number) &&
+                      !isRecipeCompleted(
                         recipe.id,
                         currentPlan.week_number
                       ) && (
-                        <div className="absolute top-3 right-3 z-[2] pointer-events-none bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
-                          <Check className="w-3 h-3" />
-                          <span>Completed</span>
+                        <div className="absolute top-3 right-3 z-[2] pointer-events-none bg-[hsl(var(--turmeric))]/90 text-[#262218] px-3 py-1.5 rounded-full font-body font-semibold tracking-wider uppercase text-xs shadow-lg flex items-center gap-1.5">
+                          <UtensilsCrossed className="w-3 h-3" />
+                          <span>In progress</span>
                         </div>
                       )}
+
+                    {recipe.image_url ? (
+                      <div className="w-full h-48 overflow-hidden flex-shrink-0 relative pointer-events-none">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 group-hover:from-black/30 transition-all" />
+                        <Image
+                          src={recipe.image_url}
+                          alt={recipe.name}
+                          width={400}
+                          height={192}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-48 flex-shrink-0 pointer-events-none bg-gradient-to-br from-amber-100/80 via-orange-100/80 to-[hsl(var(--turmeric))]/40 flex items-center justify-center group-hover:from-amber-200/80 group-hover:via-orange-200/80 transition-all duration-300">
+                        <div className="text-center px-4">
+                          <UtensilsCrossed className="w-16 h-16 mx-auto mb-2 text-[hsl(var(--paprika))] group-hover:scale-110 transition-transform" />
+                          <p className="text-sm font-semibold text-[hsl(var(--paprika))]">
+                            {recipe.cuisine}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    <CardContent className="relative z-[2] p-4 flex-1 flex flex-col pointer-events-none">
+                      <div className="font-heading font-bold text-lg text-[#262218] mb-1 group-hover:underline line-clamp-2">
+                        {recipe.name}
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-4">
+                        {recipe.cuisine}
+                      </div>
+
                       {isRecipeInProgress(recipe.id, currentPlan.week_number) &&
                         !isRecipeCompleted(
                           recipe.id,
                           currentPlan.week_number
                         ) && (
-                          <div className="absolute top-3 right-3 z-[2] pointer-events-none bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
-                            <ChefHat className="w-3 h-3" />
-                            <span>In progress</span>
-                          </div>
+                          <Link
+                            href={`/recipe/${recipe.id}/cook?week=${currentPlan.week_number}`}
+                            className="pointer-events-auto mb-3 flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-semibold rounded-lg bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--primary))]/90 transition-colors"
+                          >
+                            <UtensilsCrossed className="w-4 h-4" />
+                            Resume cooking
+                          </Link>
                         )}
 
-                      {recipe.image_url ? (
-                        <div className="w-full h-48 overflow-hidden flex-shrink-0 relative pointer-events-none">
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 group-hover:from-black/30 transition-all" />
-                          <Image
-                            src={recipe.image_url}
-                            alt={recipe.name}
-                            width={400}
-                            height={192}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-full h-48 flex-shrink-0 pointer-events-none bg-gradient-to-br from-amber-100/80 via-orange-100/80 to-[hsl(var(--turmeric))]/40 flex items-center justify-center group-hover:from-amber-200/80 group-hover:via-orange-200/80 transition-all duration-300">
-                          <div className="text-center px-4">
-                            <UtensilsCrossed className="w-16 h-16 mx-auto mb-2 text-[hsl(var(--paprika))] group-hover:scale-110 transition-transform" />
-                            <p className="text-sm font-semibold text-[hsl(var(--paprika))]">
-                              {recipe.cuisine}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      <CardContent className="relative z-[2] p-4 flex-1 flex flex-col pointer-events-none">
-                        <div className="font-bold text-lg text-primary mb-1 group-hover:underline line-clamp-2">
-                          {recipe.name}
-                        </div>
-                        <div className="text-sm text-muted-foreground mb-4">
-                          {recipe.cuisine}
-                        </div>
+                      {/* Swap Button */}
+                      <div className="mt-auto pt-4 border-t border-gray-200 pointer-events-auto">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const isCompleted = isRecipeCompleted(
+                              recipe.id,
+                              currentPlan.week_number
+                            );
+                            const swapLimitReached =
+                              currentPlan.swap_count >= 3;
+                            if (!isCompleted && !swapLimitReached) {
+                              handleSwapClick(recipe);
+                            }
+                          }}
+                          disabled={
+                            isRecipeCompleted(
+                              recipe.id,
+                              currentPlan.week_number
+                            ) || currentPlan.swap_count >= 3
+                          }
+                          title={
+                            isRecipeCompleted(
+                              recipe.id,
+                              currentPlan.week_number
+                            )
+                              ? "Cannot swap completed recipes"
+                              : currentPlan.swap_count >= 3
+                                ? "Swap limit reached (3/3 swaps used)"
+                                : "Swap this recipe"
+                          }
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-[hsl(var(--paprika))] hover:bg-amber-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        >
+                          <ArrowRightLeft className="w-4 h-4" />
+                          Swap {swapCount >= 3 && "(Limit Reached)"}
+                        </button>
 
-                        {isRecipeInProgress(
+                        {/* Mark as Incomplete Button */}
+                        {isRecipeCompleted(
                           recipe.id,
                           currentPlan.week_number
-                        ) &&
-                          !isRecipeCompleted(
-                            recipe.id,
-                            currentPlan.week_number
-                          ) && (
-                            <Link
-                              href={`/recipe/${recipe.id}/cook?week=${currentPlan.week_number}`}
-                              className="pointer-events-auto mb-3 flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-semibold rounded-lg bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--primary))]/90 transition-colors"
-                            >
-                              <ChefHat className="w-4 h-4" />
-                              Resume cooking
-                            </Link>
-                          )}
-
-                        {/* Swap Button */}
-                        <div className="mt-auto pt-4 border-t border-gray-200 pointer-events-auto">
+                        ) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              const isCompleted = isRecipeCompleted(
+                              handleMarkIncomplete(
                                 recipe.id,
                                 currentPlan.week_number
                               );
-                              const swapLimitReached =
-                                currentPlan.swap_count >= 3;
-                              if (!isCompleted && !swapLimitReached) {
-                                handleSwapClick(recipe);
-                              }
                             }}
-                            disabled={
-                              isRecipeCompleted(
-                                recipe.id,
-                                currentPlan.week_number
-                              ) || currentPlan.swap_count >= 3
-                            }
-                            title={
-                              isRecipeCompleted(
-                                recipe.id,
-                                currentPlan.week_number
-                              )
-                                ? "Cannot swap completed recipes"
-                                : currentPlan.swap_count >= 3
-                                  ? "Swap limit reached (3/3 swaps used)"
-                                  : "Swap this recipe"
-                            }
-                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-[hsl(var(--paprika))] hover:bg-amber-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                            disabled={toggleStatusMutation.isPending}
+                            title="Mark this recipe as incomplete"
+                            className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:bg-gray-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                           >
-                            <ArrowRightLeft className="w-4 h-4" />
-                            Swap {swapCount >= 3 && "(Limit Reached)"}
+                            <RotateCcw className="w-4 h-4" />
+                            {toggleStatusMutation.isPending
+                              ? "Marking..."
+                              : "Mark Incomplete"}
                           </button>
-
-                          {/* Mark as Incomplete Button */}
-                          {isRecipeCompleted(
-                            recipe.id,
-                            currentPlan.week_number
-                          ) && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleMarkIncomplete(
-                                  recipe.id,
-                                  currentPlan.week_number
-                                );
-                              }}
-                              disabled={toggleStatusMutation.isPending}
-                              title="Mark this recipe as incomplete"
-                              className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:bg-gray-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                              {toggleStatusMutation.isPending
-                                ? "Marking..."
-                                : "Mark Incomplete"}
-                            </button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </div>
@@ -616,13 +621,15 @@ export default function WeeklyPlanPage() {
             /* Only show "no plan" UI when we know for sure there are no plans */
             weeklyPlans &&
             weeklyPlans.length === 0 && (
-              <div className="text-center py-8">
-                <div className="mb-6">
-                  <p className="text-lg text-muted-foreground mb-2">
-                    {nextWeekEligibility?.message ||
-                      "You don&apos;t have a weekly meal plan yet."}
-                  </p>
-                </div>
+              <div className="text-center py-4">
+                <SodieEmptyState
+                  size="lg"
+                  message="I'm Sodie — let's build your first week together!"
+                />
+                <p className="font-body text-muted-foreground mb-6 -mt-2">
+                  {nextWeekEligibility?.message ||
+                    "You don't have a weekly meal plan yet."}
+                </p>
                 <button
                   className="px-8 py-4 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white font-bold rounded-lg shadow-lg hover:from-orange-600 hover:to-[hsl(var(--paprika))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))] disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:scale-105"
                   onClick={

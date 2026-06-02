@@ -2,12 +2,12 @@
 
 import LandingFooter from "@/components/LandingFooter";
 import LandingNavbar from "@/components/LandingNavbar";
+import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@/hooks";
 import {
   Check,
-  ChefHat,
   Clock,
   FileText,
   Lock,
@@ -58,31 +58,37 @@ export default function Home() {
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div className="space-y-8 text-center lg:text-left">
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-800">
-                Your Personal{" "}
+              <h1 className="font-heading font-black text-4xl md:text-5xl lg:text-6xl leading-tight text-[#262218]">
+                Cook smarter with{" "}
                 <span className="bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
-                  Cooking Mentor
+                  Mise
                 </span>
               </h1>
-              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Get personalized weekly meal plans that adapt to your skill
-                level, preferences, and feedback. Learn to cook at your own
-                pace!
+              <p className="font-body text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
+                Meet Sodie — your culinary companion. Get adaptive weekly meal
+                plans that grow with your skill, taste, and feedback.
               </p>
             </div>
 
             <div className="space-y-3 flex flex-col items-center lg:items-start">
-              <Button
-                onClick={handleGetStarted}
-                size="lg"
-                className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
-              >
-                <span className="flex items-center justify-center gap-3">
-                  <Rocket className="w-5 h-5 shrink-0" />
-                  Start Your Cooking Journey
-                </span>
-              </Button>
-              <p className="text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5">
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                <SodieAvatar
+                  size="lg"
+                  animate="none"
+                  className="hover:scale-105 transition-transform hidden sm:block"
+                />
+                <Button
+                  onClick={handleGetStarted}
+                  size="lg"
+                  className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                >
+                  <span className="flex items-center justify-center gap-3">
+                    <Rocket className="w-5 h-5 shrink-0" />
+                    Start Your Cooking Journey
+                  </span>
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground font-body flex items-center justify-center lg:justify-start gap-1.5">
                 <Clock className="w-4 h-4 shrink-0" />
                 Takes less than 2 minutes • No credit card required
               </p>
@@ -110,14 +116,12 @@ export default function Home() {
                 <CardContent className="p-6 sm:p-8">
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <div className="shrink-0 w-10 h-10 bg-gradient-to-br from-[hsl(var(--paprika))]/20 to-orange-200/40 rounded-lg flex items-center justify-center">
-                        <ChefHat className="w-5 h-5 text-[hsl(var(--paprika))]" />
-                      </div>
+                      <SodieAvatar size="sm" animate="none" />
                       <div className="min-w-0 text-left">
-                        <h3 className="font-semibold text-lg">
+                        <h3 className="font-heading font-bold text-lg text-[#262218]">
                           This Week&apos;s Plan
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground font-body">
                           Beginner • Italian Cuisine
                         </p>
                       </div>
@@ -193,16 +197,16 @@ export default function Home() {
 
         <section className="pt-20 md:pt-24 mt-12 md:mt-16 border-t border-border/20">
           <div className="text-center mb-12 space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800">
+            <h2 className="font-heading font-black text-3xl md:text-4xl text-[#262218]">
               Why Choose{" "}
               <span className="bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
-                ChefPath
+                Mise
               </span>
               ?
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto px-2">
-              Our adaptive cooking system grows with you, making every meal an
-              opportunity to learn and improve.
+            <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto px-2">
+              Sodie adapts with you — every meal is a chance to learn, swap, and
+              get better in the kitchen.
             </p>
           </div>
 
@@ -212,7 +216,7 @@ export default function Home() {
                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--paprika))]/20 to-orange-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--paprika))]/30">
                   <FileText className="w-8 h-8 text-[hsl(var(--paprika))]" />
                 </div>
-                <h3 className="text-xl font-bold text-[hsl(var(--paprika))]">
+                <h3 className="font-heading font-bold text-xl text-[hsl(var(--paprika))]">
                   Personalized Plans
                 </h3>
                 <p className="text-gray-600">
@@ -227,7 +231,7 @@ export default function Home() {
                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--turmeric))]/30 to-amber-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--turmeric))]/40">
                   <TrendingUp className="w-8 h-8 text-amber-700" />
                 </div>
-                <h3 className="text-xl font-bold text-amber-700">
+                <h3 className="font-heading font-bold text-xl text-amber-700">
                   Adaptive Learning
                 </h3>
                 <p className="text-gray-600">
@@ -242,7 +246,7 @@ export default function Home() {
                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--sage))]/30 to-green-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--sage))]/40">
                   <Trophy className="w-8 h-8 text-[hsl(var(--sage))]" />
                 </div>
-                <h3 className="text-xl font-bold text-[hsl(var(--sage))]">
+                <h3 className="font-heading font-bold text-xl text-[hsl(var(--sage))]">
                   Track Progress
                 </h3>
                 <p className="text-muted-foreground">
@@ -259,12 +263,12 @@ export default function Home() {
             <Card className="relative bg-gradient-to-br from-amber-50/80 via-white to-orange-50/80 border-2 border-[hsl(var(--paprika))]/40 shadow-2xl backdrop-blur-sm">
               <CardContent className="p-8 sm:p-10 lg:p-12 text-center space-y-8">
                 <div className="space-y-4">
-                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
+                  <h2 className="font-heading font-black text-3xl md:text-4xl bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
                     Ready to Start Cooking?
                   </h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Join thousands of home cooks who&apos;ve transformed their
-                    kitchen skills with ChefPath
+                  <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
+                    Join home cooks building confidence in the kitchen with Mise
+                    and Sodie by their side.
                   </p>
                 </div>
 

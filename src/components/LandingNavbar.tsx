@@ -1,13 +1,10 @@
 "use client";
 
+import BrandLogo from "@/components/BrandLogo";
 import {
-  navBrandTextClassName,
   navContainerClassName,
   navCtaClassName,
   navGhostButtonClassName,
-  navLogoIconBoxClassName,
-  navLogoIconClassName,
-  navLogoLinkClassName,
   navMobileLinkClassName,
   navMobileMenuPanelClassName,
   navMobileMenuToggleClassName,
@@ -15,8 +12,7 @@ import {
   navShellClassName,
 } from "@/components/navStyles";
 import { Button } from "@/components/ui/button";
-import { ChefHat, Menu, X } from "lucide-react";
-import Link from "next/link";
+import { Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -35,12 +31,7 @@ export default function LandingNavbar() {
     <nav className={navShellClassName}>
       <div className={navContainerClassName}>
         <div className={navRowClassName}>
-          <Link href="/" className={navLogoLinkClassName} onClick={closeMenu}>
-            <div className={navLogoIconBoxClassName}>
-              <ChefHat className={navLogoIconClassName} />
-            </div>
-            <span className={navBrandTextClassName}>ChefPath</span>
-          </Link>
+          <BrandLogo href="/" size="md" onClick={closeMenu} />
 
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-1 lg:gap-2 shrink-0">
@@ -48,7 +39,7 @@ export default function LandingNavbar() {
               variant="ghost"
               onClick={() => router.push("/login")}
               className={`${navGhostButtonClassName} px-3 sm:px-4`}
-              aria-label="Login to ChefPath"
+              aria-label="Login to Mise"
             >
               Login
             </Button>
@@ -56,7 +47,7 @@ export default function LandingNavbar() {
               variant="ghost"
               onClick={() => router.push("/register")}
               className={`${navGhostButtonClassName} px-3 sm:px-4`}
-              aria-label="Register for ChefPath"
+              aria-label="Register for Mise"
             >
               Register
             </Button>

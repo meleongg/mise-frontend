@@ -2,13 +2,14 @@
 
 import LandingNavbar from "@/components/LandingNavbar";
 import PasswordRequirements from "@/components/PasswordRequirements";
+import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { evaluatePassword } from "@/lib/passwordPolicy";
-import { Eye, EyeOff, Sparkles } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -65,9 +66,9 @@ export default function RegisterPage() {
         <Card className="w-full max-w-lg shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center space-y-3">
             <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-[hsl(var(--paprika))]/15 to-[hsl(var(--turmeric))]/20 flex items-center justify-center">
-              <Sparkles className="w-7 h-7 text-[hsl(var(--paprika))]" />
+              <SodieAvatar size="md" animate="none" />
             </div>
-            <CardTitle className="text-2xl font-bold text-primary">
+            <CardTitle className="font-heading font-bold text-2xl text-[#262218]">
               Start your cooking journey
             </CardTitle>
             <p className="text-sm text-muted-foreground">

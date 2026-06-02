@@ -34,9 +34,7 @@ export default function PasswordRequirements({
           <li
             key={rule.id}
             className={`flex items-center gap-2 transition-colors ${
-              passed
-                ? "text-[hsl(var(--sage))]"
-                : "text-muted-foreground"
+              passed ? "text-[hsl(var(--sage))]" : "text-muted-foreground"
             }`}
           >
             {passed ? (
