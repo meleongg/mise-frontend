@@ -30,7 +30,6 @@ const emojiClass =
 export default function Home() {
   const router = useRouter();
   const { isLoading } = useUser();
-
   const handleGetStarted = () => {
     router.push("/onboarding");
   };
@@ -49,18 +48,18 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-amber-50 via-orange-50/50 to-[hsl(var(--turmeric))]/20 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-amber-50 via-orange-50/50 to-[hsl(var(--turmeric))]/20 relative overflow-x-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--paprika))_0%,transparent_25%),radial-gradient(circle_at_70%_80%,hsl(var(--turmeric))_0%,transparent_25%),radial-gradient(circle_at_40%_60%,hsl(var(--sage))_0%,transparent_20%)] opacity-8" />
 
       <LandingNavbar />
 
       <main className="relative flex-1 container mx-auto px-4 sm:px-6 py-12 md:py-16 lg:py-20">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-          <div className="space-y-8 text-center lg:text-left">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-8 xl:gap-12 items-center">
+          <div className="space-y-8 text-center lg:text-left order-2 lg:order-1">
             <div className="space-y-4">
               <h1 className="font-heading font-black text-4xl md:text-5xl lg:text-6xl leading-tight text-[#262218]">
                 Cook smarter with{" "}
-                <span className="bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
+                <span className="inline-block pb-1 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
                   Mise
                 </span>
               </h1>
@@ -71,23 +70,16 @@ export default function Home() {
             </div>
 
             <div className="space-y-3 flex flex-col items-center lg:items-start">
-              <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-                <SodieAvatar
-                  size="lg"
-                  animate="none"
-                  className="hover:scale-105 transition-transform hidden sm:block"
-                />
-                <Button
-                  onClick={handleGetStarted}
-                  size="lg"
-                  className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
-                >
-                  <span className="flex items-center justify-center gap-3">
-                    <Rocket className="w-5 h-5 shrink-0" />
-                    Start Your Cooking Journey
-                  </span>
-                </Button>
-              </div>
+              <Button
+                onClick={handleGetStarted}
+                size="lg"
+                className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] w-full sm:w-auto"
+              >
+                <span className="flex items-center justify-center gap-3">
+                  <Rocket className="w-5 h-5 shrink-0" />
+                  Start Your Cooking Journey
+                </span>
+              </Button>
               <p className="text-sm text-muted-foreground font-body flex items-center justify-center lg:justify-start gap-1.5">
                 <Clock className="w-4 h-4 shrink-0" />
                 Takes less than 2 minutes • No credit card required
@@ -110,21 +102,18 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative max-w-md mx-auto w-full lg:max-w-none lg:mx-0 mt-4 lg:mt-0">
+          <div className="relative max-w-md mx-auto w-full lg:max-w-none lg:mx-0 mt-4 lg:mt-0 order-1 lg:order-2">
             <div className="relative z-10">
-              <Card className="bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--paprika))]/40 shadow-2xl">
+              <Card className="relative overflow-visible bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--paprika))]/40 shadow-2xl">
                 <CardContent className="p-6 sm:p-8">
                   <div className="space-y-6">
-                    <div className="flex items-center gap-3">
-                      <SodieAvatar size="sm" animate="none" />
-                      <div className="min-w-0 text-left">
-                        <h3 className="font-heading font-bold text-lg text-[#262218]">
-                          This Week&apos;s Plan
-                        </h3>
-                        <p className="text-sm text-muted-foreground font-body">
-                          Beginner • Italian Cuisine
-                        </p>
-                      </div>
+                    <div className="text-left">
+                      <h3 className="font-heading font-bold text-xl text-[#262218]">
+                        This Week&apos;s Plan
+                      </h3>
+                      <p className="text-sm text-muted-foreground font-body mt-1">
+                        Beginner • Italian Cuisine
+                      </p>
                     </div>
 
                     <div className="space-y-3">
@@ -187,6 +176,27 @@ export default function Home() {
                     </div>
                   </div>
                 </CardContent>
+
+                <div
+                  className="absolute -bottom-6 -left-6 sm:-bottom-8 sm:-left-8 lg:-bottom-10 lg:-left-16 xl:-left-20 z-20 pointer-events-none motion-safe:rotate-[-10deg]"
+                  aria-hidden
+                >
+                  <SodieAvatar
+                    size="lg"
+                    animate="idle"
+                    className="drop-shadow-lg sm:hidden"
+                  />
+                  <SodieAvatar
+                    size="xl"
+                    animate="idle"
+                    className="drop-shadow-lg hidden sm:block lg:hidden"
+                  />
+                  <SodieAvatar
+                    size="2xl"
+                    animate="idle"
+                    className="drop-shadow-lg hidden lg:block"
+                  />
+                </div>
               </Card>
             </div>
 
@@ -199,7 +209,7 @@ export default function Home() {
           <div className="text-center mb-12 space-y-4">
             <h2 className="font-heading font-black text-3xl md:text-4xl text-[#262218]">
               Why Choose{" "}
-              <span className="bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
+              <span className="inline-block pb-1 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
                 Mise
               </span>
               ?
@@ -260,10 +270,10 @@ export default function Home() {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--paprika))]/20 via-[hsl(var(--turmeric))]/20 to-orange-300/20 rounded-3xl blur-3xl pointer-events-none" />
 
-            <Card className="relative bg-gradient-to-br from-amber-50/80 via-white to-orange-50/80 border-2 border-[hsl(var(--paprika))]/40 shadow-2xl backdrop-blur-sm">
+            <Card className="relative z-10 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/80 border-2 border-[hsl(var(--paprika))]/40 shadow-2xl backdrop-blur-sm">
               <CardContent className="p-8 sm:p-10 lg:p-12 text-center space-y-8">
                 <div className="space-y-4">
-                  <h2 className="font-heading font-black text-3xl md:text-4xl bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
+                  <h2 className="font-heading font-black text-3xl md:text-4xl leading-snug text-[hsl(var(--paprika))]">
                     Ready to Start Cooking?
                   </h2>
                   <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -276,14 +286,11 @@ export default function Home() {
                   <Button
                     onClick={handleGetStarted}
                     size="lg"
-                    className="h-auto min-h-12 sm:min-h-14 md:min-h-16 lg:min-h-20 w-full max-w-md sm:max-w-none sm:w-auto px-4 sm:px-8 md:px-12 lg:px-16 py-3 sm:py-4 text-base sm:text-lg md:text-xl lg:text-2xl font-bold whitespace-normal sm:whitespace-nowrap leading-snug bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-500 transform hover:scale-105 animate-pulse hover:animate-none border-2 border-orange-700/30"
+                    className="h-14 sm:h-16 w-full max-w-md sm:max-w-none sm:w-auto px-8 sm:px-12 text-lg sm:text-xl font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] border border-orange-700/20"
                   >
-                    <span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:gap-x-3 sm:gap-y-0 md:gap-4">
+                    <span className="flex items-center justify-center gap-3">
                       <Rocket className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-                      <span className="text-center">
-                        Start Your Cooking Journey
-                      </span>
-                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 hidden sm:block" />
+                      Start Your Cooking Journey
                     </span>
                   </Button>
 

@@ -365,7 +365,7 @@ export default function WeeklyPlanPage() {
   return (
     <div className="min-h-screen flex flex-col items-center p-4 py-8 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20">
       <div className="w-full max-w-3xl">
-        <SodieCommandBar />
+        <SodieCommandBar hasActivePlan={Boolean(currentPlan)} />
       </div>
       <Card className="w-full max-w-3xl shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
         <CardHeader>
@@ -427,37 +427,27 @@ export default function WeeklyPlanPage() {
               )}
 
               {/* Recipe Statistics & Progress */}
-              <div className="mb-6 space-y-3">
-                <div className="text-center font-heading font-semibold text-lg text-[#262218]">
-                  Week {currentPlan.week_number}: {totalCount} recipes planned
-                </div>
-
-                <div className="flex flex-col items-center gap-2">
+              <div className="mb-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <p className="font-heading font-semibold text-lg text-[#262218] text-center sm:text-left">
+                    Week {currentPlan.week_number} · {totalCount}{" "}
+                    {totalCount === 1 ? "recipe" : "recipes"}
+                  </p>
                   <span
-                    className={`font-body font-semibold tracking-wider uppercase text-xs px-3 py-1 rounded-full ${swapCounterClass}`}
+                    className={`font-body text-xs px-3 py-1.5 rounded-full text-center sm:text-left ${swapCounterClass}`}
                   >
-                    {swapCount}/3 swaps used
+                    {swapCount >= 3 ? (
+                      <>3/3 swaps used · resets next week</>
+                    ) : (
+                      <>
+                        {swapCount}/3 swaps used · {3 - swapCount} remaining
+                      </>
+                    )}
                   </span>
-                  {swapCount < 3 && (
-                    <p className="font-body text-sm text-muted-foreground text-center">
-                      {3 - swapCount} swap{3 - swapCount === 1 ? "" : "s"}{" "}
-                      remaining this week
-                    </p>
-                  )}
-                  {swapCount >= 3 && (
-                    <span className="text-xs text-muted-foreground font-body">
-                      (Resets next week)
-                    </span>
-                  )}
                 </div>
 
-                <p className="text-xs text-center text-muted-foreground">
-                  Recently cooked recipes won&apos;t appear for 2 weeks.
-                </p>
-
-                {/* Progress Bar */}
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-muted-foreground">
+                  <div className="flex justify-between text-sm text-muted-foreground font-body">
                     <span>
                       {completedCount} of {totalCount} completed
                     </span>
@@ -470,12 +460,6 @@ export default function WeeklyPlanPage() {
                     />
                   </div>
                 </div>
-
-                {swapCount === 0 && (
-                  <div className="text-xs text-center text-muted-foreground">
-                    You can swap up to 3 recipes per week to customize your plan
-                  </div>
-                )}
               </div>
 
               {/* Recipe Cards Grid */}

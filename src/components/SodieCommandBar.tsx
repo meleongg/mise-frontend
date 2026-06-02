@@ -2,20 +2,41 @@
 
 import SodieAvatar from "@/components/SodieAvatar";
 import { SodieChatInput, SodieChatThread } from "@/components/SodieChatParts";
-import { useAdaptiveChat } from "@/hooks/useAdaptiveChat";
+import { Button } from "@/components/ui/button";
+import { Send } from "lucide-react";
+import {
+  SODIE_AI_DISCLAIMER,
+  SODIE_PROMPT_SUGGESTIONS,
+  useAdaptiveChat,
+} from "@/hooks/useAdaptiveChat";
 import { useEffect, useRef } from "react";
 
-export default function SodieCommandBar() {
-  const chat = useAdaptiveChat();
+type SodieCommandBarProps = {
+  hasActivePlan: boolean;
+};
+
+function SodieDisclaimer() {
+  return (
+    <p className="text-xs text-muted-foreground font-body leading-snug">
+      {SODIE_AI_DISCLAIMER}
+    </p>
+  );
+}
+
+export default function SodieCommandBar({
+  hasActivePlan,
+}: SodieCommandBarProps) {
+  const chat = useAdaptiveChat({ hasActivePlan });
   const panelRef = useRef<HTMLElement>(null);
   const hasScrolledPanelIntoView = useRef(false);
 
-  // On first send, gently bring the panel into view without hijacking page scroll later
   useEffect(() => {
     if (!chat.isActive || hasScrolledPanelIntoView.current) return;
     hasScrolledPanelIntoView.current = true;
     panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [chat.isActive]);
+
+  const inputDisabled = !hasActivePlan || chat.isLoading || chat.isRateLimited;
 
   const inputBlock = (
     <div className="flex-1 w-full min-w-0">
@@ -24,29 +45,61 @@ export default function SodieCommandBar() {
           Ask Sodie
         </p>
       )}
-      <SodieChatInput
-        value={chat.inputMessage}
-        onChange={chat.setInputMessage}
-        onSend={() => void chat.handleSendMessage()}
-        onKeyDown={chat.handleKeyPress}
-        onFocus={() => chat.setIsExpanded(true)}
-        placeholder={chat.placeholder}
-        isLoading={chat.isLoading}
-        isRateLimited={chat.isRateLimited}
-        rows={chat.isActive ? 2 : 2}
-        showSendButton={false}
-      />
-      <div className="flex justify-end mt-2">
-        <button
+      {!hasActivePlan && !chat.isActive && (
+        <p className="text-sm text-[#262218]/80 font-body mb-3 text-center sm:text-left">
+          Generate your weekly plan first to get personalized tips from Sodie.
+        </p>
+      )}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+        <div className="flex-1 min-w-0">
+          <SodieChatInput
+            value={chat.inputMessage}
+            onChange={chat.setInputMessage}
+            onSend={() => void chat.handleSendMessage()}
+            onKeyDown={chat.handleKeyPress}
+            onFocus={() => {
+              if (hasActivePlan) chat.setIsExpanded(true);
+            }}
+            placeholder={chat.placeholder}
+            isLoading={chat.isLoading}
+            isRateLimited={chat.isRateLimited}
+            disabled={inputDisabled}
+            rows={chat.isActive ? 2 : 2}
+            showSendButton={false}
+          />
+        </div>
+        <Button
           type="button"
           onClick={() => void chat.handleSendMessage()}
-          disabled={
-            !chat.inputMessage.trim() || chat.isLoading || chat.isRateLimited
-          }
-          className="font-body text-sm font-semibold text-[hsl(var(--paprika))] hover:underline disabled:opacity-50 disabled:no-underline"
+          disabled={!chat.canSend}
+          className="h-11 sm:h-12 px-5 sm:px-6 shrink-0 w-full sm:w-auto font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-md"
         >
-          {chat.isLoading ? "Sending..." : "Send →"}
-        </button>
+          {chat.isLoading ? (
+            "Sending..."
+          ) : (
+            <span className="flex items-center justify-center gap-2">
+              <Send className="w-4 h-4" aria-hidden />
+              Send
+            </span>
+          )}
+        </Button>
+      </div>
+      {hasActivePlan && !chat.isActive && (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {SODIE_PROMPT_SUGGESTIONS.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => chat.setInputMessage(suggestion)}
+              className="font-body text-xs sm:text-sm px-3 py-1.5 rounded-full border border-[hsl(var(--paprika))]/25 bg-[hsl(var(--paprika))]/5 text-[#262218] hover:bg-[hsl(var(--paprika))]/10 transition-colors text-left"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="mt-3">
+        <SodieDisclaimer />
       </div>
     </div>
   );
@@ -63,7 +116,7 @@ export default function SodieCommandBar() {
       {chat.isActive ? (
         <>
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[hsl(var(--paprika))]/10 shrink-0">
-            <SodieAvatar size="sm" animate="idle" />
+            <SodieAvatar size="md" animate="idle" />
             <p className="font-heading font-bold text-base text-[#262218]">
               Sodie
             </p>
@@ -88,12 +141,12 @@ export default function SodieCommandBar() {
       ) : (
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5">
           <SodieAvatar
-            size="xl"
+            size="2xl"
             animate="idle"
             className="hidden sm:block shrink-0"
           />
           <SodieAvatar
-            size="lg"
+            size="xl"
             animate="idle"
             className="sm:hidden shrink-0"
           />

@@ -1,5 +1,6 @@
 "use client";
 
+import SodiePageIntro from "@/components/SodiePageIntro";
 import {
   Card,
   CardContent,
@@ -169,15 +170,10 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-6 md:p-8 py-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="font-heading font-bold text-3xl text-[#262218]">
-            Your Cooking Journey
-          </h1>
-          <p className="text-muted-foreground">
-            Track your progress and celebrate your achievements
-          </p>
-        </div>
+        <SodiePageIntro
+          title="Your Cooking Journey"
+          description="See how you're growing in the kitchen — Sodie cheers on every milestone."
+        />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

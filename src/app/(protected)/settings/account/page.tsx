@@ -191,12 +191,12 @@ export default function AccountSettingsPage() {
       <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-4 py-8 pb-16">
         <div className="max-w-2xl mx-auto space-y-6 mb-8">
           {/* Account Details Card */}
-          <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
+          <Card className="shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm">
             <CardHeader className="space-y-2">
-              <CardTitle className="text-2xl font-bold text-primary">
+              <CardTitle className="font-heading text-2xl font-bold text-[#262218]">
                 Account Settings
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="font-body">
                 Manage your personal information
               </CardDescription>
             </CardHeader>
@@ -218,7 +218,7 @@ export default function AccountSettingsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, first_name: e.target.value })
                       }
-                      className="border-2 focus:border-primary"
+                      className="border-[hsl(var(--paprika))]/25 focus-visible:ring-[hsl(var(--paprika))]/40"
                       required
                     />
                   </div>
@@ -238,7 +238,7 @@ export default function AccountSettingsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, last_name: e.target.value })
                       }
-                      className="border-2 focus:border-primary"
+                      className="border-[hsl(var(--paprika))]/25 focus-visible:ring-[hsl(var(--paprika))]/40"
                       required
                     />
                   </div>
@@ -256,29 +256,31 @@ export default function AccountSettingsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="border-2 focus:border-primary"
+                    className="border-[hsl(var(--paprika))]/25 focus-visible:ring-[hsl(var(--paprika))]/40"
                     required
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={isSaving}
-                  className="w-full bg-gradient-to-r from-[hsl(var(--paprika))] to-[hsl(var(--paprika))]/80 hover:from-[hsl(var(--paprika))]/90 hover:to-[hsl(var(--paprika))]/70 text-white"
-                >
-                  {isSaving ? "Saving..." : "Update Account Details"}
-                </Button>
+                <div className="flex justify-end pt-2">
+                  <Button
+                    type="submit"
+                    disabled={isSaving}
+                    className="w-full sm:w-auto min-w-[12rem] px-8 font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-md"
+                  >
+                    {isSaving ? "Saving..." : "Update Account Details"}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
 
           {/* Password Change Card */}
-          <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
+          <Card className="shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm">
             <CardHeader className="space-y-2">
-              <CardTitle className="text-2xl font-bold text-primary">
+              <CardTitle className="font-heading text-2xl font-bold text-[#262218]">
                 Change Password
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="font-body">
                 Update your password to keep your account secure
               </CardDescription>
             </CardHeader>
@@ -302,7 +304,7 @@ export default function AccountSettingsPage() {
                         current_password: e.target.value,
                       })
                     }
-                    className="border-2 focus:border-primary"
+                    className="border-[hsl(var(--paprika))]/25 focus-visible:ring-[hsl(var(--paprika))]/40"
                     required
                   />
                 </div>
@@ -325,11 +327,11 @@ export default function AccountSettingsPage() {
                         new_password: e.target.value,
                       })
                     }
-                    className="border-2 focus:border-primary"
+                    className="border-[hsl(var(--paprika))]/25 focus-visible:ring-[hsl(var(--paprika))]/40"
                     minLength={6}
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground font-body">
                     Must be at least 6 characters long
                   </p>
                 </div>
@@ -352,25 +354,27 @@ export default function AccountSettingsPage() {
                         confirm_password: e.target.value,
                       })
                     }
-                    className="border-2 focus:border-primary"
+                    className="border-[hsl(var(--paprika))]/25 focus-visible:ring-[hsl(var(--paprika))]/40"
                     minLength={6}
                     required
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={isSaving}
-                  className="w-full bg-gradient-to-r from-[hsl(var(--paprika))] to-[hsl(var(--paprika))]/80 hover:from-[hsl(var(--paprika))]/90 hover:to-[hsl(var(--paprika))]/70 text-white"
-                >
-                  {isSaving ? "Changing Password..." : "Change Password"}
-                </Button>
+                <div className="flex justify-end pt-2">
+                  <Button
+                    type="submit"
+                    disabled={isSaving}
+                    className="w-full sm:w-auto min-w-[12rem] px-8 font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-md"
+                  >
+                    {isSaving ? "Changing Password..." : "Change Password"}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
 
           {/* Danger Zone Card */}
-          <Card className="shadow-2xl border-2 border-red-500/60 bg-white/95 backdrop-blur-sm">
+          <Card className="shadow-cozy border-2 border-red-400/50 bg-white/95 backdrop-blur-sm">
             <CardHeader className="space-y-2">
               <CardTitle className="text-xl font-bold text-red-600 flex items-center gap-2">
                 <span>⚠️</span> Danger Zone
@@ -385,13 +389,15 @@ export default function AccountSettingsPage() {
                 including your recipes, meal plans, and preferences. This action
                 cannot be undone.
               </p>
-              <Button
-                type="button"
-                onClick={handleDeleteAccount}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold"
-              >
-                Delete My Account
-              </Button>
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  className="w-full sm:w-auto min-w-[12rem] px-8 bg-red-600 hover:bg-red-700 text-white font-semibold font-body"
+                >
+                  Delete My Account
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

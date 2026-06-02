@@ -1,9 +1,19 @@
 "use client";
 
+import { useApp } from "@/contexts/AppContext";
 import { useUser } from "@/hooks";
 import { api, ApiError } from "@/lib/api";
 import { ChatMessage } from "@/types";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+export const SODIE_AI_DISCLAIMER =
+  "Sodie uses AI and can make mistakes. Double-check recipes, allergens, and instructions before you cook.";
+
+export const SODIE_PROMPT_SUGGESTIONS = [
+  "What should I cook first this week?",
+  "Any prep I can do ahead for my plan?",
+  "How am I doing this week?",
+] as const;
 
 function getRetryAfterSeconds(err: ApiError) {
   const retryAfterHeader = err?.response?.headers?.get?.("Retry-After");
@@ -15,8 +25,14 @@ function getRetryAfterSeconds(err: ApiError) {
   return null;
 }
 
-export function useAdaptiveChat() {
+type UseAdaptiveChatOptions = {
+  hasActivePlan: boolean;
+};
+
+export function useAdaptiveChat({ hasActivePlan }: UseAdaptiveChatOptions) {
   const { user } = useUser();
+  const { state } = useApp();
+  const currentWeek = state.currentWeek;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +45,11 @@ export function useAdaptiveChat() {
 
   const isRateLimited = rateLimitUntil !== null && rateLimitUntil > Date.now();
   const isActive = isExpanded || messages.length > 0;
+  const canSend =
+    hasActivePlan &&
+    !isLoading &&
+    !isRateLimited &&
+    Boolean(inputMessage.trim());
 
   const scrollThreadToBottom = useCallback(() => {
     const el = threadScrollRef.current;
@@ -73,7 +94,8 @@ export function useAdaptiveChat() {
   }, []);
 
   const handleSendMessage = useCallback(async () => {
-    if (!inputMessage.trim() || !user || isRateLimited) return;
+    if (!inputMessage.trim() || !user || isRateLimited || !hasActivePlan)
+      return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -92,6 +114,7 @@ export function useAdaptiveChat() {
     try {
       const response = await api.adaptiveChat(user.id, {
         user_message: userMessage.text,
+        week_number: currentWeek > 0 ? currentWeek : undefined,
       });
 
       setMessages((prev) =>
@@ -145,7 +168,14 @@ export function useAdaptiveChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [inputMessage, user, isRateLimited, startRateLimitCooldown]);
+  }, [
+    inputMessage,
+    user,
+    isRateLimited,
+    hasActivePlan,
+    currentWeek,
+    startRateLimitCooldown,
+  ]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -154,9 +184,11 @@ export function useAdaptiveChat() {
     }
   };
 
-  const placeholder = user?.first_name
-    ? `Hey ${user.first_name}! What are we cooking tonight? Paste a recipe link or ask Sodie to scale your meal plan...`
-    : "What are we cooking tonight? Paste a recipe link or ask Sodie anything...";
+  const placeholder = !hasActivePlan
+    ? "Generate your weekly plan below to get personalized tips from Sodie."
+    : user?.first_name
+      ? `Hey ${user.first_name}! Ask about this week's meals, prep tips, or your progress…`
+      : "Ask about this week's meals, prep tips, or your progress…";
 
   return {
     user,
@@ -170,6 +202,8 @@ export function useAdaptiveChat() {
     highlightBar,
     isRateLimited,
     isActive,
+    canSend,
+    hasActivePlan,
     threadScrollRef,
     handleSendMessage,
     handleKeyPress,

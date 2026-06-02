@@ -1,5 +1,6 @@
 "use client";
 
+import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRightLeft } from "lucide-react";
 import { useState } from "react";
 
 interface SwapRecipeModalProps {
@@ -54,13 +54,25 @@ export default function SwapRecipeModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-sm shadow-2xl border-2 border-[hsl(var(--paprika))]/60">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ArrowRightLeft className="w-5 h-5" />
-            Swap Recipe
-          </DialogTitle>
-          <DialogDescription>
-            Replace this recipe with an AI-powered suggestion
-          </DialogDescription>
+          <div className="flex items-start gap-4 pr-6">
+            <SodieAvatar
+              size="lg"
+              animate="idle"
+              className="shrink-0 hidden sm:block drop-shadow-sm"
+            />
+            <SodieAvatar
+              size="md"
+              animate="idle"
+              className="shrink-0 sm:hidden drop-shadow-sm"
+            />
+            <div className="space-y-1.5 text-left min-w-0">
+              <DialogTitle>Swap Recipe</DialogTitle>
+              <DialogDescription>
+                Tell Sodie what you&apos;d prefer — we&apos;ll find a
+                replacement that fits your plan and preferences.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -108,10 +120,12 @@ export default function SwapRecipeModal({
           </div>
 
           {/* Character count */}
-          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs text-blue-800">
-              <strong>Pro tip:</strong> Be specific! The more details you
-              provide, the better our AI can find a suitable replacement.
+          <div className="flex items-center gap-4 p-4 bg-[hsl(var(--paprika))]/5 rounded-lg border border-[hsl(var(--paprika))]/20">
+            <SodieAvatar size="lg" animate="none" className="shrink-0" />
+            <p className="text-sm leading-snug text-[#262218]/90 font-body min-w-0 flex-1">
+              <strong className="font-semibold">Pro tip:</strong> Be specific
+              about diet, time, or ingredients — Sodie uses this to pick your
+              best swap.
             </p>
           </div>
         </div>

@@ -119,6 +119,7 @@ export interface WeeklyPlanResponse {
 }
 export interface GeneralChatRequest {
   user_message: string;
+  week_number?: number;
 }
 
 export interface GeneralChatResponse {

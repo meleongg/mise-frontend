@@ -117,6 +117,7 @@ interface SodieChatInputProps {
   placeholder: string;
   isLoading: boolean;
   isRateLimited: boolean;
+  disabled?: boolean;
   rows?: number;
   showSendButton?: boolean;
 }
@@ -130,9 +131,11 @@ export function SodieChatInput({
   placeholder,
   isLoading,
   isRateLimited,
+  disabled = false,
   rows = 2,
   showSendButton = true,
 }: SodieChatInputProps) {
+  const isDisabled = disabled || isLoading || isRateLimited;
   return (
     <div className="space-y-2 w-full">
       <Textarea
@@ -143,7 +146,7 @@ export function SodieChatInput({
         placeholder={placeholder}
         rows={rows}
         className="resize-none font-body bg-white/90 border-[hsl(var(--paprika))]/25 focus-visible:ring-[hsl(var(--paprika))]/40"
-        disabled={isLoading || isRateLimited}
+        disabled={isDisabled}
       />
       {isRateLimited && (
         <p className="text-xs text-muted-foreground font-body">
@@ -153,7 +156,7 @@ export function SodieChatInput({
       {showSendButton && (
         <Button
           onClick={onSend}
-          disabled={!value.trim() || isLoading || isRateLimited}
+          disabled={!value.trim() || isDisabled}
           className="w-full sm:w-auto bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white font-semibold font-body"
         >
           {isLoading ? "Sending..." : "Ask Sodie"}

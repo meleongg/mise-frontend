@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-export type SodieSize = "xs" | "sm" | "md" | "lg" | "xl";
+export type SodieSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 export type SodieAnimate = "none" | "idle" | "celebrate";
 
 const SIZE_PX: Record<SodieSize, number> = {
@@ -12,6 +12,7 @@ const SIZE_PX: Record<SodieSize, number> = {
   md: 64,
   lg: 96,
   xl: 120,
+  "2xl": 168,
 };
 
 const ANIMATE_CLASS: Record<SodieAnimate, string> = {
