@@ -326,7 +326,7 @@ export default function RecipePage({
                   type="button"
                   variant="outline"
                   size="touch"
-                  className="w-full text-base font-semibold bg-white border-2 border-[hsl(var(--sage))] text-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/10 shadow-sm"
+                  className="w-full h-auto py-5 sm:py-6 text-base font-semibold bg-white border-2 border-[hsl(var(--sage))] text-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/10 shadow-sm"
                   onClick={openFeedbackModal}
                   disabled={toggleStatusMutation.isPending}
                 >

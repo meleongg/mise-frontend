@@ -28,7 +28,7 @@ const buttonVariants = cva(
         touch: "h-16 sm:h-14 rounded-md px-6 text-base has-[>svg]:px-4",
         /** Primary recipe CTAs (start cooking, preview steps). */
         touchProminent:
-          "min-h-[5.5rem] h-[5.5rem] rounded-md px-6 text-base has-[>svg]:px-4",
+          "min-h-[5.5rem] h-auto rounded-md px-6 py-5 sm:py-6 text-base has-[>svg]:px-4",
         icon: "size-9",
       },
     },

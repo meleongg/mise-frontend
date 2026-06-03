@@ -2,4 +2,4 @@
 export const touchButtonClass = "min-h-16 h-16 sm:min-h-14 sm:h-14";
 
 /** Hero recipe actions (start cooking, preview). */
-export const touchProminentButtonClass = "min-h-[5.5rem] h-[5.5rem]";
+export const touchProminentButtonClass = "min-h-[5.5rem] h-auto py-5 sm:py-6";
