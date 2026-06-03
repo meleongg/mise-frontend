@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { SODIE_CHAT_MAX_LENGTH } from "@/lib/aiLimits";
 import { ChatMessage } from "@/types";
 
 function renderMessageLine(line: string, idx: number) {
@@ -140,11 +141,14 @@ export function SodieChatInput({
     <div className="space-y-2 w-full">
       <Textarea
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) =>
+          onChange(e.target.value.slice(0, SODIE_CHAT_MAX_LENGTH))
+        }
         onKeyDown={onKeyDown}
         onFocus={onFocus}
         placeholder={placeholder}
         rows={rows}
+        maxLength={SODIE_CHAT_MAX_LENGTH}
         className="resize-none font-body bg-white/90 border-[hsl(var(--paprika))]/25 focus-visible:ring-[hsl(var(--paprika))]/40"
         disabled={isDisabled}
       />
