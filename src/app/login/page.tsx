@@ -1,7 +1,7 @@
 "use client";
 
 import LandingNavbar from "@/components/LandingNavbar";
-import SodieAvatar from "@/components/SodieAvatar";
+import AuthSodieMark from "@/components/AuthSodieMark";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,18 +39,7 @@ export default function LoginPage() {
       <main className="relative flex-1 flex items-center justify-center p-4 py-10">
         <Card className="w-full max-w-md shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center space-y-3">
-            <div className="mx-auto w-28 h-28 sm:w-36 sm:h-36 rounded-2xl bg-gradient-to-br from-[hsl(var(--paprika))]/15 to-[hsl(var(--turmeric))]/20 flex items-center justify-center">
-              <SodieAvatar
-                size="xl"
-                animate="none"
-                className="drop-shadow-md sm:hidden"
-              />
-              <SodieAvatar
-                size="2xl"
-                animate="none"
-                className="drop-shadow-md hidden sm:block"
-              />
-            </div>
+            <AuthSodieMark />
             <CardTitle className="font-heading font-bold text-2xl text-[#262218]">
               Welcome back!
             </CardTitle>

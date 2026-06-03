@@ -278,7 +278,7 @@ export default function RecipePage({
             )}
 
             {user && !isCompleted && (
-              <div className="space-y-4 rounded-lg border border-[hsl(var(--paprika))]/15 bg-amber-50/50 px-4 py-4 sm:px-5">
+              <div className="space-y-4 rounded-xl border-2 border-[hsl(var(--paprika))]/20 bg-gradient-to-br from-amber-50/80 via-white to-white px-4 py-4 sm:px-5 shadow-sm">
                 <div className="flex items-center gap-4">
                   <SodieAvatar
                     size="lg"
@@ -294,7 +294,7 @@ export default function RecipePage({
                   <Button
                     asChild
                     size="touchProminent"
-                    className="flex-1 text-lg font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white shadow-lg"
+                    className="flex-1 text-lg font-semibold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-md ring-1 ring-[hsl(var(--paprika))]/25 border-0"
                   >
                     <Link
                       href={`/recipe/${recipe.id}/cook?week=${weekNumber}&commit=1`}
@@ -311,7 +311,7 @@ export default function RecipePage({
                       asChild
                       variant="outline"
                       size="touchProminent"
-                      className="flex-1 text-base border-2 border-[hsl(var(--paprika))]/40"
+                      className="flex-1 text-base font-semibold bg-white text-[hsl(var(--paprika))] border-2 border-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))]/8 shadow-sm"
                     >
                       <Link
                         href={`/recipe/${recipe.id}/cook?week=${weekNumber}&preview=1`}
@@ -326,7 +326,7 @@ export default function RecipePage({
                   type="button"
                   variant="outline"
                   size="touch"
-                  className="w-full text-base font-semibold border-2 border-[hsl(var(--sage))]/50 text-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/10"
+                  className="w-full text-base font-semibold bg-white border-2 border-[hsl(var(--sage))] text-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/10 shadow-sm"
                   onClick={openFeedbackModal}
                   disabled={toggleStatusMutation.isPending}
                 >

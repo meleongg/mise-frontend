@@ -198,12 +198,12 @@ export default function WeeklyPlanPage() {
     swapCount >= 3
       ? "bg-destructive/15 text-destructive"
       : "bg-[hsl(var(--turmeric))]/20 text-[#262218]";
-  const nextWeekPlanText = nextWeekEligibility
-    ? `Generate Week ${nextWeekEligibility.next_week} Plan`
-    : "Generate Next Week Plan";
-  const generatingText = nextWeekEligibility
-    ? `Generating Week ${nextWeekEligibility.next_week}...`
-    : "Generating...";
+  const targetWeekNumber =
+    nextWeekEligibility?.current_week === null
+      ? nextWeek
+      : (nextWeekEligibility?.next_week ?? nextWeek);
+  const nextWeekPlanText = `Generate Week ${targetWeekNumber} Plan`;
+  const generatingText = `Generating Week ${targetWeekNumber}...`;
 
   const handleGenerateNextWeek = async () => {
     if (!user || !nextWeekEligibility?.can_generate) return;
@@ -632,24 +632,18 @@ export default function WeeklyPlanPage() {
                     (nextWeekEligibility?.current_week !== null &&
                       !nextWeekEligibility?.can_generate)
                   }
-                  aria-label={
-                    nextWeekEligibility?.current_week === null
-                      ? `Generate Week ${nextWeek} Plan`
-                      : `Generate Week ${nextWeekEligibility?.next_week} Plan`
-                  }
+                  aria-label={`Generate Week ${targetWeekNumber} Plan`}
                 >
                   {isGenerating ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
                       Generating...
                     </span>
-                  ) : nextWeekEligibility?.current_week === null ? (
+                  ) : (
                     <span className="flex items-center justify-center gap-2">
                       <Rocket className="w-5 h-5" />
-                      Generate Week {nextWeek} Plan
+                      Generate Week {targetWeekNumber} Plan
                     </span>
-                  ) : (
-                    `Generate Week ${nextWeekEligibility?.next_week} Plan`
                   )}
                 </button>
               </div>
