@@ -4,6 +4,7 @@ import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import RecipeHeroImage from "@/components/RecipeHeroImage";
 import RecipeInstructionList from "@/components/RecipeInstructionList";
 import SodieAvatar from "@/components/SodieAvatar";
+import BackNavButton from "@/components/BackNavButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -76,13 +77,13 @@ export default function RecipePage({
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-[hsl(var(--turmeric))]/30">
       <div className="max-w-4xl mx-auto">
-        <Button
+        <BackNavButton
           onClick={() => router.push("/weekly-plan")}
           variant="secondary"
           className="mb-4 font-semibold text-white bg-[hsl(var(--paprika))] border-none hover:bg-[hsl(var(--primary))]/90 transition-colors duration-200"
         >
-          ← Back to weekly plan
-        </Button>
+          Back to weekly plan
+        </BackNavButton>
 
         <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
           <CardHeader>

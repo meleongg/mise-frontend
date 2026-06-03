@@ -1,6 +1,7 @@
 "use client";
 
 import SodieAvatar from "@/components/SodieAvatar";
+import BackNavButton from "@/components/BackNavButton";
 import { Button } from "@/components/ui/button";
 import {
   DialogClose,
@@ -241,14 +242,14 @@ export default function RecipeFeedbackForm({
             </Button>
           )}
           {isInline && onBack && (
-            <Button
+            <BackNavButton
               type="button"
               variant="ghost"
               className="w-full text-muted-foreground"
               onClick={onBack}
             >
               Back to recipe
-            </Button>
+            </BackNavButton>
           )}
           {feedbackError && (
             <div className="text-red-600 font-medium">{feedbackError}</div>

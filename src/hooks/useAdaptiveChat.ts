@@ -37,28 +37,34 @@ export function useAdaptiveChat({ hasActivePlan }: UseAdaptiveChatOptions) {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isExpanded, setIsExpanded] = useState(false);
   const [highlightBar, setHighlightBar] = useState(false);
   const [rateLimitUntil, setRateLimitUntil] = useState<number | null>(null);
   const threadScrollRef = useRef<HTMLDivElement>(null);
   const rateLimitTimeoutRef = useRef<number | null>(null);
 
   const isRateLimited = rateLimitUntil !== null && rateLimitUntil > Date.now();
-  const isActive = isExpanded || messages.length > 0;
+  /** True only after the user has sent at least one message (avoids focus layout jump). */
+  const isActive = messages.length > 0;
   const canSend =
     hasActivePlan &&
     !isLoading &&
     !isRateLimited &&
     Boolean(inputMessage.trim());
 
-  const scrollThreadToBottom = useCallback(() => {
+  const scrollThreadToBottom = useCallback((force = false) => {
     const el = threadScrollRef.current;
     if (!el) return;
-    el.scrollTop = el.scrollHeight;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const isNearBottom = distanceFromBottom < 48;
+    if (force || isNearBottom) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, []);
 
   useEffect(() => {
-    scrollThreadToBottom();
+    const last = messages[messages.length - 1];
+    const userJustSent = last?.sender === "user";
+    scrollThreadToBottom(userJustSent || isLoading);
   }, [messages, isLoading, scrollThreadToBottom]);
 
   useEffect(() => {
@@ -109,8 +115,6 @@ export function useAdaptiveChat({ hasActivePlan }: UseAdaptiveChatOptions) {
     setInputMessage("");
     setIsLoading(true);
     setError("");
-    setIsExpanded(true);
-
     try {
       const response = await api.adaptiveChat(user.id, {
         user_message: userMessage.text,
@@ -197,8 +201,6 @@ export function useAdaptiveChat({ hasActivePlan }: UseAdaptiveChatOptions) {
     setInputMessage,
     isLoading,
     error,
-    isExpanded,
-    setIsExpanded,
     highlightBar,
     isRateLimited,
     isActive,

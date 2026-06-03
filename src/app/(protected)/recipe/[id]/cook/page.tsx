@@ -4,6 +4,7 @@ import IngredientChecklist from "@/components/kitchen/IngredientChecklist";
 import KitchenModeShell from "@/components/kitchen/KitchenModeShell";
 import MiseEnPlaceIntroDialog from "@/components/kitchen/MiseEnPlaceIntroDialog";
 import StepNavigator from "@/components/kitchen/StepNavigator";
+import BackNavButton from "@/components/BackNavButton";
 import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
@@ -244,7 +245,7 @@ export default function KitchenCookPage({
           >
             Let&apos;s cook
           </Button>
-          <Button
+          <BackNavButton
             type="button"
             variant="ghost"
             className="w-full"
@@ -254,7 +255,7 @@ export default function KitchenCookPage({
             }}
           >
             Back to recipe
-          </Button>
+          </BackNavButton>
         </div>
       </div>
     );

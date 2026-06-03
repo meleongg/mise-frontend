@@ -1,5 +1,6 @@
 "use client";
 
+import BackNavButton from "@/components/BackNavButton";
 import SodiePageIntro from "@/components/SodiePageIntro";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -501,15 +502,15 @@ export default function SettingsPage() {
 
                 {/* Submit Button */}
                 <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
-                  <Button
+                  <BackNavButton
                     type="button"
                     variant="outline"
                     onClick={() => router.push("/weekly-plan")}
                     className="w-full sm:w-auto border-[hsl(var(--paprika))]/30 font-body"
                     disabled={isSaving}
                   >
-                    Cancel
-                  </Button>
+                    Back to weekly plan
+                  </BackNavButton>
                   <Button
                     type="submit"
                     disabled={isSaving}

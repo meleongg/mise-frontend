@@ -3,13 +3,13 @@
 import SodieAvatar from "@/components/SodieAvatar";
 import { SodieChatInput, SodieChatThread } from "@/components/SodieChatParts";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { ChevronDown, ChevronUp, Send } from "lucide-react";
 import {
   SODIE_AI_DISCLAIMER,
   SODIE_PROMPT_SUGGESTIONS,
   useAdaptiveChat,
 } from "@/hooks/useAdaptiveChat";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type SodieCommandBarProps = {
   hasActivePlan: boolean;
@@ -28,28 +28,53 @@ export default function SodieCommandBar({
 }: SodieCommandBarProps) {
   const chat = useAdaptiveChat({ hasActivePlan });
   const panelRef = useRef<HTMLElement>(null);
-  const hasScrolledPanelIntoView = useRef(false);
+  const [isChatCollapsed, setIsChatCollapsed] = useState(false);
+  const prevMessageCount = useRef(0);
 
   useEffect(() => {
-    if (!chat.isActive || hasScrolledPanelIntoView.current) return;
-    hasScrolledPanelIntoView.current = true;
-    panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [chat.isActive]);
+    const count = chat.messages.length;
+    if (prevMessageCount.current === 0 && count > 0) {
+      setIsChatCollapsed(false);
+    }
+    prevMessageCount.current = count;
+  }, [chat.messages.length]);
 
   const inputDisabled = !hasActivePlan || chat.isLoading || chat.isRateLimited;
+  const showCompactChat = chat.isActive && isChatCollapsed;
+
+  const askSodieHeader = (avatarSize: "lg" | "md", subtitle?: string) => (
+    <div className="flex items-center gap-3 min-w-0">
+      <SodieAvatar size={avatarSize} animate="idle" className="shrink-0" />
+      <div className="min-w-0 text-left">
+        <p className="font-heading font-bold text-lg text-[#262218] leading-tight">
+          Ask Sodie
+        </p>
+        {subtitle ? (
+          <p className="text-sm text-muted-foreground font-body mt-0.5 truncate">
+            {subtitle}
+          </p>
+        ) : !hasActivePlan ? (
+          <p className="text-sm text-[#262218]/80 font-body mt-0.5">
+            Generate your weekly plan first for personalized tips.
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+
+  const compactChatSummary = () => {
+    const n = chat.messages.length;
+    if (chat.isLoading) return "Sodie is thinking…";
+    if (n === 1) return "1 message — tap to continue";
+    return `${n} messages — tap to continue`;
+  };
+
+  const collapsedHeader = !chat.isActive && (
+    <div className="mb-4">{askSodieHeader("lg")}</div>
+  );
 
   const inputBlock = (
     <div className="flex-1 w-full min-w-0">
-      {!chat.isActive && (
-        <p className="font-heading font-bold text-lg text-[#262218] mb-2 text-center sm:text-left">
-          Ask Sodie
-        </p>
-      )}
-      {!hasActivePlan && !chat.isActive && (
-        <p className="text-sm text-[#262218]/80 font-body mb-3 text-center sm:text-left">
-          Generate your weekly plan first to get personalized tips from Sodie.
-        </p>
-      )}
       <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
         <div className="flex-1 min-w-0">
           <SodieChatInput
@@ -57,9 +82,6 @@ export default function SodieCommandBar({
             onChange={chat.setInputMessage}
             onSend={() => void chat.handleSendMessage()}
             onKeyDown={chat.handleKeyPress}
-            onFocus={() => {
-              if (hasActivePlan) chat.setIsExpanded(true);
-            }}
             placeholder={chat.placeholder}
             isLoading={chat.isLoading}
             isRateLimited={chat.isRateLimited}
@@ -85,22 +107,28 @@ export default function SodieCommandBar({
         </Button>
       </div>
       {hasActivePlan && !chat.isActive && (
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div
+          className="flex flex-wrap gap-2 mt-3"
+          role="group"
+          aria-label="Suggested questions"
+        >
           {SODIE_PROMPT_SUGGESTIONS.map((suggestion) => (
             <button
               key={suggestion}
               type="button"
               onClick={() => chat.setInputMessage(suggestion)}
-              className="font-body text-xs sm:text-sm px-3 py-1.5 rounded-full border border-[hsl(var(--paprika))]/25 bg-[hsl(var(--paprika))]/5 text-[#262218] hover:bg-[hsl(var(--paprika))]/10 transition-colors text-left"
+              className="font-body text-xs sm:text-sm px-3 py-1.5 rounded-full border border-[hsl(var(--paprika))]/25 bg-[hsl(var(--paprika))]/5 text-[#262218] hover:bg-[hsl(var(--paprika))]/10 transition-colors text-left max-w-full"
             >
               {suggestion}
             </button>
           ))}
         </div>
       )}
-      <div className="mt-3">
-        <SodieDisclaimer />
-      </div>
+      {!chat.isActive && (
+        <div className="mt-4 pt-3 border-t border-[hsl(var(--paprika))]/10">
+          <SodieDisclaimer />
+        </div>
+      )}
     </div>
   );
 
@@ -111,20 +139,45 @@ export default function SodieCommandBar({
         chat.highlightBar
           ? "border-[hsl(var(--turmeric))] ring-2 ring-[hsl(var(--turmeric))]/40"
           : "border-[hsl(var(--paprika))]/30"
-      } ${chat.isActive ? "flex flex-col max-h-[min(70vh,32rem)]" : "p-5 sm:p-6"}`}
+      } ${showCompactChat ? "p-4" : chat.isActive ? "p-4 sm:p-5" : "p-5 sm:p-6"}`}
     >
-      {chat.isActive ? (
+      {showCompactChat ? (
+        <button
+          type="button"
+          onClick={() => setIsChatCollapsed(false)}
+          className="flex w-full items-center gap-3 text-left rounded-lg hover:bg-[hsl(var(--paprika))]/5 transition-colors -m-1 p-1"
+          aria-expanded={false}
+          aria-controls="sodie-chat-panel"
+        >
+          {askSodieHeader("lg", compactChatSummary())}
+          <ChevronDown
+            className="w-5 h-5 shrink-0 text-muted-foreground ml-auto"
+            aria-hidden
+          />
+        </button>
+      ) : chat.isActive ? (
         <>
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-[hsl(var(--paprika))]/10 shrink-0">
-            <SodieAvatar size="md" animate="idle" />
-            <p className="font-heading font-bold text-base text-[#262218]">
-              Sodie
-            </p>
+          <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-[hsl(var(--paprika))]/10">
+            {askSodieHeader("md")}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsChatCollapsed(true)}
+              className="shrink-0 text-muted-foreground hover:text-[#262218] gap-1 font-body"
+              aria-expanded
+              aria-controls="sodie-chat-panel"
+              aria-label="Minimize Sodie chat"
+            >
+              <ChevronUp className="w-4 h-4" aria-hidden />
+              <span className="hidden sm:inline">Minimize</span>
+            </Button>
           </div>
 
           <div
+            id="sodie-chat-panel"
             ref={chat.threadScrollRef}
-            className="flex-1 min-h-0 overflow-y-auto px-4 py-3"
+            className="overflow-y-auto max-h-[min(50vh,16rem)] px-0.5 py-1 mb-3"
           >
             <SodieChatThread
               messages={chat.messages}
@@ -134,22 +187,14 @@ export default function SodieCommandBar({
             />
           </div>
 
-          <div className="shrink-0 border-t border-[hsl(var(--paprika))]/10 px-4 py-3 bg-white/95 rounded-b-2xl">
+          <div className="border-t border-[hsl(var(--paprika))]/10 pt-3 space-y-3">
             {inputBlock}
+            <SodieDisclaimer />
           </div>
         </>
       ) : (
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5">
-          <SodieAvatar
-            size="2xl"
-            animate="idle"
-            className="hidden sm:block shrink-0"
-          />
-          <SodieAvatar
-            size="xl"
-            animate="idle"
-            className="sm:hidden shrink-0"
-          />
+        <div className="w-full min-w-0">
+          {collapsedHeader}
           {inputBlock}
         </div>
       )}
