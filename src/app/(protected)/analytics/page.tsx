@@ -15,6 +15,11 @@ import {
   useWeeklyPlansQuery,
 } from "@/hooks/queries";
 import { api } from "@/lib/api";
+import {
+  getCookingGoalLabel,
+  getCuisineLabel,
+  getSkillLevelLabel,
+} from "@/lib/profileLabels";
 import { UserRecipeProgress } from "@/types";
 import { useQueries } from "@tanstack/react-query";
 import {
@@ -247,143 +252,148 @@ export default function AnalyticsPage() {
           </Card>
         </div>
 
-        {/* Feedback Distribution */}
-        <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
-          <CardHeader className="pb-4">
-            <CardTitle className="font-heading text-xl text-[#262218]">
-              Feedback Distribution
-            </CardTitle>
-            <CardDescription>
-              How you&apos;re finding the recipes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* Too Easy */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium flex items-center gap-2">
-                    <SmilePlus className="w-4 h-4" />
-                    Too Easy
-                  </span>
-                  <span className="text-muted-foreground">
-                    {analytics.feedbackDistribution.too_easy} recipes
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-green-500 h-3 rounded-full transition-all"
-                    style={{
-                      width: `${
-                        analytics.completedRecipes > 0
-                          ? (analytics.feedbackDistribution.too_easy /
-                              analytics.completedRecipes) *
-                            100
-                          : 0
-                      }%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Just Right */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium flex items-center gap-2">
-                    <ThumbsUp className="w-4 h-4" />
-                    Just Right
-                  </span>
-                  <span className="text-muted-foreground">
-                    {analytics.feedbackDistribution.just_right} recipes
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-[hsl(var(--sage))] h-3 rounded-full transition-all"
-                    style={{
-                      width: `${
-                        analytics.completedRecipes > 0
-                          ? (analytics.feedbackDistribution.just_right /
-                              analytics.completedRecipes) *
-                            100
-                          : 0
-                      }%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Too Hard */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium flex items-center gap-2">
-                    <Frown className="w-4 h-4" />
-                    Too Hard
-                  </span>
-                  <span className="text-muted-foreground">
-                    {analytics.feedbackDistribution.too_hard} recipes
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-red-500 h-3 rounded-full transition-all"
-                    style={{
-                      width: `${
-                        analytics.completedRecipes > 0
-                          ? (analytics.feedbackDistribution.too_hard /
-                              analytics.completedRecipes) *
-                            100
-                          : 0
-                      }%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* User Info */}
-        {user && (
+        {/* Feedback + profile: side-by-side on large screens so bars aren't full-bleed */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
             <CardHeader className="pb-4">
               <CardTitle className="font-heading text-xl text-[#262218]">
-                Your Preferences
+                Feedback Distribution
               </CardTitle>
-              <CardDescription>Current cooking profile</CardDescription>
+              <CardDescription>
+                How you&apos;re finding the recipes
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                <div>
-                  <span className="font-semibold text-muted-foreground">
-                    Cuisine:
-                  </span>{" "}
-                  <span className="font-medium">{user.cuisine}</span>
+              <div className="space-y-6">
+                {/* Too Easy */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium flex items-center gap-2">
+                      <SmilePlus className="w-4 h-4" />
+                      Too Easy
+                    </span>
+                    <span className="text-muted-foreground">
+                      {analytics.feedbackDistribution.too_easy} recipes
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-green-500 h-3 rounded-full transition-all"
+                      style={{
+                        width: `${
+                          analytics.completedRecipes > 0
+                            ? (analytics.feedbackDistribution.too_easy /
+                                analytics.completedRecipes) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <span className="font-semibold text-muted-foreground">
-                    Skill Level:
-                  </span>{" "}
-                  <span className="font-medium capitalize">
-                    {user.skill_level}
-                  </span>
+
+                {/* Just Right */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium flex items-center gap-2">
+                      <ThumbsUp className="w-4 h-4" />
+                      Just Right
+                    </span>
+                    <span className="text-muted-foreground">
+                      {analytics.feedbackDistribution.just_right} recipes
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-[hsl(var(--sage))] h-3 rounded-full transition-all"
+                      style={{
+                        width: `${
+                          analytics.completedRecipes > 0
+                            ? (analytics.feedbackDistribution.just_right /
+                                analytics.completedRecipes) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <span className="font-semibold text-muted-foreground">
-                    Meals per Week:
-                  </span>{" "}
-                  <span className="font-medium">{user.frequency}</span>
-                </div>
-                <div>
-                  <span className="font-semibold text-muted-foreground">
-                    Goal:
-                  </span>{" "}
-                  <span className="font-medium">{user.user_goal}</span>
+
+                {/* Too Hard */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium flex items-center gap-2">
+                      <Frown className="w-4 h-4" />
+                      Too Hard
+                    </span>
+                    <span className="text-muted-foreground">
+                      {analytics.feedbackDistribution.too_hard} recipes
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-red-500 h-3 rounded-full transition-all"
+                      style={{
+                        width: `${
+                          analytics.completedRecipes > 0
+                            ? (analytics.feedbackDistribution.too_hard /
+                                analytics.completedRecipes) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
+
+          {user && (
+            <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
+              <CardHeader className="pb-4">
+                <CardTitle className="font-heading text-xl text-[#262218]">
+                  Your Preferences
+                </CardTitle>
+                <CardDescription>Current cooking profile</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                  <div>
+                    <span className="font-semibold text-muted-foreground">
+                      Cuisine:
+                    </span>{" "}
+                    <span className="font-medium">
+                      {getCuisineLabel(user.cuisine)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-muted-foreground">
+                      Skill Level:
+                    </span>{" "}
+                    <span className="font-medium">
+                      {getSkillLevelLabel(user.skill_level)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-muted-foreground">
+                      Meals per Week:
+                    </span>{" "}
+                    <span className="font-medium">{user.frequency}</span>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="font-semibold text-muted-foreground">
+                      Goal:
+                    </span>{" "}
+                    <span className="font-medium">
+                      {getCookingGoalLabel(user.user_goal)}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
