@@ -53,87 +53,108 @@ export default function SwapRecipeModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-sm shadow-2xl border-2 border-[hsl(var(--paprika))]/60">
-        <DialogHeader>
-          <div className="flex items-start gap-4 pr-6">
+        {isLoading ? (
+          <div
+            className="py-10 flex flex-col items-center gap-4 text-center"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <DialogTitle className="sr-only">Swap Recipe</DialogTitle>
             <SodieAvatar
-              size="lg"
-              animate="idle"
-              className="shrink-0 hidden sm:block drop-shadow-sm"
+              size="xl"
+              animate="thinking"
+              className="drop-shadow-md"
             />
-            <SodieAvatar
-              size="md"
-              animate="idle"
-              className="shrink-0 sm:hidden drop-shadow-sm"
+            <p className="font-heading font-semibold text-[#262218]">
+              Finding your replacement...
+            </p>
+            <div
+              className="animate-spin rounded-full h-8 w-8 border-b-2 border-[hsl(var(--paprika))]"
+              aria-hidden
             />
-            <div className="space-y-1.5 text-left min-w-0">
-              <DialogTitle>Swap Recipe</DialogTitle>
-              <DialogDescription>
-                Tell Sodie what you&apos;d prefer — we&apos;ll find a
-                replacement that fits your plan and preferences.
-              </DialogDescription>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <div className="flex items-start gap-4 pr-6">
+                <SodieAvatar
+                  size="lg"
+                  animate="none"
+                  className="shrink-0 drop-shadow-sm max-sm:hidden"
+                />
+                <SodieAvatar
+                  size="md"
+                  animate="none"
+                  className="shrink-0 drop-shadow-sm sm:hidden"
+                />
+                <div className="space-y-1.5 text-left min-w-0">
+                  <DialogTitle>Swap Recipe</DialogTitle>
+                  <DialogDescription>
+                    Tell Sodie what you&apos;d prefer — we&apos;ll find a
+                    replacement that fits your plan and preferences.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+                <p className="text-xs text-blue-800">
+                  Recently cooked recipes won&apos;t appear for 2 weeks.
+                </p>
+              </div>
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <p className="text-sm text-muted-foreground">Current Recipe</p>
+                <p className="font-semibold text-[hsl(var(--paprika))]">
+                  {recipeName}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Week {weekNumber}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="swap-context"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Why do you want to swap this recipe?
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Tell us what you&apos;d prefer instead. This helps our AI find
+                  the perfect replacement.
+                </p>
+                <Textarea
+                  id="swap-context"
+                  value={swapContext}
+                  onChange={(e) => setSwapContext(e.target.value)}
+                  placeholder="E.g., 'I want something vegetarian', 'Need a faster recipe', 'Allergic to dairy', 'Want more protein'"
+                  maxLength={500}
+                  rows={4}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {swapContext.length}/500
+                </p>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 bg-[hsl(var(--paprika))]/5 rounded-lg border border-[hsl(var(--paprika))]/20">
+                <SodieAvatar size="lg" animate="none" className="shrink-0" />
+                <p className="text-sm leading-snug text-[#262218]/90 font-body min-w-0 flex-1">
+                  <strong className="font-semibold">Pro tip:</strong> Be
+                  specific about diet, time, or ingredients — Sodie uses this to
+                  pick your best swap.
+                </p>
+              </div>
             </div>
-          </div>
-        </DialogHeader>
+          </>
+        )}
 
-        <div className="space-y-4 py-4">
-          <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-            <p className="text-xs text-blue-800">
-              Recently cooked recipes won&apos;t appear for 2 weeks.
-            </p>
-          </div>
-          {/* Recipe Being Swapped */}
-          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-            <p className="text-sm text-muted-foreground">Current Recipe</p>
-            <p className="font-semibold text-[hsl(var(--paprika))]">
-              {recipeName}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Week {weekNumber}
-            </p>
-          </div>
-
-          {/* Swap Context Input */}
-          <div className="space-y-2">
-            <label
-              htmlFor="swap-context"
-              className="text-sm font-medium text-gray-700"
-            >
-              Why do you want to swap this recipe?
-            </label>
-            <p className="text-xs text-muted-foreground">
-              Tell us what you&apos;d prefer instead. This helps our AI find the
-              perfect replacement.
-            </p>
-            <Textarea
-              id="swap-context"
-              value={swapContext}
-              onChange={(e) => setSwapContext(e.target.value)}
-              placeholder="E.g., 'I want something vegetarian', 'Need a faster recipe', 'Allergic to dairy', 'Want more protein'"
-              maxLength={500}
-              rows={4}
-              disabled={isLoading}
-              className="resize-none"
-            />
-            <p className="text-xs text-muted-foreground text-right">
-              {swapContext.length}/500
-            </p>
-          </div>
-
-          {/* Character count */}
-          <div className="flex items-center gap-4 p-4 bg-[hsl(var(--paprika))]/5 rounded-lg border border-[hsl(var(--paprika))]/20">
-            <SodieAvatar size="lg" animate="none" className="shrink-0" />
-            <p className="text-sm leading-snug text-[#262218]/90 font-body min-w-0 flex-1">
-              <strong className="font-semibold">Pro tip:</strong> Be specific
-              about diet, time, or ingredients — Sodie uses this to pick your
-              best swap.
-            </p>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
         <div className="flex gap-3 justify-end">
           <Button
             variant="outline"
+            size="touch"
             onClick={handleClose}
             disabled={isLoading}
             className="min-w-[100px]"
@@ -141,18 +162,12 @@ export default function SwapRecipeModal({
             Cancel
           </Button>
           <Button
+            size="touch"
             onClick={handleConfirm}
             disabled={swapContext.trim().length === 0 || isLoading}
             className="min-w-[120px] bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))]"
           >
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                Finding replacement...
-              </span>
-            ) : (
-              "Swap Recipe"
-            )}
+            Swap Recipe
           </Button>
         </div>
       </DialogContent>

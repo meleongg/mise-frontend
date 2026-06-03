@@ -31,7 +31,7 @@ export default function MiseEnPlaceIntroDialog({
       <DialogContent className="bg-white border-2 border-[hsl(var(--paprika))]/30 sm:max-w-md">
         <DialogHeader>
           <div className="flex items-start gap-3">
-            <SodieAvatar size="lg" animate="idle" className="shrink-0" />
+            <SodieAvatar size="lg" animate="none" className="shrink-0" />
             <div>
               <DialogTitle className="text-primary">Mise en place</DialogTitle>
               <DialogDescription asChild>
@@ -65,6 +65,7 @@ export default function MiseEnPlaceIntroDialog({
         <DialogFooter className="flex flex-col gap-2 sm:flex-col">
           <Button
             type="button"
+            size="touch"
             className="w-full bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
             onClick={() => onDismiss(true)}
           >
@@ -72,6 +73,7 @@ export default function MiseEnPlaceIntroDialog({
           </Button>
           <Button
             type="button"
+            size="touch"
             variant="outline"
             className="w-full"
             onClick={() => onDismiss(false)}

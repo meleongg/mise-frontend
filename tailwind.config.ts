@@ -89,6 +89,13 @@ const config: Config = {
           "0%, 100%": { opacity: "0.7", transform: "translateY(0px)" },
           "50%": { opacity: "1", transform: "translateY(-4px)" },
         },
+        "sodie-shake": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "20%": { transform: "rotate(-4deg)" },
+          "40%": { transform: "rotate(4deg)" },
+          "60%": { transform: "rotate(-2.5deg)" },
+          "80%": { transform: "rotate(2.5deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -98,6 +105,7 @@ const config: Config = {
         sizzle: "sizzle 0.3s ease-in-out",
         stir: "stir 2s linear infinite",
         bubble: "bubble 1.5s ease-in-out infinite",
+        "sodie-shake": "sodie-shake 2.8s ease-in-out infinite",
       },
       // Cooking-themed extensions
       spacing: {

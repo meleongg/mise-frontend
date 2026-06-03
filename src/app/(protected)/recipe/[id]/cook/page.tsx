@@ -187,8 +187,6 @@ export default function KitchenCookPage({
       weekNumber,
       request: { status: "completed" },
     });
-    session.clearSession();
-    router.push("/weekly-plan");
   };
 
   const handleBackFromFeedback = () => {
@@ -228,7 +226,7 @@ export default function KitchenCookPage({
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-[hsl(var(--turmeric))]/30 px-6">
         <div className="max-w-md w-full text-center space-y-6">
-          <SodieAvatar size="xl" animate="idle" className="mx-auto" />
+          <SodieAvatar size="xl" animate="none" className="mx-auto" />
           <div>
             <h1 className="text-2xl font-bold text-primary">{recipe.name}</h1>
             <p className="text-muted-foreground mt-2">
@@ -239,8 +237,8 @@ export default function KitchenCookPage({
           </div>
           <Button
             type="button"
-            size="lg"
-            className="w-full h-14 text-lg font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
+            size="touch"
+            className="w-full text-lg font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
             onClick={startCommittedCooking}
           >
             Let&apos;s cook
@@ -321,7 +319,7 @@ export default function KitchenCookPage({
         >
           <DialogHeader>
             <div className="flex items-start gap-3">
-              <SodieAvatar size="lg" animate="idle" className="shrink-0" />
+              <SodieAvatar size="lg" animate="none" className="shrink-0" />
               <div>
                 <DialogTitle className="text-primary">
                   Leaving kitchen mode?

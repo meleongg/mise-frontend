@@ -3,6 +3,7 @@
 import OnboardingSodieHint from "@/components/OnboardingSodieHint";
 import SodiePageIntro from "@/components/SodiePageIntro";
 import { Button } from "@/components/ui/button";
+import SodieAiLoading from "@/components/SodieAiLoading";
 import SodieAvatar from "@/components/SodieAvatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,10 +25,15 @@ import {
   SKILL_LEVELS,
 } from "@/constants";
 import { useFormValidation, useUser } from "@/hooks";
+import { scrollToTop } from "@/lib/scroll";
 import { UserProfileRequest } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast, Toaster } from "sonner";
+
+/** Popper positioning so menus open below the trigger without covering content above. */
+const formSelectContentClass =
+  "min-w-[var(--radix-select-trigger-width)] max-h-60 bg-white";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -104,6 +110,7 @@ export default function OnboardingPage() {
           toast.success("Welcome to Mise!", {
             description: "Sodie is ready to build your first meal plan.",
           });
+          scrollToTop();
           router.push("/weekly-plan");
         } else {
           console.error("updateUserProfile returned falsy value:", user);
@@ -159,8 +166,8 @@ export default function OnboardingPage() {
               description="I'm Sodie — answer a few questions and I'll shape your first weekly meal plan."
             />
 
-            <Card className="shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm overflow-visible">
-              <CardContent className="pt-6 space-y-6 relative">
+            <Card className="shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm">
+              <CardContent className="pt-6 space-y-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <OnboardingSodieHint>
                     Let&apos;s start with the basics — your cuisine, schedule,
@@ -180,7 +187,7 @@ export default function OnboardingPage() {
                       }
                     >
                       <SelectTrigger
-                        className={`h-12 text-base ${
+                        className={`h-12 w-full text-base ${
                           errors.cuisine
                             ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                             : ""
@@ -188,14 +195,7 @@ export default function OnboardingPage() {
                       >
                         <SelectValue placeholder="Choose your favorite cuisine" />
                       </SelectTrigger>
-                      <SelectContent
-                        position="item-aligned"
-                        className="z-[9999] max-h-[200px] overflow-y-auto bg-background border border-border shadow-lg backdrop-blur-none"
-                        style={{
-                          backgroundColor: "hsl(var(--background))",
-                          opacity: 1,
-                        }}
-                      >
+                      <SelectContent className={formSelectContentClass}>
                         {CUISINE_OPTIONS.map(
                           (cuisine: { value: string; label: string }) => (
                             <SelectItem
@@ -275,7 +275,7 @@ export default function OnboardingPage() {
                       }
                     >
                       <SelectTrigger
-                        className={`h-12 text-base ${
+                        className={`h-12 w-full text-base ${
                           errors.skill_level
                             ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                             : ""
@@ -283,14 +283,7 @@ export default function OnboardingPage() {
                       >
                         <SelectValue placeholder="Select your skill level" />
                       </SelectTrigger>
-                      <SelectContent
-                        position="item-aligned"
-                        className="z-[9999] max-h-[200px] overflow-y-auto bg-background border border-border shadow-lg backdrop-blur-none"
-                        style={{
-                          backgroundColor: "hsl(var(--background))",
-                          opacity: 1,
-                        }}
-                      >
+                      <SelectContent className={formSelectContentClass}>
                         {SKILL_LEVELS.map(
                           (level: { value: string; label: string }) => (
                             <SelectItem
@@ -327,7 +320,7 @@ export default function OnboardingPage() {
                       }
                     >
                       <SelectTrigger
-                        className={`h-12 text-base ${
+                        className={`h-12 w-full text-base ${
                           errors.user_goal
                             ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                             : ""
@@ -335,14 +328,7 @@ export default function OnboardingPage() {
                       >
                         <SelectValue placeholder="Select your cooking goal" />
                       </SelectTrigger>
-                      <SelectContent
-                        position="item-aligned"
-                        className="z-[9999] max-h-[200px] overflow-y-auto bg-background border border-border shadow-lg backdrop-blur-none"
-                        style={{
-                          backgroundColor: "hsl(var(--background))",
-                          opacity: 1,
-                        }}
-                      >
+                      <SelectContent className={formSelectContentClass}>
                         {COOKING_GOALS.map((goal) => (
                           <SelectItem
                             key={goal.value}
@@ -451,17 +437,10 @@ export default function OnboardingPage() {
                         updateFormData("preferred_portion_size", value)
                       }
                     >
-                      <SelectTrigger className="h-12 text-base">
+                      <SelectTrigger className="h-12 w-full text-base">
                         <SelectValue placeholder="Select preferred portion size" />
                       </SelectTrigger>
-                      <SelectContent
-                        position="item-aligned"
-                        className="z-[9999] max-h-[200px] overflow-y-auto bg-background border border-border shadow-lg backdrop-blur-none"
-                        style={{
-                          backgroundColor: "hsl(var(--background))",
-                          opacity: 1,
-                        }}
-                      >
+                      <SelectContent className={formSelectContentClass}>
                         {PORTION_SIZES.map((portion) => (
                           <SelectItem
                             key={portion.value}
@@ -547,15 +526,19 @@ export default function OnboardingPage() {
                   )}
 
                   <div className="flex flex-col sm:flex-row items-center sm:justify-end gap-4 pt-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground font-body sm:mr-auto">
-                      <SodieAvatar size="sm" animate="idle" />
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground font-body sm:mr-auto">
+                      <SodieAvatar
+                        size="md"
+                        animate="none"
+                        className="shrink-0 drop-shadow-sm"
+                      />
                       <span>Ready when you are!</span>
                     </div>
                     <Button
                       type="submit"
-                      size="lg"
+                      size="touch"
                       disabled={isLoading}
-                      className="w-full sm:w-auto min-w-[14rem] h-12 px-8 text-base font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-md"
+                      className="w-full sm:w-auto min-w-[14rem] px-8 text-base font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-md"
                     >
                       {isLoading
                         ? "Setting up your kitchen..."
@@ -571,22 +554,11 @@ export default function OnboardingPage() {
 
       {/* Transition Overlay */}
       {isPending && (
-        <div className="fixed inset-0 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 backdrop-blur-md flex items-center justify-center z-[9999] animate-in fade-in duration-500">
-          <div className="text-center space-y-4 px-6">
-            <SodieAvatar
-              size="2xl"
-              animate="idle"
-              className="mx-auto drop-shadow-lg"
-            />
-            <p className="font-heading text-lg font-semibold text-[#262218]">
-              Sodie is setting up your kitchen...
-            </p>
-            <p className="text-sm text-muted-foreground font-body">
-              Building your first personalized meal plan
-            </p>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[hsl(var(--paprika))] mx-auto" />
-          </div>
-        </div>
+        <SodieAiLoading
+          overlay
+          message="Sodie is setting up your kitchen..."
+          submessage="Building your first personalized meal plan"
+        />
       )}
     </>
   );

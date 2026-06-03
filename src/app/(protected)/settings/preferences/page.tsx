@@ -513,6 +513,7 @@ export default function SettingsPage() {
                   </BackNavButton>
                   <Button
                     type="submit"
+                    size="touch"
                     disabled={isSaving}
                     className="w-full sm:w-auto min-w-[12rem] px-8 font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))] shadow-md"
                   >

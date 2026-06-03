@@ -1,5 +1,6 @@
 "use client";
 
+import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SODIE_CHAT_MAX_LENGTH } from "@/lib/aiLimits";
@@ -91,9 +92,14 @@ export function SodieChatThread({
       ))}
 
       {isLoading && (
-        <div className="flex justify-start">
-          <div className="bg-muted rounded-lg px-3 py-2 font-body text-sm text-muted-foreground">
-            Sodie is thinking<span className="animate-pulse">...</span>
+        <div className="flex justify-start items-center gap-2">
+          <SodieAvatar size="sm" animate="thinking" className="shrink-0" />
+          <div className="bg-muted rounded-lg px-3 py-2 font-body text-sm text-muted-foreground flex items-center gap-2">
+            <span>Sodie is thinking</span>
+            <span
+              className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-[hsl(var(--paprika))] shrink-0"
+              aria-hidden
+            />
           </div>
         </div>
       )}

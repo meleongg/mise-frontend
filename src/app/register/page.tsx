@@ -68,12 +68,12 @@ export default function RegisterPage() {
             <div className="mx-auto w-28 h-28 sm:w-36 sm:h-36 rounded-2xl bg-gradient-to-br from-[hsl(var(--paprika))]/15 to-[hsl(var(--turmeric))]/20 flex items-center justify-center">
               <SodieAvatar
                 size="xl"
-                animate="idle"
+                animate="none"
                 className="drop-shadow-md sm:hidden"
               />
               <SodieAvatar
                 size="2xl"
-                animate="idle"
+                animate="none"
                 className="drop-shadow-md hidden sm:block"
               />
             </div>
@@ -183,7 +183,8 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 disabled={!canSubmit}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                size="touch"
+                className="w-full text-base font-semibold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Registering..." : "Create account"}
               </Button>

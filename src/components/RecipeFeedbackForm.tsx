@@ -1,5 +1,6 @@
 "use client";
 
+import RecipeCompletionCelebration from "@/components/RecipeCompletionCelebration";
 import SodieAvatar from "@/components/SodieAvatar";
 import BackNavButton from "@/components/BackNavButton";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,8 @@ interface RecipeFeedbackFormProps {
   existingFeedback?: RecipeFeedbackExisting;
   onFeedbackSubmitted?: () => void;
   onSkip?: () => void | Promise<void>;
+  /** Label for optional skip (e.g. complete without rating on recipe page). */
+  skipLabel?: string;
   onBack?: () => void;
   variant?: "dialog" | "inline";
   className?: string;
@@ -44,6 +47,7 @@ export default function RecipeFeedbackForm({
   existingFeedback,
   onFeedbackSubmitted,
   onSkip,
+  skipLabel = "Skip for now",
   onBack,
   variant = "dialog",
   className,
@@ -56,12 +60,14 @@ export default function RecipeFeedbackForm({
   );
   const [notes, setNotes] = useState(existingFeedback?.notes || "");
   const [success, setSuccess] = useState(false);
+  const [completedViaSkip, setCompletedViaSkip] = useState(false);
   const [skipPending, setSkipPending] = useState(false);
 
   const isSubmitting = submitFeedbackMutation.isPending;
   const feedbackError = submitFeedbackMutation.error?.message || null;
   const isInline = variant === "inline";
   const hasExisting = Boolean(existingFeedback?.feedback);
+  const showCompletionCelebration = success && !hasExisting;
 
   useEffect(() => {
     if (existingFeedback) {
@@ -70,15 +76,9 @@ export default function RecipeFeedbackForm({
     }
   }, [existingFeedback]);
 
-  useEffect(() => {
-    if (success && !isInline) {
-      const timer = setTimeout(() => {
-        const closeBtn = document.querySelector('[data-slot="dialog-close"]');
-        if (closeBtn) (closeBtn as HTMLElement).click();
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [success, isInline]);
+  const handleDismissSuccess = () => {
+    onFeedbackSubmitted?.();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,8 +100,8 @@ export default function RecipeFeedbackForm({
         feedback,
         notes: notes.trim() || undefined,
       });
+      setCompletedViaSkip(false);
       setSuccess(true);
-      onFeedbackSubmitted?.();
     } catch (err) {
       console.error("Failed to submit feedback:", err);
     }
@@ -112,6 +112,8 @@ export default function RecipeFeedbackForm({
     setSkipPending(true);
     try {
       await onSkip();
+      setCompletedViaSkip(true);
+      setSuccess(true);
     } finally {
       setSkipPending(false);
     }
@@ -126,7 +128,7 @@ export default function RecipeFeedbackForm({
     <div className="flex items-start gap-4">
       <SodieAvatar
         size={isInline ? "lg" : "md"}
-        animate="idle"
+        animate="none"
         className="shrink-0"
       />
       <div className="min-w-0 flex-1">
@@ -156,15 +158,53 @@ export default function RecipeFeedbackForm({
         className
       )}
     >
-      {header}
+      {!success && header}
 
       {success ? (
-        <div className="flex flex-col items-center justify-center py-8 gap-3">
-          <SodieAvatar size="md" animate="celebrate" />
-          <div className="text-green-600 font-medium text-lg text-center">
-            {hasExisting
-              ? "Feedback updated — thanks for sharing!"
-              : "Thank you! I'll keep this in mind for your next week."}
+        <div className="flex flex-col gap-4">
+          {!isInline && (
+            <DialogTitle className="sr-only">Recipe complete</DialogTitle>
+          )}
+          {showCompletionCelebration ? (
+            <RecipeCompletionCelebration
+              message="Nice work — recipe complete!"
+              submessage={
+                completedViaSkip
+                  ? "You can add difficulty feedback anytime from the recipe page."
+                  : "Thank you! I'll keep this in mind for your next week."
+              }
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 gap-3">
+              <SodieAvatar size="md" animate="none" />
+              <div className="text-green-600 font-medium text-lg text-center">
+                Feedback updated — thanks for sharing!
+              </div>
+            </div>
+          )}
+          <div className="flex justify-center pt-2">
+            {isInline ? (
+              <Button
+                type="button"
+                size="touch"
+                className="min-w-[10rem] font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
+                onClick={handleDismissSuccess}
+              >
+                Close
+              </Button>
+            ) : (
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  size="touch"
+                  variant="outline"
+                  className="min-w-[10rem] font-semibold"
+                  onClick={handleDismissSuccess}
+                >
+                  Close
+                </Button>
+              </DialogClose>
+            )}
           </div>
         </div>
       ) : (
@@ -172,9 +212,7 @@ export default function RecipeFeedbackForm({
           onSubmit={handleSubmit}
           className={cn("space-y-4", isInline && "relative z-10")}
         >
-          <Label htmlFor="feedback-select">
-            How was this recipe? <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="feedback-select">How was this recipe?</Label>
           <Select
             value={feedback}
             onValueChange={(val) => {
@@ -226,19 +264,21 @@ export default function RecipeFeedbackForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-12 text-base font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
+            size="touch"
+            className="w-full text-base font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
           >
             {isSubmitting ? "Submitting..." : "Share feedback"}
           </Button>
-          {isInline && onSkip && (
+          {onSkip && (
             <Button
               type="button"
               variant="outline"
               disabled={skipPending || isSubmitting}
-              className="w-full h-12 text-base"
+              size="touch"
+              className="w-full text-base"
               onClick={handleSkip}
             >
-              {skipPending ? "Saving..." : "Skip for now"}
+              {skipPending ? "Saving..." : skipLabel}
             </Button>
           )}
           {isInline && onBack && (

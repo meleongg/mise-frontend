@@ -183,17 +183,17 @@ export default function Home() {
                 >
                   <SodieAvatar
                     size="lg"
-                    animate="idle"
+                    animate="none"
                     className="drop-shadow-lg sm:hidden"
                   />
                   <SodieAvatar
                     size="xl"
-                    animate="idle"
+                    animate="none"
                     className="drop-shadow-lg hidden sm:block lg:hidden"
                   />
                   <SodieAvatar
                     size="2xl"
-                    animate="idle"
+                    animate="none"
                     className="drop-shadow-lg hidden lg:block"
                   />
                 </div>

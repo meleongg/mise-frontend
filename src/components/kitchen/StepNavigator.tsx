@@ -58,7 +58,7 @@ export default function StepNavigator({
 
       {isLast && (
         <div className="flex items-center gap-3 mt-6 p-3 rounded-lg bg-white/80 border border-[hsl(var(--paprika))]/20">
-          <SodieAvatar size="sm" animate="idle" className="shrink-0" />
+          <SodieAvatar size="sm" animate="none" className="shrink-0" />
           <p className="text-sm text-muted-foreground">
             Smells good? Wrap up when you&apos;re ready — I&apos;d love to hear
             how it went.
@@ -70,9 +70,10 @@ export default function StepNavigator({
         <Button
           type="button"
           variant="outline"
+          size="touch"
           onClick={onPrevious}
           disabled={currentIndex === 0}
-          className="flex-1 h-14 text-base border-2"
+          className="flex-1 text-base border-2"
         >
           <ChevronLeft className="w-5 h-5 mr-1" />
           Back
@@ -80,16 +81,18 @@ export default function StepNavigator({
         {isLast ? (
           <Button
             type="button"
+            size="touch"
             onClick={onFinish}
-            className="flex-1 h-14 text-base font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
+            className="flex-1 text-base font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
           >
             Finish cooking
           </Button>
         ) : (
           <Button
             type="button"
+            size="touch"
             onClick={onNext}
-            className="flex-1 h-14 text-base font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
+            className="flex-1 text-base font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
           >
             Next
             <ChevronRight className="w-5 h-5 ml-1" />

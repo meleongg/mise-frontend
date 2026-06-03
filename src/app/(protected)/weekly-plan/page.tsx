@@ -2,6 +2,7 @@
 
 import RecipeHeroImage from "@/components/RecipeHeroImage";
 import SwapRecipeModal from "@/components/SwapRecipeModal";
+import SodieAiLoading from "@/components/SodieAiLoading";
 import SodieEmptyState from "@/components/SodieEmptyState";
 import SodieCommandBar from "@/components/SodieCommandBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,8 +35,10 @@ import {
   RotateCcw,
   UtensilsCrossed,
 } from "lucide-react";
+import { scrollToTop } from "@/lib/scroll";
+import { touchButtonClass } from "@/lib/touchTargets";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 export default function WeeklyPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,6 +63,10 @@ export default function WeeklyPlanPage() {
   // Mutations for swapping recipes and toggling status
   const swapMutation = useSwapRecipeMutation();
   const toggleStatusMutation = useToggleRecipeStatusMutation();
+
+  useLayoutEffect(() => {
+    scrollToTop();
+  }, []);
 
   // TanStack Query hooks - automatically cached from layout
   const {
@@ -411,7 +418,7 @@ export default function WeeklyPlanPage() {
                     <button
                       onClick={handleGenerateNextWeek}
                       disabled={isGenerating}
-                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 transition-all transform hover:scale-105"
+                      className={`px-8 ${touchButtonClass} bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 transition-all transform hover:scale-105 inline-flex items-center justify-center`}
                     >
                       {isGenerating ? (
                         <span className="flex items-center justify-center">
@@ -527,7 +534,7 @@ export default function WeeklyPlanPage() {
                         ) && (
                           <Link
                             href={`/recipe/${recipe.id}/cook?week=${currentPlan.week_number}&commit=1`}
-                            className="pointer-events-auto mb-3 flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-semibold rounded-lg bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--primary))]/90 transition-colors"
+                            className={`pointer-events-auto mb-3 flex items-center justify-center gap-2 w-full px-3 text-sm font-semibold rounded-lg bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--primary))]/90 transition-colors ${touchButtonClass}`}
                           >
                             <UtensilsCrossed className="w-4 h-4" />
                             Resume cooking
@@ -614,7 +621,7 @@ export default function WeeklyPlanPage() {
                     "You don't have a weekly meal plan yet."}
                 </p>
                 <button
-                  className="px-8 py-4 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white font-bold rounded-lg shadow-lg hover:from-orange-600 hover:to-[hsl(var(--paprika))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))] disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+                  className={`px-8 ${touchButtonClass} bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white font-bold rounded-lg shadow-lg hover:from-orange-600 hover:to-[hsl(var(--paprika))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))] disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:scale-105 inline-flex items-center justify-center w-full sm:w-auto`}
                   onClick={
                     nextWeekEligibility?.current_week === null
                       ? handleGenerateInitialWeek
@@ -650,6 +657,14 @@ export default function WeeklyPlanPage() {
           )}
         </CardContent>
       </Card>
+
+      {isGenerating && (
+        <SodieAiLoading
+          overlay
+          message={generatingText}
+          submessage="Sodie is picking recipes just for you"
+        />
+      )}
 
       {/* Swap Recipe Modal */}
       <SwapRecipeModal

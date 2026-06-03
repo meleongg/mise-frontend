@@ -32,7 +32,7 @@ export default function KitchenModeShell({
       <header className="sticky top-0 z-20 border-b border-[hsl(var(--paprika))]/20 bg-white/95 backdrop-blur-sm px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1 flex items-center gap-2">
-            <SodieAvatar size="md" animate="idle" className="shrink-0" />
+            <SodieAvatar size="md" animate="none" className="shrink-0" />
             <div className="min-w-0">
               <h1 className="font-bold text-primary truncate text-lg">
                 {recipeName}

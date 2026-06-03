@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export type SodieSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
-export type SodieAnimate = "none" | "idle" | "celebrate";
+export type SodieAnimate = "none" | "idle" | "celebrate" | "thinking";
 
 const SIZE_PX: Record<SodieSize, number> = {
   xs: 24,
@@ -17,8 +17,9 @@ const SIZE_PX: Record<SodieSize, number> = {
 
 const ANIMATE_CLASS: Record<SodieAnimate, string> = {
   none: "",
-  idle: "motion-safe:animate-simmer",
-  celebrate: "motion-safe:animate-sizzle",
+  idle: "animate-simmer",
+  celebrate: "animate-sodie-celebrate",
+  thinking: "animate-sodie-shake",
 };
 
 interface SodieAvatarProps {
@@ -49,12 +50,17 @@ export default function SodieAvatar({
     reducedMotion || animate === "none" ? "" : ANIMATE_CLASS[animate];
 
   return (
-    <Image
-      src="/brand/sodie.svg"
-      alt={alt}
-      width={px}
-      height={px}
-      className={`shrink-0 object-contain ${motionClass} ${className}`}
-    />
+    <span
+      className={`inline-flex shrink-0 items-center justify-center ${className}`}
+      style={motionClass ? { transformOrigin: "50% 92%" } : undefined}
+    >
+      <Image
+        src="/brand/sodie.svg"
+        alt={alt}
+        width={px}
+        height={px}
+        className={`object-contain ${motionClass}`}
+      />
+    </span>
   );
 }

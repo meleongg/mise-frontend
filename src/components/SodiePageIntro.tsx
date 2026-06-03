@@ -15,12 +15,12 @@ export default function SodiePageIntro({
     <div className="flex flex-col sm:flex-row items-center sm:items-center gap-5 text-center sm:text-left">
       <SodieAvatar
         size="xl"
-        animate="idle"
+        animate="none"
         className="shrink-0 drop-shadow-md sm:hidden"
       />
       <SodieAvatar
         size="2xl"
-        animate="idle"
+        animate="none"
         className="shrink-0 drop-shadow-md hidden sm:block"
       />
       <div className="min-w-0">

@@ -44,7 +44,7 @@ export default function SodieCommandBar({
 
   const askSodieHeader = (avatarSize: "lg" | "md", subtitle?: string) => (
     <div className="flex items-center gap-3 min-w-0">
-      <SodieAvatar size={avatarSize} animate="idle" className="shrink-0" />
+      <SodieAvatar size={avatarSize} animate="none" className="shrink-0" />
       <div className="min-w-0 text-left">
         <p className="font-heading font-bold text-lg text-[#262218] leading-tight">
           Ask Sodie
@@ -94,7 +94,8 @@ export default function SodieCommandBar({
           type="button"
           onClick={() => void chat.handleSendMessage()}
           disabled={!chat.canSend}
-          className="h-11 sm:h-12 px-5 sm:px-6 shrink-0 w-full sm:w-auto font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-md"
+          size="touch"
+          className="px-5 sm:px-6 shrink-0 w-full sm:w-auto font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-md"
         >
           {chat.isLoading ? (
             "Sending..."

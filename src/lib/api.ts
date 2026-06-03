@@ -27,6 +27,7 @@ import {
   WeeklyPlan,
   WeeklyPlanResponse,
 } from "@/types";
+import { formatIngredientDisplay } from "@/lib/formatIngredient";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const AUTH_BASE_URL = process.env.NEXT_PUBLIC_AUTH_BASE_URL;
@@ -574,7 +575,7 @@ export const parseHelpers = {
           const name = "name" in ingredient ? String(ingredient.name) : "";
           const measure =
             "measure" in ingredient ? String(ingredient.measure) : "";
-          return `${measure} ${name}`.trim();
+          return formatIngredientDisplay(name, measure);
         }
         return String(ingredient ?? "");
       });
