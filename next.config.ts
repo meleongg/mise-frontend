@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         hostname: "www.themealdb.com",
         pathname: "/images/media/meals/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/photos/**",
+      },
     ],
   },
 };

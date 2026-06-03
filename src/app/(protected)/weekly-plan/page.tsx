@@ -1,10 +1,10 @@
 "use client";
 
+import RecipeHeroImage from "@/components/RecipeHeroImage";
 import SwapRecipeModal from "@/components/SwapRecipeModal";
 import SodieEmptyState from "@/components/SodieEmptyState";
 import SodieCommandBar from "@/components/SodieCommandBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Image from "next/image";
 import Link from "next/link";
 
 import { useApp } from "@/contexts/AppContext";
@@ -493,14 +493,13 @@ export default function WeeklyPlanPage() {
                       )}
 
                     {recipe.image_url ? (
-                      <div className="w-full h-48 overflow-hidden flex-shrink-0 relative pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 group-hover:from-black/30 transition-all" />
-                        <Image
+                      <div className="relative flex-shrink-0 pointer-events-none overflow-hidden">
+                        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/25 to-transparent pointer-events-none group-hover:from-black/35 transition-all" />
+                        <RecipeHeroImage
                           src={recipe.image_url}
                           alt={recipe.name}
-                          width={400}
-                          height={192}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          variant="card"
+                          showPexelsCredit={false}
                         />
                       </div>
                     ) : (

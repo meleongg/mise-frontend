@@ -1,6 +1,7 @@
 "use client";
 
 import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
+import RecipeHeroImage from "@/components/RecipeHeroImage";
 import RecipeInstructionList from "@/components/RecipeInstructionList";
 import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ import { useRecipeQuery, useWeeklyRecipeProgressQuery } from "@/hooks/queries";
 import { parseHelpers } from "@/lib/api";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { UtensilsCrossed } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useState } from "react";
@@ -87,21 +87,9 @@ export default function RecipePage({
         <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-start gap-4 min-w-0">
-                <SodieAvatar
-                  size="lg"
-                  animate="idle"
-                  className="shrink-0 hidden sm:block"
-                />
-                <SodieAvatar
-                  size="md"
-                  animate="idle"
-                  className="shrink-0 sm:hidden"
-                />
-                <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
-                  {recipe.name}
-                </CardTitle>
-              </div>
+              <CardTitle className="font-heading font-bold text-2xl md:text-3xl text-[#262218] min-w-0">
+                {recipe.name}
+              </CardTitle>
               {user && (
                 <Button
                   onClick={() => setShowFeedbackForm(!showFeedbackForm)}
@@ -124,12 +112,10 @@ export default function RecipePage({
           </CardHeader>
           <CardContent className="space-y-6">
             {recipe.image_url ? (
-              <Image
+              <RecipeHeroImage
                 src={recipe.image_url}
                 alt={recipe.name}
-                width={800}
-                height={384}
-                className="w-full h-64 md:h-96 object-cover rounded-lg shadow-md"
+                variant="detail"
               />
             ) : (
               <div className="w-full h-48 md:h-64 rounded-lg shadow-md bg-gradient-to-br from-amber-100 via-orange-50 to-[hsl(var(--turmeric))]/40 flex flex-col items-center justify-center gap-3 border border-[hsl(var(--paprika))]/20">
@@ -176,11 +162,18 @@ export default function RecipePage({
             </div>
 
             {user && !hasFeedback && (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Ready when you are — I&apos;ll walk you through each step in
-                  kitchen mode.
-                </p>
+              <div className="space-y-4 rounded-lg border border-[hsl(var(--paprika))]/15 bg-amber-50/50 px-4 py-4 sm:px-5">
+                <div className="flex items-center gap-4">
+                  <SodieAvatar
+                    size="lg"
+                    animate="idle"
+                    className="shrink-0 drop-shadow-sm"
+                  />
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                    Ready when you are — I&apos;ll walk you through each step in
+                    kitchen mode.
+                  </p>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     asChild
