@@ -1,6 +1,8 @@
 "use client";
 
 import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
+import RecipeInstructionList from "@/components/RecipeInstructionList";
+import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -85,9 +87,21 @@ export default function RecipePage({
         <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
-                {recipe.name}
-              </CardTitle>
+              <div className="flex items-start gap-4 min-w-0">
+                <SodieAvatar
+                  size="lg"
+                  animate="idle"
+                  className="shrink-0 hidden sm:block"
+                />
+                <SodieAvatar
+                  size="md"
+                  animate="idle"
+                  className="shrink-0 sm:hidden"
+                />
+                <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
+                  {recipe.name}
+                </CardTitle>
+              </div>
               {user && (
                 <Button
                   onClick={() => setShowFeedbackForm(!showFeedbackForm)}
@@ -109,7 +123,7 @@ export default function RecipePage({
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {recipe.image_url && (
+            {recipe.image_url ? (
               <Image
                 src={recipe.image_url}
                 alt={recipe.name}
@@ -117,6 +131,13 @@ export default function RecipePage({
                 height={384}
                 className="w-full h-64 md:h-96 object-cover rounded-lg shadow-md"
               />
+            ) : (
+              <div className="w-full h-48 md:h-64 rounded-lg shadow-md bg-gradient-to-br from-amber-100 via-orange-50 to-[hsl(var(--turmeric))]/40 flex flex-col items-center justify-center gap-3 border border-[hsl(var(--paprika))]/20">
+                <SodieAvatar size="xl" animate="idle" />
+                <p className="text-sm text-muted-foreground">
+                  Photo coming soon — Sodie&apos;s got your steps covered.
+                </p>
+              </div>
             )}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -155,17 +176,41 @@ export default function RecipePage({
             </div>
 
             {user && !hasFeedback && (
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  asChild
-                  size="lg"
-                  className="flex-1 h-14 text-lg font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white shadow-lg"
-                >
-                  <Link href={`/recipe/${recipe.id}/cook?week=${weekNumber}`}>
-                    <UtensilsCrossed className="w-5 h-5 mr-2" />
-                    {isInProgress ? "Resume Cooking" : "Start Cooking"}
-                  </Link>
-                </Button>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Ready when you are — I&apos;ll walk you through each step in
+                  kitchen mode.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="flex-1 h-14 text-lg font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white shadow-lg"
+                  >
+                    <Link
+                      href={`/recipe/${recipe.id}/cook?week=${weekNumber}&commit=1`}
+                    >
+                      <UtensilsCrossed className="w-5 h-5 mr-2" />
+                      {isInProgress
+                        ? "Resume cooking with Sodie"
+                        : "Start cooking with Sodie"}
+                    </Link>
+                  </Button>
+                  {!isInProgress && (
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="lg"
+                      className="flex-1 h-14 text-base border-2 border-[hsl(var(--paprika))]/40"
+                    >
+                      <Link
+                        href={`/recipe/${recipe.id}/cook?week=${weekNumber}&preview=1`}
+                      >
+                        Preview steps
+                      </Link>
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -229,22 +274,10 @@ export default function RecipePage({
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-primary mb-3">
+              <h3 className="text-xl font-semibold text-primary mb-6">
                 Instructions
               </h3>
-              <ol className="space-y-3 list-none">
-                {instructions.map((step, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-start text-muted-foreground"
-                  >
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[hsl(var(--paprika))]/20 text-primary font-semibold text-sm mr-3 mt-0.5 flex-shrink-0">
-                      {idx + 1}
-                    </span>
-                    <span className="flex-1 leading-relaxed">{step}</span>
-                  </li>
-                ))}
-              </ol>
+              <RecipeInstructionList steps={instructions} />
             </div>
           </CardContent>
         </Card>

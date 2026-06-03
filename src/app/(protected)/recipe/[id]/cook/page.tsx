@@ -2,8 +2,10 @@
 
 import IngredientChecklist from "@/components/kitchen/IngredientChecklist";
 import KitchenModeShell from "@/components/kitchen/KitchenModeShell";
+import MiseEnPlaceIntroDialog from "@/components/kitchen/MiseEnPlaceIntroDialog";
 import StepNavigator from "@/components/kitchen/StepNavigator";
 import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
+import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,9 +25,10 @@ import {
 import { useCookExitGuard } from "@/hooks/useCookExitGuard";
 import { useKitchenSession } from "@/hooks/useKitchenSession";
 import { parseHelpers } from "@/lib/api";
+import { hasSeenMiseIntro, markMiseIntroSeen } from "@/lib/kitchenIntroStorage";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { useRouter, useSearchParams } from "next/navigation";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useState } from "react";
 
 type CookPhase = "cooking" | "feedback";
 
@@ -42,8 +45,15 @@ export default function KitchenCookPage({
   const weekNumber = resolveRecipeWeek(searchParams, state.currentWeek);
   const recipeId = resolvedParams.id;
 
+  const isPreview = searchParams.get("preview") === "1";
+  const isCommit =
+    searchParams.get("commit") === "1" ||
+    (!isPreview && searchParams.get("preview") !== "1");
+
   const [phase, setPhase] = useState<CookPhase>("cooking");
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showCommitIntro, setShowCommitIntro] = useState(false);
+  const [showMiseIntro, setShowMiseIntro] = useState(false);
   const updateStatusMutation = useToggleRecipeStatusMutation();
 
   const { data: recipe, isLoading } = useRecipeQuery(recipeId);
@@ -80,27 +90,108 @@ export default function KitchenCookPage({
       }
     : undefined;
 
+  const progressStatus = progressEntry?.status;
+  const recipeHref = `/recipe/${recipeId}?week=${weekNumber}`;
+
+  const needsCommitIntro = useMemo(
+    () =>
+      isCommit &&
+      !isPreview &&
+      progressLoaded &&
+      progressStatus !== "in_progress" &&
+      progressStatus !== "completed",
+    [isCommit, isPreview, progressLoaded, progressStatus]
+  );
+
+  useEffect(() => {
+    if (!progressLoaded) return;
+    setShowCommitIntro(needsCommitIntro);
+  }, [needsCommitIntro, progressLoaded]);
+
+  useEffect(() => {
+    if (!session.hydrated || showCommitIntro || phase !== "cooking") return;
+    if (!hasSeenMiseIntro()) {
+      setShowMiseIntro(true);
+    }
+  }, [session.hydrated, showCommitIntro, phase]);
+
   useEffect(() => {
     if (!user?.id || !progressLoaded) return;
-    const status = progressEntry?.status;
-    if (status === "completed") {
-      router.replace(`/recipe/${recipeId}?week=${weekNumber}`);
+    if (progressStatus === "completed") {
+      router.replace(recipeHref);
+    }
+  }, [user?.id, progressLoaded, progressStatus, router, recipeHref]);
+
+  const markInProgress = useCallback(() => {
+    if (isPreview || !user?.id) return;
+    if (progressStatus === "in_progress" || progressStatus === "completed") {
       return;
     }
-    if (status === "in_progress") return;
     updateStatusMutation.mutate({
       userId: user.id,
       recipeId,
       weekNumber,
       request: { status: "in_progress" },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutate once when status is known
-  }, [user?.id, recipeId, weekNumber, progressLoaded, progressEntry?.status]);
+  }, [
+    isPreview,
+    user?.id,
+    progressStatus,
+    recipeId,
+    weekNumber,
+    updateStatusMutation,
+  ]);
 
-  const confirmExit = () => {
+  const startCommittedCooking = () => {
+    markInProgress();
+    setShowCommitIntro(false);
+  };
+
+  const navigateAway = () => {
     setShowExitDialog(false);
     allowExit();
-    router.push(`/recipe/${recipeId}?week=${weekNumber}`);
+    router.push(recipeHref);
+  };
+
+  const handlePauseAndExit = () => {
+    if (!isPreview) {
+      markInProgress();
+    }
+    navigateAway();
+  };
+
+  const handleLeaveWithoutSaving = async () => {
+    if (user?.id && !isPreview) {
+      await updateStatusMutation.mutateAsync({
+        userId: user.id,
+        recipeId,
+        weekNumber,
+        request: { status: "not_started" },
+      });
+    }
+    session.clearSession();
+    navigateAway();
+  };
+
+  const handleStepNext = () => {
+    if (!isPreview) markInProgress();
+    session.goToStep(session.currentStepIndex + 1);
+  };
+
+  const handleSkipFeedback = async () => {
+    if (!user?.id) return;
+    await updateStatusMutation.mutateAsync({
+      userId: user.id,
+      recipeId,
+      weekNumber,
+      request: { status: "completed" },
+    });
+    session.clearSession();
+    router.push("/weekly-plan");
+  };
+
+  const handleBackFromFeedback = () => {
+    router.push(recipeHref);
   };
 
   if (isLoading || !recipe || !session.hydrated) {
@@ -122,9 +213,48 @@ export default function KitchenCookPage({
             existingFeedback={existingFeedback}
             onFeedbackSubmitted={() => {
               session.clearSession();
-              router.push(`/weekly-plan`);
+              router.push("/weekly-plan");
             }}
+            onSkip={handleSkipFeedback}
+            onBack={handleBackFromFeedback}
           />
+        </div>
+      </div>
+    );
+  }
+
+  if (showCommitIntro) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-[hsl(var(--turmeric))]/30 px-6">
+        <div className="max-w-md w-full text-center space-y-6">
+          <SodieAvatar size="xl" animate="idle" className="mx-auto" />
+          <div>
+            <h1 className="text-2xl font-bold text-primary">{recipe.name}</h1>
+            <p className="text-muted-foreground mt-2">
+              Ready when you are — I&apos;ll walk you through each step. Use the{" "}
+              <span className="font-medium text-primary">Mise</span> checklist
+              in the top bar to prep ingredients first.
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="lg"
+            className="w-full h-14 text-lg font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
+            onClick={startCommittedCooking}
+          >
+            Let&apos;s cook
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full"
+            onClick={() => {
+              allowExit();
+              router.push(recipeHref);
+            }}
+          >
+            Back to recipe
+          </Button>
         </div>
       </div>
     );
@@ -135,11 +265,24 @@ export default function KitchenCookPage({
       ? `Step ${session.currentStepIndex + 1} of ${steps.length}`
       : "Kitchen mode";
 
+  const exitDescription = isPreview
+    ? "You're browsing steps only — nothing is saved to your weekly plan yet."
+    : "Your step progress is saved locally. Choose how you'd like to leave.";
+
+  const closeMiseIntro = (openIngredients: boolean) => {
+    markMiseIntroSeen();
+    setShowMiseIntro(false);
+    if (openIngredients) session.setShowIngredients(true);
+  };
+
   return (
     <>
+      <MiseEnPlaceIntroDialog open={showMiseIntro} onDismiss={closeMiseIntro} />
+
       <KitchenModeShell
         recipeName={recipe.name}
         stepLabel={stepLabel}
+        isPreview={isPreview}
         showIngredients={session.showIngredients}
         onToggleIngredients={() =>
           session.setShowIngredients(!session.showIngredients)
@@ -157,8 +300,16 @@ export default function KitchenCookPage({
           steps={steps}
           currentIndex={session.currentStepIndex}
           onPrevious={() => session.goToStep(session.currentStepIndex - 1)}
-          onNext={() => session.goToStep(session.currentStepIndex + 1)}
-          onFinish={() => setPhase("feedback")}
+          onNext={handleStepNext}
+          onFinish={() => {
+            if (isPreview) {
+              allowExit();
+              router.push(recipeHref);
+              return;
+            }
+            markInProgress();
+            setPhase("feedback");
+          }}
         />
       </KitchenModeShell>
 
@@ -168,29 +319,41 @@ export default function KitchenCookPage({
           className="bg-white border-2 border-[hsl(var(--paprika))]/30 sm:max-w-md"
         >
           <DialogHeader>
-            <DialogTitle className="text-primary">
-              Leave kitchen mode?
-            </DialogTitle>
-            <DialogDescription>
-              Your progress is saved. You can resume cooking anytime from your
-              weekly plan.
-            </DialogDescription>
+            <div className="flex items-start gap-3">
+              <SodieAvatar size="lg" animate="idle" className="shrink-0" />
+              <div>
+                <DialogTitle className="text-primary">
+                  Leaving kitchen mode?
+                </DialogTitle>
+                <DialogDescription className="mt-2">
+                  {exitDescription}
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-2">
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
             <Button
               type="button"
-              variant="outline"
-              className="w-full sm:w-auto"
+              className="w-full bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
               onClick={() => setShowExitDialog(false)}
             >
               Keep cooking
             </Button>
             <Button
               type="button"
-              className="w-full sm:w-auto bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
-              onClick={confirmExit}
+              variant="outline"
+              className="w-full"
+              onClick={handlePauseAndExit}
             >
-              Leave kitchen
+              Pause & come back
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-muted-foreground"
+              onClick={handleLeaveWithoutSaving}
+            >
+              Leave without saving
             </Button>
           </DialogFooter>
         </DialogContent>

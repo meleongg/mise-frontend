@@ -527,7 +527,7 @@ export default function WeeklyPlanPage() {
                           currentPlan.week_number
                         ) && (
                           <Link
-                            href={`/recipe/${recipe.id}/cook?week=${currentPlan.week_number}`}
+                            href={`/recipe/${recipe.id}/cook?week=${currentPlan.week_number}&commit=1`}
                             className="pointer-events-auto mb-3 flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-semibold rounded-lg bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--primary))]/90 transition-colors"
                           >
                             <UtensilsCrossed className="w-4 h-4" />

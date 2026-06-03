@@ -1,5 +1,6 @@
 "use client";
 
+import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import { InstructionStep } from "@/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -55,6 +56,16 @@ export default function StepNavigator({
         {step.text}
       </p>
 
+      {isLast && (
+        <div className="flex items-center gap-3 mt-6 p-3 rounded-lg bg-white/80 border border-[hsl(var(--paprika))]/20">
+          <SodieAvatar size="sm" animate="idle" className="shrink-0" />
+          <p className="text-sm text-muted-foreground">
+            Smells good? Wrap up when you&apos;re ready — I&apos;d love to hear
+            how it went.
+          </p>
+        </div>
+      )}
+
       <div className="sticky bottom-0 pt-6 pb-2 bg-gradient-to-t from-amber-50 via-amber-50 to-transparent mt-8 flex gap-3">
         <Button
           type="button"
@@ -72,7 +83,7 @@ export default function StepNavigator({
             onClick={onFinish}
             className="flex-1 h-14 text-base font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
           >
-            Done cooking
+            Finish cooking
           </Button>
         ) : (
           <Button

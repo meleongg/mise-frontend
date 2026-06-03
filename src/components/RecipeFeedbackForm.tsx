@@ -1,5 +1,6 @@
 "use client";
 
+import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import {
   DialogClose,
@@ -30,6 +31,8 @@ interface RecipeFeedbackFormProps {
   weekNumber: number;
   existingFeedback?: RecipeFeedbackExisting;
   onFeedbackSubmitted?: () => void;
+  onSkip?: () => void | Promise<void>;
+  onBack?: () => void;
   variant?: "dialog" | "inline";
   className?: string;
 }
@@ -39,6 +42,8 @@ export default function RecipeFeedbackForm({
   weekNumber,
   existingFeedback,
   onFeedbackSubmitted,
+  onSkip,
+  onBack,
   variant = "dialog",
   className,
 }: RecipeFeedbackFormProps) {
@@ -50,6 +55,7 @@ export default function RecipeFeedbackForm({
   );
   const [notes, setNotes] = useState(existingFeedback?.notes || "");
   const [success, setSuccess] = useState(false);
+  const [skipPending, setSkipPending] = useState(false);
 
   const isSubmitting = submitFeedbackMutation.isPending;
   const feedbackError = submitFeedbackMutation.error?.message || null;
@@ -100,10 +106,44 @@ export default function RecipeFeedbackForm({
     }
   };
 
-  const title = hasExisting ? "Update Recipe Feedback" : "How did it go?";
+  const handleSkip = async () => {
+    if (!onSkip) return;
+    setSkipPending(true);
+    try {
+      await onSkip();
+    } finally {
+      setSkipPending(false);
+    }
+  };
+
+  const title = hasExisting ? "Update how it went" : "How did it go?";
   const description = hasExisting
-    ? "Update your feedback for this recipe."
-    : "Let us know how this recipe went for you!";
+    ? "Update your feedback anytime — it helps me tune your next plan."
+    : "No rush — a quick note helps me learn what works for you. You can always update this later from the recipe page.";
+
+  const header = (
+    <div className="flex items-start gap-4">
+      <SodieAvatar
+        size={isInline ? "lg" : "md"}
+        animate="idle"
+        className="shrink-0"
+      />
+      <div className="min-w-0 flex-1">
+        {isInline ? (
+          <>
+            <h2 className="text-2xl font-bold text-primary">{title}</h2>
+            <p className="text-muted-foreground text-sm mt-1">{description}</p>
+          </>
+        ) : (
+          <>
+            <DialogTitle className="mb-1 pr-8">{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </>
+        )}
+      </div>
+      {!isInline && <DialogClose className="absolute top-6 right-6" />}
+    </div>
+  );
 
   return (
     <div
@@ -115,24 +155,15 @@ export default function RecipeFeedbackForm({
         className
       )}
     >
-      {isInline ? (
-        <>
-          <h2 className="text-2xl font-bold text-primary">{title}</h2>
-          <p className="text-muted-foreground text-sm -mt-4">{description}</p>
-        </>
-      ) : (
-        <>
-          <DialogTitle className="mb-1">{title}</DialogTitle>
-          <DialogClose className="absolute top-6 right-6" />
-        </>
-      )}
+      {header}
 
       {success ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="text-green-600 font-medium text-lg">
+        <div className="flex flex-col items-center justify-center py-8 gap-3">
+          <SodieAvatar size="md" animate="celebrate" />
+          <div className="text-green-600 font-medium text-lg text-center">
             {hasExisting
-              ? "Feedback updated successfully!"
-              : "Thank you for your feedback!"}
+              ? "Feedback updated — thanks for sharing!"
+              : "Thank you! I'll keep this in mind for your next week."}
           </div>
         </div>
       ) : (
@@ -140,11 +171,6 @@ export default function RecipeFeedbackForm({
           onSubmit={handleSubmit}
           className={cn("space-y-4", isInline && "relative z-10")}
         >
-          {!isInline && (
-            <DialogDescription className="mb-4">
-              {description}
-            </DialogDescription>
-          )}
           <Label htmlFor="feedback-select">
             How was this recipe? <span className="text-red-500">*</span>
           </Label>
@@ -199,10 +225,31 @@ export default function RecipeFeedbackForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-12 text-base font-semibold bg-[hsl(var(--sage))] text-primary border border-[hsl(var(--paprika))] hover:bg-[hsl(var(--sage))]/40"
+            className="w-full h-12 text-base font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white"
           >
-            {isSubmitting ? "Submitting..." : "Submit Feedback"}
+            {isSubmitting ? "Submitting..." : "Share feedback"}
           </Button>
+          {isInline && onSkip && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={skipPending || isSubmitting}
+              className="w-full h-12 text-base"
+              onClick={handleSkip}
+            >
+              {skipPending ? "Saving..." : "Skip for now"}
+            </Button>
+          )}
+          {isInline && onBack && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-muted-foreground"
+              onClick={onBack}
+            >
+              Back to recipe
+            </Button>
+          )}
           {feedbackError && (
             <div className="text-red-600 font-medium">{feedbackError}</div>
           )}
