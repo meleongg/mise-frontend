@@ -7,7 +7,12 @@ import {
   UpdateRecipeStatusRequest,
   UserRecipeProgress,
 } from "@/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 /**
  * TanStack Query hooks for server data fetching
@@ -68,6 +73,24 @@ export function useWeeklyRecipeProgressQuery(
     queryFn: () => api.getWeeklyRecipeProgress(userId!, weekNumber),
     enabled: !!userId && weekNumber > 0,
     staleTime: 1 * 60 * 1000, // 1 minute - more frequent updates
+  });
+}
+
+/**
+ * Prefetch recipe progress for every week the user has plans for.
+ * Used in layout (warm cache for week switcher) and Analytics.
+ */
+export function useAllWeeksRecipeProgressQueries(
+  userId: string | undefined,
+  weekNumbers: number[]
+) {
+  return useQueries({
+    queries: weekNumbers.map((weekNumber) => ({
+      queryKey: queryKeys.recipeProgress(userId!, weekNumber),
+      queryFn: () => api.getWeeklyRecipeProgress(userId!, weekNumber),
+      enabled: !!userId && weekNumber > 0,
+      staleTime: 1 * 60 * 1000,
+    })),
   });
 }
 
@@ -196,6 +219,9 @@ export function useSubmitFeedbackMutation() {
         queryClient.invalidateQueries({
           queryKey: queryKeys.nextWeekEligibility(variables.user_id),
         });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.userProgress(variables.user_id),
+        });
       }
     },
   });
@@ -228,6 +254,9 @@ export function useSwapRecipeMutation() {
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.nextWeekEligibility(variables.userId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.userProgress(variables.userId),
       });
     },
   });

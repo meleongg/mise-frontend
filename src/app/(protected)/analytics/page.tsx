@@ -10,11 +10,10 @@ import {
 } from "@/components/ui/card";
 import { useUser } from "@/hooks";
 import {
-  queryKeys,
+  useAllWeeksRecipeProgressQueries,
   useUserProgressQuery,
   useWeeklyPlansQuery,
 } from "@/hooks/queries";
-import { api } from "@/lib/api";
 import {
   getCookingGoalLabel,
   getCuisineLabel,
@@ -27,7 +26,6 @@ import {
   getRecipePlanAvailabilityCopy,
 } from "@/lib/weekContext";
 import { Recipe, UserRecipeProgress } from "@/types";
-import { useQueries } from "@tanstack/react-query";
 import {
   Calendar,
   Check,
@@ -79,16 +77,15 @@ export default function AnalyticsPage() {
   const { data: userProgress, isLoading: progressLoading } =
     useUserProgressQuery(user?.id);
 
-  // Use TanStack Query's useQueries to fetch all weeks' progress with caching
-  const progressQueries = useQueries({
-    queries: (weeklyPlans || []).map((plan) => ({
-      queryKey: queryKeys.recipeProgress(user?.id ?? "", plan.week_number),
-      queryFn: () =>
-        api.getWeeklyRecipeProgress(user?.id ?? "", plan.week_number),
-      enabled: !!user?.id,
-      staleTime: 1 * 60 * 1000, // 1 minute - matches other progress queries
-    })),
-  });
+  const weekNumbers = useMemo(
+    () => weeklyPlans?.map((plan) => plan.week_number) ?? [],
+    [weeklyPlans]
+  );
+
+  const progressQueries = useAllWeeksRecipeProgressQueries(
+    user?.id,
+    weekNumbers
+  );
 
   // Flatten all progress data from cached queries
   const allRecipeProgress = useMemo(() => {
@@ -316,89 +313,6 @@ export default function AnalyticsPage() {
           </Card>
         </div>
 
-        <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
-          <CardHeader className="pb-4">
-            <CardTitle className="font-heading text-xl text-[#262218]">
-              Cooking History
-            </CardTitle>
-            <CardDescription>
-              Recipes you&apos;ve completed, grouped by week. Your setting is{" "}
-              {cooldownDays} days ({cooldownLabel}) before a recipe from your
-              plans or swaps can appear again — each entry shows when you
-              finished and when it may return.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {cookingHistory.length === 0 ? (
-              <p className="text-sm text-muted-foreground font-body">
-                No completed recipes yet — finish a dish from your weekly plan
-                to see it here.
-              </p>
-            ) : (
-              <div className="space-y-6">
-                {cookingHistory.map((weekGroup) => (
-                  <div
-                    key={weekGroup.weekNumber}
-                    className="rounded-xl border border-[hsl(var(--paprika))]/15 bg-amber-50/30 p-4 space-y-3"
-                  >
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <h3 className="font-heading font-semibold text-[#262218]">
-                        Week {weekGroup.weekNumber}
-                      </h3>
-                      <Link
-                        href={`/weekly-plan?week=${weekGroup.weekNumber}`}
-                        className="text-sm font-medium text-[hsl(var(--paprika))] hover:underline"
-                      >
-                        View full week
-                      </Link>
-                    </div>
-                    <ul className="space-y-2">
-                      {weekGroup.completedRecipes.map((entry) => {
-                        const availability = getRecipePlanAvailabilityCopy({
-                          preference: user?.recipe_repeat_preference,
-                          planAddedAt: weekGroup.planAddedAt,
-                          completedAt: entry.completedAt,
-                        });
-
-                        return (
-                          <li
-                            key={`${weekGroup.weekNumber}-${entry.recipeId}`}
-                            className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg bg-white/80 px-3 py-2.5 border border-border/40"
-                          >
-                            <div className="min-w-0">
-                              <p className="font-medium text-[#262218] truncate">
-                                {entry.recipeName}
-                              </p>
-                              <p className="text-xs text-muted-foreground font-body">
-                                {entry.feedbackLabel
-                                  ? `Rated: ${entry.feedbackLabel}`
-                                  : "No difficulty rating"}
-                                {entry.completedAt
-                                  ? ` · Completed ${formatRecipeDate(entry.completedAt)}`
-                                  : ""}
-                              </p>
-                              <p className="text-xs text-muted-foreground/90 font-body mt-0.5">
-                                {availability.availabilityLine}
-                              </p>
-                            </div>
-                            <Link
-                              href={`/recipe/${entry.recipeId}?week=${weekGroup.weekNumber}`}
-                              className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[hsl(var(--sage))] hover:underline shrink-0"
-                            >
-                              <Check className="w-4 h-4" />
-                              View recipe
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         {/* Feedback + profile: side-by-side on large screens so bars aren't full-bleed */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
@@ -541,6 +455,89 @@ export default function AnalyticsPage() {
             </Card>
           )}
         </div>
+
+        <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
+          <CardHeader className="pb-4">
+            <CardTitle className="font-heading text-xl text-[#262218]">
+              Cooking History
+            </CardTitle>
+            <CardDescription>
+              Recipes you&apos;ve completed, grouped by week. Your setting is{" "}
+              {cooldownDays} days ({cooldownLabel}) before a recipe from your
+              plans or swaps can appear again — each entry shows when you
+              finished and when it may return.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {cookingHistory.length === 0 ? (
+              <p className="text-sm text-muted-foreground font-body">
+                No completed recipes yet — finish a dish from your weekly plan
+                to see it here.
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {cookingHistory.map((weekGroup) => (
+                  <div
+                    key={weekGroup.weekNumber}
+                    className="rounded-xl border border-[hsl(var(--paprika))]/15 bg-amber-50/30 p-4 space-y-3"
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <h3 className="font-heading font-semibold text-[#262218]">
+                        Week {weekGroup.weekNumber}
+                      </h3>
+                      <Link
+                        href={`/weekly-plan?week=${weekGroup.weekNumber}`}
+                        className="text-sm font-medium text-[hsl(var(--paprika))] hover:underline"
+                      >
+                        View full week
+                      </Link>
+                    </div>
+                    <ul className="space-y-2">
+                      {weekGroup.completedRecipes.map((entry) => {
+                        const availability = getRecipePlanAvailabilityCopy({
+                          preference: user?.recipe_repeat_preference,
+                          planAddedAt: weekGroup.planAddedAt,
+                          completedAt: entry.completedAt,
+                        });
+
+                        return (
+                          <li
+                            key={`${weekGroup.weekNumber}-${entry.recipeId}`}
+                            className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg bg-white/80 px-3 py-2.5 border border-border/40"
+                          >
+                            <div className="min-w-0">
+                              <p className="font-medium text-[#262218] truncate">
+                                {entry.recipeName}
+                              </p>
+                              <p className="text-xs text-muted-foreground font-body">
+                                {entry.feedbackLabel
+                                  ? `Rated: ${entry.feedbackLabel}`
+                                  : "No difficulty rating"}
+                                {entry.completedAt
+                                  ? ` · Completed ${formatRecipeDate(entry.completedAt)}`
+                                  : ""}
+                              </p>
+                              <p className="text-xs text-muted-foreground/90 font-body mt-0.5">
+                                {availability.availabilityLine}
+                              </p>
+                            </div>
+                            <Link
+                              href={`/recipe/${entry.recipeId}?week=${weekGroup.weekNumber}`}
+                              className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[hsl(var(--sage))] hover:underline shrink-0"
+                            >
+                              <Check className="w-4 h-4" />
+                              View recipe
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

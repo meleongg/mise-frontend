@@ -2,12 +2,12 @@
 
 import AuthGuard from "@/components/AuthGuard";
 import ClientNavbar from "@/components/ClientNavbar";
-import { useApp } from "@/contexts/AppContext";
 import { useUser } from "@/hooks";
 import {
+  useAllWeeksRecipeProgressQueries,
   useWeeklyPlansQuery,
-  useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
+import { useMemo } from "react";
 
 export default function ProtectedLayout({
   children,
@@ -15,11 +15,14 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const { user } = useUser();
-  const { state } = useApp();
-  const currentWeek = state.currentWeek;
+  const { data: weeklyPlans } = useWeeklyPlansQuery(user?.id);
 
-  useWeeklyPlansQuery(user?.id);
-  useWeeklyRecipeProgressQuery(user?.id, currentWeek);
+  const weekNumbers = useMemo(
+    () => weeklyPlans?.map((plan) => plan.week_number) ?? [],
+    [weeklyPlans]
+  );
+
+  useAllWeeksRecipeProgressQueries(user?.id, weekNumbers);
 
   return (
     <AuthGuard requireOnboarding>
