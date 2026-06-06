@@ -39,13 +39,13 @@ export default function RecipeCompletionCelebration({
 
   return (
     <div
-      className="relative flex flex-col items-center justify-center py-10 gap-4 overflow-hidden min-h-[220px]"
+      className="relative flex flex-col items-center justify-center py-12 gap-4 overflow-visible min-h-[280px] sm:min-h-[300px]"
       role="status"
       aria-live="polite"
     >
       {!reducedMotion && (
         <div
-          className="pointer-events-none absolute inset-0 overflow-hidden"
+          className="pointer-events-none absolute inset-x-0 -top-6 h-[300px] overflow-visible"
           aria-hidden
         >
           {CONFETTI_PIECES.map((piece, index) => (

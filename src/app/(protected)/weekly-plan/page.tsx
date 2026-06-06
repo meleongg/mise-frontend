@@ -6,6 +6,13 @@ import SodieAiLoading from "@/components/SodieAiLoading";
 import SodieEmptyState from "@/components/SodieEmptyState";
 import SodieCommandBar from "@/components/SodieCommandBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
 
 import { useApp } from "@/contexts/AppContext";
@@ -20,6 +27,12 @@ import {
 } from "@/hooks/queries";
 import { api, ApiError } from "@/lib/api";
 import { clearKitchenSession } from "@/lib/kitchenSessionStorage";
+import {
+  formSelectContentClass,
+  formSelectItemClass,
+  formSelectTriggerClass,
+} from "@/lib/formSelectStyles";
+import { touchButtonClass } from "@/lib/touchTargets";
 import {
   Recipe,
   RecipeScheduleItem,
@@ -36,9 +49,14 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import { scrollToTop } from "@/lib/scroll";
-import { touchButtonClass } from "@/lib/touchTargets";
-import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useState } from "react";
+import {
+  getActiveWeek,
+  isPastWeek,
+  resolveViewingWeek,
+  sortWeekNumbersDesc,
+} from "@/lib/weekContext";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 export default function WeeklyPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -58,6 +76,7 @@ export default function WeeklyPlanPage() {
   const { state, dispatch } = useApp();
   const currentWeek = state.currentWeek;
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
   // Mutations for swapping recipes and toggling status
@@ -74,9 +93,22 @@ export default function WeeklyPlanPage() {
     isLoading: plansLoading,
     error,
   } = useWeeklyPlansQuery(user?.id);
+  const activeWeek = useMemo(() => getActiveWeek(weeklyPlans), [weeklyPlans]);
+  const availableWeeks = useMemo(
+    () =>
+      sortWeekNumbersDesc(weeklyPlans?.map((plan) => plan.week_number) ?? []),
+    [weeklyPlans]
+  );
+  const viewingWeek = useMemo(
+    () => resolveViewingWeek(searchParams, activeWeek, availableWeeks),
+    [searchParams, activeWeek, availableWeeks]
+  );
+  const isViewingActiveWeek = viewingWeek > 0 && viewingWeek === activeWeek;
+  const viewingPastWeek = isPastWeek(viewingWeek, activeWeek);
+
   const { data: recipeProgress } = useWeeklyRecipeProgressQuery(
     user?.id,
-    currentWeek
+    viewingWeek
   );
   const { data: nextWeekEligibility, isLoading: eligibilityLoading } =
     useNextWeekEligibilityQuery(user?.id);
@@ -129,22 +161,27 @@ export default function WeeklyPlanPage() {
     }
   };
 
-  const getCurrentWeekPlan = (): WeeklyPlan | null => {
-    if (!weeklyPlans) return null;
-    // Prefer cached plans when available to reflect swaps and other updates
+  const getViewingWeekPlan = (): WeeklyPlan | null => {
+    if (!weeklyPlans || viewingWeek === 0) return null;
     const cachedPlan = weeklyPlans.find(
-      (plan) => plan.week_number === currentWeek
+      (plan) => plan.week_number === viewingWeek
     );
     if (cachedPlan) return cachedPlan;
 
-    if (generatedPlan && generatedPlan.week_number === currentWeek) {
+    if (generatedPlan && generatedPlan.week_number === viewingWeek) {
       return convertToWeeklyPlan(generatedPlan);
     }
 
     return null;
   };
 
-  const currentPlan = getCurrentWeekPlan();
+  const currentPlan = getViewingWeekPlan();
+
+  const handleViewingWeekChange = (value: string) => {
+    const week = parseInt(value, 10);
+    if (Number.isNaN(week) || week <= 0) return;
+    router.replace(`/weekly-plan?week=${week}`, { scroll: false });
+  };
   const nextWeek =
     weeklyPlans && weeklyPlans.length > 0
       ? Math.max(...weeklyPlans.map((plan) => plan.week_number)) + 1
@@ -153,7 +190,8 @@ export default function WeeklyPlanPage() {
   // Determine if we're still initializing
   const isInitializing =
     !weeklyPlans ||
-    (weeklyPlans.length > 0 && currentWeek === 0) ||
+    (weeklyPlans.length > 0 && activeWeek === 0) ||
+    (weeklyPlans.length > 0 && viewingWeek === 0) ||
     (weeklyPlans.length > 0 && !currentPlan && !generatedPlan);
 
   // Redirect to onboarding if not authenticated
@@ -217,6 +255,9 @@ export default function WeeklyPlanPage() {
 
       // Update currentWeek to the newly generated week
       dispatch({ type: "SET_CURRENT_WEEK", payload: plan.week_number });
+      router.replace(`/weekly-plan?week=${plan.week_number}`, {
+        scroll: false,
+      });
 
       // Invalidate queries to refetch fresh data
       await queryClient.invalidateQueries({
@@ -256,6 +297,9 @@ export default function WeeklyPlanPage() {
 
       // Update currentWeek to the newly generated week
       dispatch({ type: "SET_CURRENT_WEEK", payload: plan.week_number });
+      router.replace(`/weekly-plan?week=${plan.week_number}`, {
+        scroll: false,
+      });
 
       // Invalidate queries to refetch fresh data
       await queryClient.invalidateQueries({
@@ -398,8 +442,15 @@ export default function WeeklyPlanPage() {
             </div>
           ) : currentPlan ? (
             <div className="py-4">
+              {viewingPastWeek && (
+                <div className="mb-6 rounded-xl border border-[hsl(var(--paprika))]/25 bg-amber-50/80 px-4 py-3 text-sm text-[#262218]/90 font-body">
+                  Viewing Week {viewingWeek} — past plan (read-only). Switch to
+                  Week {activeWeek} to manage your current plan.
+                </div>
+              )}
+
               {/* Week Completion Banner */}
-              {nextWeekEligibility?.can_generate && (
+              {isViewingActiveWeek && nextWeekEligibility?.can_generate && (
                 <div className="mb-6 p-6 bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 border-2 border-green-500 rounded-xl shadow-lg">
                   <div className="text-center space-y-4">
                     <div className="flex justify-center">
@@ -435,23 +486,71 @@ export default function WeeklyPlanPage() {
 
               {/* Recipe Statistics & Progress */}
               <div className="mb-6 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <p className="font-heading font-semibold text-lg text-[#262218] text-center sm:text-left">
-                    Week {currentPlan.week_number} · {totalCount}{" "}
-                    {totalCount === 1 ? "recipe" : "recipes"}
-                  </p>
-                  <span
-                    className={`font-body text-xs px-3 py-1.5 rounded-full text-center sm:text-left ${swapCounterClass}`}
-                  >
-                    {swapCount >= 3 ? (
-                      <>3/3 swaps used · resets next week</>
-                    ) : (
-                      <>
-                        {swapCount}/3 swaps used · {3 - swapCount} remaining
-                      </>
-                    )}
-                  </span>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  {availableWeeks.length > 1 ? (
+                    <div className="w-full space-y-2 sm:w-auto sm:min-w-[13rem] sm:max-w-xs">
+                      <label
+                        htmlFor="week-switcher"
+                        className="text-sm font-medium text-muted-foreground font-body"
+                      >
+                        Viewing week
+                      </label>
+                      <Select
+                        value={String(viewingWeek)}
+                        onValueChange={handleViewingWeekChange}
+                      >
+                        <SelectTrigger
+                          id="week-switcher"
+                          className={formSelectTriggerClass}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent
+                          position="popper"
+                          side="bottom"
+                          sideOffset={4}
+                          className={formSelectContentClass}
+                        >
+                          {availableWeeks.map((week) => (
+                            <SelectItem
+                              key={week}
+                              value={String(week)}
+                              className={formSelectItemClass}
+                            >
+                              Week {week}
+                              {week === activeWeek ? " (current)" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <p className="font-heading font-semibold text-lg text-[#262218]">
+                      Week {currentPlan.week_number} · {totalCount}{" "}
+                      {totalCount === 1 ? "recipe" : "recipes"}
+                    </p>
+                  )}
+
+                  {isViewingActiveWeek && (
+                    <span
+                      className={`font-body text-xs px-3 py-1.5 rounded-full self-start sm:self-auto ${swapCounterClass}`}
+                    >
+                      {swapCount >= 3 ? (
+                        <>3/3 swaps used · resets next week</>
+                      ) : (
+                        <>
+                          {swapCount}/3 swaps used · {3 - swapCount} remaining
+                        </>
+                      )}
+                    </span>
+                  )}
                 </div>
+
+                {availableWeeks.length > 1 && (
+                  <p className="font-heading font-semibold text-lg text-[#262218]">
+                    {totalCount} {totalCount === 1 ? "recipe" : "recipes"}
+                  </p>
+                )}
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm text-muted-foreground font-body">
@@ -527,7 +626,11 @@ export default function WeeklyPlanPage() {
                         {recipe.cuisine}
                       </div>
 
-                      {isRecipeInProgress(recipe.id, currentPlan.week_number) &&
+                      {isViewingActiveWeek &&
+                        isRecipeInProgress(
+                          recipe.id,
+                          currentPlan.week_number
+                        ) &&
                         !isRecipeCompleted(
                           recipe.id,
                           currentPlan.week_number
@@ -541,67 +644,67 @@ export default function WeeklyPlanPage() {
                           </Link>
                         )}
 
-                      {/* Swap Button */}
-                      <div className="mt-auto pt-4 border-t border-gray-200 pointer-events-auto">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const isCompleted = isRecipeCompleted(
-                              recipe.id,
-                              currentPlan.week_number
-                            );
-                            const swapLimitReached =
-                              currentPlan.swap_count >= 3;
-                            if (!isCompleted && !swapLimitReached) {
-                              handleSwapClick(recipe);
-                            }
-                          }}
-                          disabled={
-                            isRecipeCompleted(
-                              recipe.id,
-                              currentPlan.week_number
-                            ) || currentPlan.swap_count >= 3
-                          }
-                          title={
-                            isRecipeCompleted(
-                              recipe.id,
-                              currentPlan.week_number
-                            )
-                              ? "Cannot swap completed recipes"
-                              : currentPlan.swap_count >= 3
-                                ? "Swap limit reached (3/3 swaps used)"
-                                : "Swap this recipe"
-                          }
-                          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-[hsl(var(--paprika))] hover:bg-amber-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                        >
-                          <ArrowRightLeft className="w-4 h-4" />
-                          Swap {swapCount >= 3 && "(Limit Reached)"}
-                        </button>
-
-                        {/* Mark as Incomplete Button */}
-                        {isRecipeCompleted(
-                          recipe.id,
-                          currentPlan.week_number
-                        ) && (
+                      {isViewingActiveWeek && (
+                        <div className="mt-auto pt-4 border-t border-gray-200 pointer-events-auto">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleMarkIncomplete(
+                              const isCompleted = isRecipeCompleted(
                                 recipe.id,
                                 currentPlan.week_number
                               );
+                              const swapLimitReached =
+                                currentPlan.swap_count >= 3;
+                              if (!isCompleted && !swapLimitReached) {
+                                handleSwapClick(recipe);
+                              }
                             }}
-                            disabled={toggleStatusMutation.isPending}
-                            title="Mark this recipe as incomplete"
-                            className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:bg-gray-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                            disabled={
+                              isRecipeCompleted(
+                                recipe.id,
+                                currentPlan.week_number
+                              ) || currentPlan.swap_count >= 3
+                            }
+                            title={
+                              isRecipeCompleted(
+                                recipe.id,
+                                currentPlan.week_number
+                              )
+                                ? "Cannot swap completed recipes"
+                                : currentPlan.swap_count >= 3
+                                  ? "Swap limit reached (3/3 swaps used)"
+                                  : "Swap this recipe"
+                            }
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-[hsl(var(--paprika))] hover:bg-amber-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                           >
-                            <RotateCcw className="w-4 h-4" />
-                            {toggleStatusMutation.isPending
-                              ? "Marking..."
-                              : "Mark Incomplete"}
+                            <ArrowRightLeft className="w-4 h-4" />
+                            Swap {swapCount >= 3 && "(Limit Reached)"}
                           </button>
-                        )}
-                      </div>
+
+                          {isRecipeCompleted(
+                            recipe.id,
+                            currentPlan.week_number
+                          ) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkIncomplete(
+                                  recipe.id,
+                                  currentPlan.week_number
+                                );
+                              }}
+                              disabled={toggleStatusMutation.isPending}
+                              title="Mark this recipe as incomplete"
+                              className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-3.5 sm:py-3 min-h-14 sm:min-h-12 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:bg-gray-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                              {toggleStatusMutation.isPending
+                                ? "Marking..."
+                                : "Mark Incomplete"}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -666,6 +769,7 @@ export default function WeeklyPlanPage() {
         recipeId={selectedRecipe?.id ?? ""}
         recipeName={selectedRecipe?.name ?? ""}
         weekNumber={currentPlan?.week_number ?? 0}
+        planAddedAt={currentPlan?.created_at}
         onClose={() => {
           setSwapModalOpen(false);
           setSwapError("");

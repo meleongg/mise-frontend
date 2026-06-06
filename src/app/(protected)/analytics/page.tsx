@@ -20,17 +20,42 @@ import {
   getCuisineLabel,
   getSkillLevelLabel,
 } from "@/lib/profileLabels";
-import { UserRecipeProgress } from "@/types";
+import {
+  formatRecipeDate,
+  getRecipeCooldownDays,
+  getRecipeCooldownLabel,
+  getRecipePlanAvailabilityCopy,
+} from "@/lib/weekContext";
+import { Recipe, UserRecipeProgress } from "@/types";
 import { useQueries } from "@tanstack/react-query";
 import {
   Calendar,
+  Check,
   Flame,
   Frown,
   SmilePlus,
   Target,
   ThumbsUp,
 } from "lucide-react";
+import Link from "next/link";
 import { useMemo } from "react";
+
+const FEEDBACK_LABELS: Record<string, string> = {
+  too_easy: "Too easy",
+  just_right: "Just right",
+  too_hard: "Too hard",
+};
+
+type WeekHistoryGroup = {
+  weekNumber: number;
+  planAddedAt: string | null;
+  completedRecipes: Array<{
+    recipeId: string;
+    recipeName: string;
+    feedbackLabel: string | null;
+    completedAt: string | null;
+  }>;
+};
 
 interface AnalyticsData {
   totalWeeks: number;
@@ -161,6 +186,45 @@ export default function AnalyticsPage() {
     };
   }, [userProgress, weeklyPlans, allRecipeProgress]);
 
+  const cookingHistory = useMemo<WeekHistoryGroup[]>(() => {
+    if (!weeklyPlans?.length) return [];
+
+    const recipeNameById = new Map<string, string>();
+    const planAddedAtByWeek = new Map<number, string>();
+    for (const plan of weeklyPlans) {
+      planAddedAtByWeek.set(plan.week_number, plan.created_at);
+      for (const recipe of plan.recipes as Recipe[]) {
+        recipeNameById.set(recipe.id, recipe.name);
+      }
+    }
+
+    const grouped = new Map<number, WeekHistoryGroup["completedRecipes"]>();
+    for (const progress of allRecipeProgress) {
+      if (progress.status !== "completed") continue;
+      const weekEntries = grouped.get(progress.week_number) ?? [];
+      weekEntries.push({
+        recipeId: progress.recipe_id,
+        recipeName: recipeNameById.get(progress.recipe_id) ?? "Unknown recipe",
+        feedbackLabel: progress.feedback
+          ? (FEEDBACK_LABELS[progress.feedback] ?? progress.feedback)
+          : null,
+        completedAt: progress.completed_at ?? null,
+      });
+      grouped.set(progress.week_number, weekEntries);
+    }
+
+    return [...grouped.entries()]
+      .sort(([weekA], [weekB]) => weekB - weekA)
+      .map(([weekNumber, completedRecipes]) => ({
+        weekNumber,
+        planAddedAt: planAddedAtByWeek.get(weekNumber) ?? null,
+        completedRecipes,
+      }));
+  }, [weeklyPlans, allRecipeProgress]);
+
+  const cooldownLabel = getRecipeCooldownLabel(user?.recipe_repeat_preference);
+  const cooldownDays = getRecipeCooldownDays(user?.recipe_repeat_preference);
+
   if (userLoading || plansLoading || progressLoading || isLoadingProgress) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">
@@ -251,6 +315,89 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
+          <CardHeader className="pb-4">
+            <CardTitle className="font-heading text-xl text-[#262218]">
+              Cooking History
+            </CardTitle>
+            <CardDescription>
+              Recipes you&apos;ve completed, grouped by week. Your setting is{" "}
+              {cooldownDays} days ({cooldownLabel}) before a recipe from your
+              plans or swaps can appear again — each entry shows when you
+              finished and when it may return.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {cookingHistory.length === 0 ? (
+              <p className="text-sm text-muted-foreground font-body">
+                No completed recipes yet — finish a dish from your weekly plan
+                to see it here.
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {cookingHistory.map((weekGroup) => (
+                  <div
+                    key={weekGroup.weekNumber}
+                    className="rounded-xl border border-[hsl(var(--paprika))]/15 bg-amber-50/30 p-4 space-y-3"
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <h3 className="font-heading font-semibold text-[#262218]">
+                        Week {weekGroup.weekNumber}
+                      </h3>
+                      <Link
+                        href={`/weekly-plan?week=${weekGroup.weekNumber}`}
+                        className="text-sm font-medium text-[hsl(var(--paprika))] hover:underline"
+                      >
+                        View full week
+                      </Link>
+                    </div>
+                    <ul className="space-y-2">
+                      {weekGroup.completedRecipes.map((entry) => {
+                        const availability = getRecipePlanAvailabilityCopy({
+                          preference: user?.recipe_repeat_preference,
+                          planAddedAt: weekGroup.planAddedAt,
+                          completedAt: entry.completedAt,
+                        });
+
+                        return (
+                          <li
+                            key={`${weekGroup.weekNumber}-${entry.recipeId}`}
+                            className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg bg-white/80 px-3 py-2.5 border border-border/40"
+                          >
+                            <div className="min-w-0">
+                              <p className="font-medium text-[#262218] truncate">
+                                {entry.recipeName}
+                              </p>
+                              <p className="text-xs text-muted-foreground font-body">
+                                {entry.feedbackLabel
+                                  ? `Rated: ${entry.feedbackLabel}`
+                                  : "No difficulty rating"}
+                                {entry.completedAt
+                                  ? ` · Completed ${formatRecipeDate(entry.completedAt)}`
+                                  : ""}
+                              </p>
+                              <p className="text-xs text-muted-foreground/90 font-body mt-0.5">
+                                {availability.availabilityLine}
+                              </p>
+                            </div>
+                            <Link
+                              href={`/recipe/${entry.recipeId}?week=${weekGroup.weekNumber}`}
+                              className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[hsl(var(--sage))] hover:underline shrink-0"
+                            >
+                              <Check className="w-4 h-4" />
+                              View recipe
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Feedback + profile: side-by-side on large screens so bars aren't full-bleed */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

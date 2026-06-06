@@ -28,6 +28,8 @@ export interface RecipeFeedbackExisting {
   notes?: string;
 }
 
+type SuccessView = "celebration" | "updated";
+
 interface RecipeFeedbackFormProps {
   recipeId: string;
   weekNumber: number;
@@ -38,6 +40,8 @@ interface RecipeFeedbackFormProps {
   skipLabel?: string;
   onBack?: () => void;
   variant?: "dialog" | "inline";
+  /** When false, clears success state (e.g. dialog closed). */
+  open?: boolean;
   className?: string;
 }
 
@@ -50,6 +54,7 @@ export default function RecipeFeedbackForm({
   skipLabel = "Skip for now",
   onBack,
   variant = "dialog",
+  open,
   className,
 }: RecipeFeedbackFormProps) {
   const { user } = useUser();
@@ -60,6 +65,7 @@ export default function RecipeFeedbackForm({
   );
   const [notes, setNotes] = useState(existingFeedback?.notes || "");
   const [success, setSuccess] = useState(false);
+  const [successView, setSuccessView] = useState<SuccessView | null>(null);
   const [completedViaSkip, setCompletedViaSkip] = useState(false);
   const [skipPending, setSkipPending] = useState(false);
 
@@ -67,7 +73,7 @@ export default function RecipeFeedbackForm({
   const feedbackError = submitFeedbackMutation.error?.message || null;
   const isInline = variant === "inline";
   const hasExisting = Boolean(existingFeedback?.feedback);
-  const showCompletionCelebration = success && !hasExisting;
+  const showCompletionCelebration = successView === "celebration";
 
   useEffect(() => {
     if (existingFeedback) {
@@ -76,6 +82,14 @@ export default function RecipeFeedbackForm({
     }
   }, [existingFeedback]);
 
+  useEffect(() => {
+    if (open === false) {
+      setSuccess(false);
+      setSuccessView(null);
+      setCompletedViaSkip(false);
+    }
+  }, [open]);
+
   const handleDismissSuccess = () => {
     onFeedbackSubmitted?.();
   };
@@ -83,6 +97,7 @@ export default function RecipeFeedbackForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(false);
+    setSuccessView(null);
     setFeedbackSelectError(null);
     if (!user) return;
     if (!feedback) {
@@ -91,6 +106,8 @@ export default function RecipeFeedbackForm({
       );
       return;
     }
+
+    const isUpdate = Boolean(existingFeedback?.feedback);
 
     try {
       await submitFeedbackMutation.mutateAsync({
@@ -101,6 +118,7 @@ export default function RecipeFeedbackForm({
         notes: notes.trim() || undefined,
       });
       setCompletedViaSkip(false);
+      setSuccessView(isUpdate ? "updated" : "celebration");
       setSuccess(true);
     } catch (err) {
       console.error("Failed to submit feedback:", err);
@@ -113,6 +131,7 @@ export default function RecipeFeedbackForm({
     try {
       await onSkip();
       setCompletedViaSkip(true);
+      setSuccessView("celebration");
       setSuccess(true);
     } finally {
       setSkipPending(false);
@@ -155,6 +174,7 @@ export default function RecipeFeedbackForm({
         isInline
           ? "bg-white/95 rounded-xl p-6 border-2 border-[hsl(var(--paprika))]/30"
           : "bg-white rounded-lg shadow p-8",
+        success && "overflow-visible",
         className
       )}
     >

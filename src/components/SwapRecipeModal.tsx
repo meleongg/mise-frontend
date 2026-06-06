@@ -10,6 +10,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useUser } from "@/hooks";
+import {
+  formatRecipeDate,
+  getSwapOutAvailabilityCopy,
+} from "@/lib/weekContext";
 import { useState } from "react";
 
 interface SwapRecipeModalProps {
@@ -17,6 +22,8 @@ interface SwapRecipeModalProps {
   recipeName: string;
   recipeId: string;
   weekNumber: number;
+  /** When this recipe was added to the user's week plan (plan created_at). */
+  planAddedAt?: string | null;
   onClose: () => void;
   onConfirm: (context: string) => Promise<void>;
   isLoading?: boolean;
@@ -26,11 +33,16 @@ export default function SwapRecipeModal({
   isOpen,
   recipeName,
   weekNumber,
+  planAddedAt,
   onClose,
   onConfirm,
   isLoading = false,
 }: SwapRecipeModalProps) {
+  const { user } = useUser();
   const [swapContext, setSwapContext] = useState("");
+  const swapAvailabilityLine = getSwapOutAvailabilityCopy(
+    user?.recipe_repeat_preference
+  );
 
   const handleConfirm = async () => {
     if (swapContext.trim().length === 0) return;
@@ -99,11 +111,6 @@ export default function SwapRecipeModal({
             </DialogHeader>
 
             <div className="space-y-4 py-4">
-              <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-                <p className="text-xs text-blue-800">
-                  Recently cooked recipes won&apos;t appear for 2 weeks.
-                </p>
-              </div>
               <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <p className="text-sm text-muted-foreground">Current Recipe</p>
                 <p className="font-semibold text-[hsl(var(--paprika))]">
@@ -111,6 +118,14 @@ export default function SwapRecipeModal({
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Week {weekNumber}
+                  {planAddedAt
+                    ? ` · On your plan since ${formatRecipeDate(planAddedAt)}`
+                    : ""}
+                </p>
+              </div>
+              <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+                <p className="text-xs text-blue-800 leading-relaxed">
+                  {swapAvailabilityLine}
                 </p>
               </div>
 

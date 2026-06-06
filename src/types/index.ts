@@ -39,6 +39,7 @@ export interface User {
   preferred_portion_size?: string; // Preferred serving size (e.g., '2-3', '4', 'family')
   max_prep_time_minutes?: number; // Maximum acceptable prep time in minutes
   max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
+  recipe_repeat_preference?: "standard" | "sooner";
   created_at: string;
 }
 
@@ -150,6 +151,7 @@ export interface UserProfileRequest {
   preferred_portion_size?: string; // Preferred serving size (e.g., '2-3', '4', 'family')
   max_prep_time_minutes?: number; // Maximum acceptable prep time in minutes
   max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
+  recipe_repeat_preference?: "standard" | "sooner";
 }
 
 export interface UpdateAccountRequest {

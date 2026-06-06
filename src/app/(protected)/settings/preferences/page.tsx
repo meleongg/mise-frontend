@@ -24,6 +24,11 @@ import {
 } from "@/constants";
 import { useUser } from "@/hooks";
 import { parseHelpers } from "@/lib/api";
+import {
+  formSelectContentClass,
+  formSelectItemClass,
+  formSelectTriggerClass,
+} from "@/lib/formSelectStyles";
 import { UserProfileRequest } from "@/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -45,6 +50,7 @@ export default function SettingsPage() {
     preferred_portion_size: undefined,
     max_prep_time_minutes: undefined,
     max_cook_time_minutes: undefined,
+    recipe_repeat_preference: "standard",
   });
 
   // Track selected items for multi-select fields
@@ -77,6 +83,7 @@ export default function SettingsPage() {
         preferred_portion_size: user.preferred_portion_size || undefined,
         max_prep_time_minutes: user.max_prep_time_minutes || undefined,
         max_cook_time_minutes: user.max_cook_time_minutes || undefined,
+        recipe_repeat_preference: user.recipe_repeat_preference || "standard",
       };
 
       setFormData(newFormData);
@@ -448,6 +455,55 @@ export default function SettingsPage() {
                           {size.label}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Meal plan variety */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="recipe_repeat_preference"
+                    className="text-sm font-semibold"
+                  >
+                    Meal Plan Variety
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    How long before a recipe from your weekly plans or swaps can
+                    appear again in a new plan or swap suggestion.
+                  </p>
+                  <Select
+                    value={formData.recipe_repeat_preference || "standard"}
+                    onValueChange={(value) =>
+                      updateFormData(
+                        "recipe_repeat_preference",
+                        value as "standard" | "sooner"
+                      )
+                    }
+                  >
+                    <SelectTrigger
+                      id="recipe_repeat_preference"
+                      className={formSelectTriggerClass}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      side="bottom"
+                      sideOffset={4}
+                      className={formSelectContentClass}
+                    >
+                      <SelectItem
+                        value="standard"
+                        className={formSelectItemClass}
+                      >
+                        Standard — about 2 weeks
+                      </SelectItem>
+                      <SelectItem
+                        value="sooner"
+                        className={formSelectItemClass}
+                      >
+                        Sooner repeats — about 1 week
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

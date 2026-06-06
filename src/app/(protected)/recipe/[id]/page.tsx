@@ -1,10 +1,10 @@
 "use client";
 
+import BackNavButton from "@/components/BackNavButton";
 import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import RecipeHeroImage from "@/components/RecipeHeroImage";
 import RecipeInstructionList from "@/components/RecipeInstructionList";
 import SodieAvatar from "@/components/SodieAvatar";
-import BackNavButton from "@/components/BackNavButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -13,11 +13,17 @@ import { useUser } from "@/hooks";
 import {
   useRecipeQuery,
   useToggleRecipeStatusMutation,
+  useWeeklyPlansQuery,
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { ApiError, parseHelpers } from "@/lib/api";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { scrollToTop } from "@/lib/scroll";
+import {
+  getActiveWeek,
+  getRecipePlanAvailabilityCopy,
+  isPastWeek,
+} from "@/lib/weekContext";
 import { CircleCheck, RotateCcw, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -51,9 +57,16 @@ export default function RecipePage({
 
   // Fetch recipe using TanStack Query (automatic caching)
   const { data: recipe, isLoading } = useRecipeQuery(recipeId);
+  const { data: weeklyPlans } = useWeeklyPlansQuery(user?.id);
   const { data: recipeProgress } = useWeeklyRecipeProgressQuery(
     user?.id,
     weekNumber
+  );
+
+  const activeWeek = getActiveWeek(weeklyPlans);
+  const isPastWeekView = isPastWeek(weekNumber, activeWeek);
+  const planForWeek = weeklyPlans?.find(
+    (plan) => plan.week_number === weekNumber
   );
 
   // Check if this specific recipe has feedback/progress
@@ -106,6 +119,14 @@ export default function RecipePage({
 
   const feedbackLabel = existingFeedback?.feedback
     ? (FEEDBACK_LABELS[existingFeedback.feedback] ?? existingFeedback.feedback)
+    : null;
+
+  const planAvailability = isCompleted
+    ? getRecipePlanAvailabilityCopy({
+        preference: user?.recipe_repeat_preference,
+        planAddedAt: planForWeek?.created_at,
+        completedAt: existingFeedback?.completed_at,
+      })
     : null;
 
   if (isLoading || !recipe) {
@@ -213,6 +234,12 @@ export default function RecipePage({
               )}
             </div>
 
+            {user && isPastWeekView && (
+              <div className="rounded-lg border border-[hsl(var(--paprika))]/25 bg-amber-50/80 px-4 py-3 text-sm text-[#262218]/90 font-body">
+                Viewing Week {weekNumber} — this recipe was part of a past plan.
+              </div>
+            )}
+
             {user && isCompleted && (
               <div className="space-y-3 rounded-lg border-2 border-[hsl(var(--sage))]/35 bg-[hsl(var(--sage))]/5 px-4 py-4 sm:px-5">
                 <div className="flex items-start gap-3">
@@ -239,6 +266,11 @@ export default function RecipePage({
                         tune your next plan.
                       </p>
                     )}
+                    {planAvailability?.completedLine && (
+                      <p className="text-sm text-muted-foreground mt-1 font-body">
+                        {planAvailability.completedLine}
+                      </p>
+                    )}
                     {existingFeedback?.notes?.trim() && (
                       <p className="text-sm text-muted-foreground mt-2 font-body italic border-l-2 border-[hsl(var(--sage))]/30 pl-3">
                         {existingFeedback.notes}
@@ -246,28 +278,54 @@ export default function RecipePage({
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
+                {planAvailability && (
+                  <p className="text-xs text-muted-foreground font-body leading-relaxed">
+                    {planAvailability.availabilityLine}
+                  </p>
+                )}
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      type="button"
+                      size="touch"
+                      onClick={openFeedbackModal}
+                      className="flex-1 h-auto py-4 sm:py-4 font-semibold bg-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/90 text-white"
+                    >
+                      {hasRatingFeedback ? "Update feedback" : "Add feedback"}
+                    </Button>
+                    {!isPastWeekView && (
+                      <Button
+                        type="button"
+                        size="touch"
+                        variant="outline"
+                        onClick={() => void handleMarkIncomplete()}
+                        disabled={toggleStatusMutation.isPending}
+                        className="flex-1 h-auto py-4 sm:py-4 font-medium border-gray-300 text-gray-700 hover:bg-gray-50"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2 shrink-0" />
+                        {toggleStatusMutation.isPending
+                          ? "Updating..."
+                          : "Mark as incomplete"}
+                      </Button>
+                    )}
+                  </div>
                   <Button
-                    type="button"
-                    size="touch"
-                    onClick={openFeedbackModal}
-                    className="flex-1 font-semibold bg-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/90 text-white"
-                  >
-                    {hasRatingFeedback ? "Update feedback" : "Add feedback"}
-                  </Button>
-                  <Button
-                    type="button"
+                    asChild
                     size="touch"
                     variant="outline"
-                    onClick={() => void handleMarkIncomplete()}
-                    disabled={toggleStatusMutation.isPending}
-                    className="flex-1 font-medium border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="w-full h-auto py-4 sm:py-4 font-semibold bg-white border-2 border-[hsl(var(--paprika))] text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))]/8"
                   >
-                    <RotateCcw className="w-4 h-4 mr-2 shrink-0" />
-                    {toggleStatusMutation.isPending
-                      ? "Updating..."
-                      : "Mark as incomplete"}
+                    <Link
+                      href={`/recipe/${recipe.id}/cook?week=${weekNumber}&preview=1`}
+                      className="inline-flex w-full items-center justify-center gap-2"
+                    >
+                      <UtensilsCrossed className="w-5 h-5 shrink-0" />
+                      Cook again
+                    </Link>
                   </Button>
+                  <p className="text-xs text-muted-foreground text-center font-body">
+                    Cook again won&apos;t change your progress.
+                  </p>
                 </div>
                 {statusError && (
                   <p className="text-sm text-red-600 font-body">
@@ -406,9 +464,10 @@ export default function RecipePage({
 
         {user && (
           <Dialog open={showFeedbackModal} onOpenChange={setShowFeedbackModal}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white p-0 border-2 border-[hsl(var(--paprika))]/20">
+            <DialogContent className="max-w-2xl overflow-visible bg-white p-0 border-2 border-[hsl(var(--paprika))]/20">
               <RecipeFeedbackForm
                 variant="dialog"
+                open={showFeedbackModal}
                 recipeId={recipe.id}
                 weekNumber={weekNumber}
                 existingFeedback={feedbackData}
