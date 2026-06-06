@@ -11,7 +11,6 @@ import {
   Clock,
   FileText,
   Lock,
-  Rocket,
   Smartphone,
   Sparkles,
   Target,
@@ -75,10 +74,7 @@ export default function Home() {
                 size="lg"
                 className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] w-full sm:w-auto"
               >
-                <span className="flex items-center justify-center gap-3">
-                  <Rocket className="w-5 h-5 shrink-0" />
-                  Start Your Cooking Journey
-                </span>
+                Start Your Cooking Journey
               </Button>
               <p className="text-sm text-muted-foreground font-body flex items-center justify-center lg:justify-start gap-1.5">
                 <Clock className="w-4 h-4 shrink-0" />
@@ -102,9 +98,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative max-w-md mx-auto w-full lg:max-w-none lg:mx-0 mt-4 lg:mt-0 order-1 lg:order-2">
+          <div className="relative max-w-md mx-auto w-full lg:max-w-none lg:mx-0 mt-4 lg:mt-0 order-1 lg:order-2 pb-10 sm:pb-12 lg:pb-16">
             <div className="relative z-10">
-              <Card className="relative overflow-visible bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--paprika))]/40 shadow-2xl">
+              <Card className="relative overflow-visible bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--paprika))]/40 shadow-2xl rounded-xl">
                 <CardContent className="p-6 sm:p-8">
                   <div className="space-y-6">
                     <div className="text-left">
@@ -178,23 +174,13 @@ export default function Home() {
                 </CardContent>
 
                 <div
-                  className="absolute -bottom-6 -left-6 sm:-bottom-8 sm:-left-8 lg:-bottom-10 lg:-left-16 xl:-left-20 z-20 pointer-events-none motion-safe:rotate-[-10deg]"
+                  className="absolute bottom-0 left-0 z-20 pointer-events-none motion-safe:-rotate-[8deg] origin-[18%_88%] -translate-x-[30%] translate-y-[26%] scale-105 sm:-translate-x-[34%] sm:translate-y-[30%] sm:scale-[1.12] lg:-translate-x-[52%] lg:translate-y-[36%] lg:scale-[1.72] lg:motion-safe:-rotate-[11deg] xl:-translate-x-[56%] xl:translate-y-[38%] xl:scale-[1.88]"
                   aria-hidden
                 >
                   <SodieAvatar
                     size="lg"
                     animate="none"
-                    className="drop-shadow-lg sm:hidden"
-                  />
-                  <SodieAvatar
-                    size="xl"
-                    animate="none"
-                    className="drop-shadow-lg hidden sm:block lg:hidden"
-                  />
-                  <SodieAvatar
-                    size="2xl"
-                    animate="none"
-                    className="drop-shadow-lg hidden lg:block"
+                    className="drop-shadow-2xl"
                   />
                 </div>
               </Card>
@@ -288,10 +274,7 @@ export default function Home() {
                     size="lg"
                     className="h-14 sm:h-16 w-full max-w-md sm:max-w-none sm:w-auto px-8 sm:px-12 text-lg sm:text-xl font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] border border-orange-700/20"
                   >
-                    <span className="flex items-center justify-center gap-3">
-                      <Rocket className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-                      Start Your Cooking Journey
-                    </span>
+                    Start Your Cooking Journey
                   </Button>
 
                   <p className="text-sm text-muted-foreground font-medium flex items-center justify-center gap-1.5 px-2">

@@ -36,7 +36,7 @@ export default function LandingNavbar() {
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-1 lg:gap-2 shrink-0">
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={() => router.push("/login")}
               className={`${navGhostButtonClassName} px-3 sm:px-4`}
               aria-label="Login to Mise"
@@ -44,7 +44,7 @@ export default function LandingNavbar() {
               Login
             </Button>
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={() => router.push("/register")}
               className={`${navGhostButtonClassName} px-3 sm:px-4`}
               aria-label="Register for Mise"
@@ -90,7 +90,7 @@ export default function LandingNavbar() {
           <div className={navMobileMenuPanelClassName}>
             <div className="flex flex-col gap-2 pt-3">
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={() => {
                   closeMenu();
                   router.push("/login");
@@ -100,7 +100,7 @@ export default function LandingNavbar() {
                 Login
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={() => {
                   closeMenu();
                   router.push("/register");

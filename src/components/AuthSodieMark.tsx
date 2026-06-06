@@ -9,12 +9,7 @@ export default function AuthSodieMark() {
       <SodieAvatar
         size="md"
         animate="none"
-        className="drop-shadow-sm sm:hidden"
-      />
-      <SodieAvatar
-        size="lg"
-        animate="none"
-        className="drop-shadow-md hidden sm:block"
+        className="drop-shadow-sm sm:scale-125"
       />
     </div>
   );

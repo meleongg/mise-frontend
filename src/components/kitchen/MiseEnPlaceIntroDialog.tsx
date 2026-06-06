@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -28,40 +27,32 @@ export default function MiseEnPlaceIntroDialog({
         if (!next) onDismiss(false);
       }}
     >
-      <DialogContent className="bg-white border-2 border-[hsl(var(--paprika))]/30 sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-start gap-3">
+      <DialogContent className="bg-white border-2 border-[hsl(var(--paprika))]/30 sm:max-w-md gap-5">
+        <DialogHeader className="space-y-4 text-left">
+          <div className="flex items-center gap-3">
             <SodieAvatar size="lg" animate="none" className="shrink-0" />
-            <div>
+            <div className="min-w-0">
               <DialogTitle className="text-primary">Mise en place</DialogTitle>
-              <DialogDescription asChild>
-                <div className="mt-2 space-y-3 text-muted-foreground text-sm">
-                  <p>
-                    Before you dive into steps, gather and prep your ingredients
-                    — that&apos;s{" "}
-                    <span className="font-medium text-primary">
-                      mise en place
-                    </span>
-                    .
-                  </p>
-                  <div className="flex items-center gap-3 text-foreground/80">
-                    <span
-                      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--paprika))]/25 bg-amber-100 text-[hsl(var(--paprika))]"
-                      aria-hidden
-                    >
-                      <ListChecks className="h-4 w-4" strokeWidth={2.25} />
-                    </span>
-                    <p className="text-sm leading-snug m-0">
-                      Tap <span className="font-medium">Mise</span> in the top
-                      bar anytime to open your checklist and check items off as
-                      you prep.
-                    </p>
-                  </div>
-                </div>
-              </DialogDescription>
+              <p className="mt-1 text-sm text-muted-foreground leading-snug">
+                Gather and prep your ingredients before you start cooking.
+              </p>
             </div>
           </div>
+
+          <div className="flex items-center gap-3 rounded-xl border border-[hsl(var(--paprika))]/20 bg-[hsl(var(--paprika))]/5 px-3 py-3">
+            <span
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--paprika))]/25 bg-amber-100 text-[hsl(var(--paprika))]"
+              aria-hidden
+            >
+              <ListChecks className="h-4 w-4" strokeWidth={2.25} />
+            </span>
+            <p className="text-sm text-foreground/85 leading-snug m-0">
+              Tap <span className="font-semibold text-primary">Mise</span> in
+              the top bar to open your checklist.
+            </p>
+          </div>
         </DialogHeader>
+
         <DialogFooter className="flex flex-col gap-2 sm:flex-col">
           <Button
             type="button"

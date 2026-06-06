@@ -30,10 +30,10 @@ export const navCtaClassName =
   "bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white font-bold shadow-md hover:shadow-lg ring-1 ring-[hsl(var(--paprika))]/25 transition-all duration-300";
 
 export const navGhostButtonClassName =
-  "text-gray-700 hover:text-[hsl(var(--paprika))] hover:bg-white/50";
+  "text-[hsl(var(--paprika))] bg-white/80 hover:bg-white border border-[hsl(var(--paprika))]/25 hover:border-[hsl(var(--paprika))]/45 shadow-sm";
 
 export const navMobileLinkClassName =
-  "w-full justify-start h-11 px-4 text-base font-medium text-gray-700 hover:text-[hsl(var(--paprika))] hover:bg-white/50 rounded-lg border border-transparent hover:border-[hsl(var(--paprika))]/15";
+  "w-full justify-start h-11 px-4 text-base font-semibold text-[hsl(var(--paprika))] bg-white/80 hover:bg-white rounded-lg border border-[hsl(var(--paprika))]/25 hover:border-[hsl(var(--paprika))]/45 shadow-sm";
 
 export function navDesktopLinkClassName(isActive: boolean): string {
   return `text-sm font-medium px-3 py-1.5 rounded-lg transition-all duration-200 ${

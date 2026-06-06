@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -51,7 +52,10 @@ export default function SodieAvatar({
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center ${className}`}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center",
+        className
+      )}
       style={motionClass ? { transformOrigin: "50% 92%" } : undefined}
     >
       <Image
@@ -59,7 +63,7 @@ export default function SodieAvatar({
         alt={alt}
         width={px}
         height={px}
-        className={`object-contain ${motionClass}`}
+        className={cn("object-contain", motionClass)}
       />
     </span>
   );
