@@ -134,6 +134,7 @@ export interface AdaptiveChatResponse {
 
 export interface GenerateWeeklyPlanRequest {
   initial_intent: string;
+  confirm_regeneration?: boolean;
 }
 
 export interface ChatModifyPlanRequest {
