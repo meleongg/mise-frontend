@@ -214,7 +214,8 @@ export const api = {
 
   async generateWeeklyPlan(
     userId: string,
-    initial_intent: string
+    initial_intent: string,
+    confirmRegeneration = false
   ): Promise<WeeklyPlanResponse> {
     const url = `${PLAN_BASE_URL}/generate/${userId}`;
     const options: RequestInit = {
@@ -223,7 +224,10 @@ export const api = {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
-      body: JSON.stringify({ initial_intent }),
+      body: JSON.stringify({
+        initial_intent,
+        confirm_regeneration: confirmRegeneration,
+      }),
     };
     const response = await fetch(url, options);
     return handleResponse<WeeklyPlanResponse>(
