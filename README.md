@@ -1,47 +1,34 @@
-# ChefPath Frontend
+# Mise frontend
 
-A personalized cooking mentor app that transforms beginners into confident home chefs through guided meal planning and skill-building.
+Next.js client for Mise, an AI-assisted meal planner. It provides onboarding,
+weekly plans, cooking progress, recipe swaps, analytics, and the Sodie coaching
+experience backed by the FastAPI service.
 
-## ✨ What We've Built
+## Architecture
 
-### 🎨 Professional UI with Warm Kitchen Design
+- **Application:** Next.js 15, React 19, TypeScript, and Tailwind CSS
+- **Server state:** TanStack Query centralizes cache keys, request deduplication,
+  targeted mutation invalidation, and prefetching for week-level progress
+- **Session handling:** JWT access/refresh tokens with a single-flight refresh
+  flow prevent duplicate renewal requests and retry interrupted API calls
+- **API boundary:** `src/lib/api.ts` is the typed client boundary for backend,
+  authentication, and AI-planning endpoints
 
-- Custom "Warm Kitchen" color palette (paprika, sage, turmeric)
-- Enhanced shadcn/ui components with cooking-friendly aesthetics
-- Responsive design that feels welcoming and approachable
-
-### 🏠 Engaging Landing Page
-
-- Hero section with clear value proposition
-- Feature showcase highlighting personalized meal planning
-- Professional navigation with clear call-to-action
-
-### 📝 Smart Onboarding Experience
-
-- Interactive form with custom sliders and dropdowns
-- Professional error validation with red outlines and toast notifications
-- Collects cuisine preferences, skill level, cooking frequency, and course duration
-
-### 🛠 Robust Technical Foundation
-
-- Next.js 15 with TypeScript for type safety
-- Tailwind CSS v4 with custom design system
-- React contexts and custom hooks for state management
-- API integration ready for FastAPI backend
-
-## 🚀 Quick Start
+## Run locally
 
 ```bash
+cd mise-frontend
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) - your cooking journey starts here!
+Create `.env.local` with the backend endpoints:
 
-## 🏗 Architecture
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+NEXT_PUBLIC_AUTH_BASE_URL=http://localhost:8000/auth
+NEXT_PUBLIC_PLAN_BASE_URL=http://localhost:8000/plan
+```
 
-- **Frontend**: Next.js 15 + TypeScript + Tailwind CSS
-- **Components**: shadcn/ui with custom Warm Kitchen theming
-- **State**: React Context + Custom hooks
-- **Validation**: Enhanced form validation with Sonner toasts
-- **Styling**: Professional error states and accessibility features
+The backend must allow the frontend origin through `CORS_ORIGINS`. Run `npm run
+lint` before submitting changes and `npm run build` to validate a production build.
