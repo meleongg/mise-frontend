@@ -40,6 +40,10 @@ export interface User {
   max_prep_time_minutes?: number; // Maximum acceptable prep time in minutes
   max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
   recipe_repeat_preference?: "standard" | "sooner";
+  city?: string;
+  preferred_retailer?: string;
+  sodie_memory_enabled?: boolean;
+  chat_retention_policy?: "3_months" | "18_months" | "36_months" | "manual";
   created_at: string;
 }
 
@@ -153,7 +157,14 @@ export interface UserProfileRequest {
   max_prep_time_minutes?: number; // Maximum acceptable prep time in minutes
   max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
   recipe_repeat_preference?: "standard" | "sooner";
+  city?: string;
+  preferred_retailer?: string;
+  sodie_memory_enabled?: boolean;
+  chat_retention_policy?: "3_months" | "18_months" | "36_months" | "manual";
 }
+
+export interface PantryItem { id: string; name: string; is_baseline: boolean; }
+export interface PantryItemInput { name: string; is_baseline: boolean; }
 
 export interface UpdateAccountRequest {
   email?: string;
