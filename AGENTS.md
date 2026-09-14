@@ -9,6 +9,12 @@
 - **Architecture:** Keep pages in `src/app/`, reusable UI in `src/components/`,
   page-independent behavior in `src/hooks/`, and all backend requests in
   `src/lib/api.ts`. Do not issue ad-hoc component `fetch` calls.
+- **Secrets boundary:** Never read, print, source, copy, modify, or otherwise
+  expose `.env` or `.env.*` files, credentials, tokens, or keychain material.
+  Never run commands that dump environment variables. Ask the user to run any
+  secret-dependent command or to confirm non-sensitive configuration status.
+  This is behavioral guidance; filesystem sandbox permissions remain the actual
+  security boundary.
 
 ## Execution and verification
 
