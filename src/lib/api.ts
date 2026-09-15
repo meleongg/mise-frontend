@@ -21,6 +21,8 @@ import {
   UpdateRecipeStatusRequest,
   UpdateRecipeStatusResponse,
   User,
+  PantryItem,
+  PantryItemInput,
   UserProfileRequest,
   UserProgress,
   UserRecipeProgress,
@@ -368,6 +370,18 @@ export const api = {
     };
     const response = await fetch(url, options);
     return handleResponse<User>(response, createRetryFn(url, options));
+  },
+
+  async getPantryItems(): Promise<PantryItem[]> {
+    const url = `${API_BASE_URL}/users/pantry`;
+    const options: RequestInit = { headers: { ...getAuthHeaders() } };
+    return handleResponse<PantryItem[]>(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async replacePantryItems(items: PantryItemInput[]): Promise<PantryItem[]> {
+    const url = `${API_BASE_URL}/users/pantry`;
+    const options: RequestInit = { method: "PUT", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify({ items }) };
+    return handleResponse<PantryItem[]>(await fetch(url, options), createRetryFn(url, options));
   },
 
   // Account Management

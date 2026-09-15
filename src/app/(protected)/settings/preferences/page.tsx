@@ -2,6 +2,7 @@
 
 import BackNavButton from "@/components/BackNavButton";
 import SodiePageIntro from "@/components/SodiePageIntro";
+import CookingContextSettings from "@/components/CookingContextSettings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -557,6 +558,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Submit Button */}
+                <CookingContextSettings />
                 <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
                   <BackNavButton
                     type="button"
