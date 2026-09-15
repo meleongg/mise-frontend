@@ -24,6 +24,7 @@ import {
   PantryItem,
   PantryItemInput,
   SodieThread,
+  SodieChatResponse,
   UserProfileRequest,
   UserProgress,
   UserRecipeProgress,
@@ -389,6 +390,12 @@ export const api = {
     const url = `${API_BASE_URL}/sodie/threads`;
     const options: RequestInit = { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify({ scope, is_temporary }) };
     return handleResponse<SodieThread>(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async sendSodieMessage(threadId: string, content: string): Promise<SodieChatResponse> {
+    const url = `${API_BASE_URL}/sodie/threads/${threadId}/chat`;
+    const options: RequestInit = { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify({ content }) };
+    return handleResponse<SodieChatResponse>(await fetch(url, options), createRetryFn(url, options));
   },
 
   // Account Management
