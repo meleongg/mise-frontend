@@ -165,6 +165,8 @@ export interface UserProfileRequest {
 
 export interface PantryItem { id: string; name: string; is_baseline: boolean; }
 export interface PantryItemInput { name: string; is_baseline: boolean; }
+export interface SodieThread { id: string; scope: string; context_id?: string; is_temporary: boolean; created_at: string; updated_at: string; messages: SodieStoredMessage[]; }
+export interface SodieStoredMessage { id: string; sender: "user" | "ai"; content: string; created_at: string; }
 
 export interface UpdateAccountRequest {
   email?: string;

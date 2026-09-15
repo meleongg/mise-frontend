@@ -2,6 +2,7 @@
 
 import AuthGuard from "@/components/AuthGuard";
 import ClientNavbar from "@/components/ClientNavbar";
+import SodieLauncher from "@/components/SodieLauncher";
 import { useUser } from "@/hooks";
 import {
   useAllWeeksRecipeProgressQueries,
@@ -29,6 +30,7 @@ export default function ProtectedLayout({
       <div className="flex flex-col min-h-screen">
         <ClientNavbar />
         <main className="flex-1">{children}</main>
+        <SodieLauncher />
       </div>
     </AuthGuard>
   );
