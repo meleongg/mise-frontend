@@ -56,8 +56,7 @@ export default function MyRecipesPage() {
         <div>
           <h1 className="text-2xl font-semibold">My Recipes</h1>
           <p className="text-sm text-muted-foreground">
-            Personal copies saved from approved Sodie edits. Shared catalog
-            recipes stay unchanged.
+            Personal copies saved from approved Sodie edits.
           </p>
         </div>
       </div>
@@ -72,8 +71,8 @@ export default function MyRecipesPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              Open a catalog recipe, ask Sodie to propose a personal edit, then
-              approve it to save a copy here.
+              Open a recipe from your weekly plan, tap <strong>Edit with Sodie</strong>,
+              then approve the proposal to save a copy here.
             </p>
             <Button asChild variant="outline">
               <Link href="/weekly-plan">Browse this week’s plan</Link>

@@ -8,7 +8,8 @@ import { api } from "@/lib/api";
 import type { SodieActionProposal } from "@/types";
 import { MessageCircle, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { SODIE_PROPOSE_EDIT_EVENT } from "@/lib/sodieEvents";
 
 type ChatItem =
   | { kind: "message"; sender: "user" | "ai"; content: string }
@@ -31,12 +32,13 @@ export default function SodieLauncher() {
   const [proposalBusy, setProposalBusy] = useState(false);
   const [error, setError] = useState("");
 
-  async function ensureThread() {
+  async function ensureThread(forRecipeId?: string | null) {
     if (threadId) return threadId;
+    const scopeRecipeId = forRecipeId || recipeId;
     const thread = await api.createSodieThread(
-      recipeId ? "recipe" : "global",
+      scopeRecipeId ? "recipe" : "global",
       temporary,
-      recipeId || undefined
+      scopeRecipeId || undefined
     );
     setThreadId(thread.id);
     return thread.id;
@@ -65,17 +67,19 @@ export default function SodieLauncher() {
     }
   }
 
-  async function proposePersonalEdit() {
-    if (!recipeId || sending) return;
+  async function proposePersonalEdit(forRecipeId?: string) {
+    const targetRecipeId = forRecipeId || recipeId;
+    if (!targetRecipeId || sending) return;
+    setOpen(true);
     setSending(true);
     setError("");
     try {
-      const id = await ensureThread();
-      const recipe = await api.getRecipe(recipeId);
+      const id = await ensureThread(targetRecipeId);
+      const recipe = await api.getRecipe(targetRecipeId);
       const response = await api.proposeRecipeEdit({
-        source_recipe_id: recipeId,
+        source_recipe_id: targetRecipeId,
         thread_id: id,
-        idempotency_key: `ui-${recipeId}-${Date.now()}`,
+        idempotency_key: `ui-${targetRecipeId}-${Date.now()}`,
         rationale: "Personal copy with a weeknight-friendly note from Sodie.",
         patch: {
           title: `${recipe.name} (personal)`,
@@ -101,6 +105,17 @@ export default function SodieLauncher() {
     }
   }
 
+  useEffect(() => {
+    function onProposeEdit(event: Event) {
+      const detail = (event as CustomEvent<{ recipeId?: string }>).detail;
+      if (!detail?.recipeId) return;
+      void proposePersonalEdit(detail.recipeId);
+    }
+    window.addEventListener(SODIE_PROPOSE_EDIT_EVENT, onProposeEdit);
+    return () => window.removeEventListener(SODIE_PROPOSE_EDIT_EVENT, onProposeEdit);
+    // Re-bind when path/thread state changes so the handler uses current closures.
+  }, [recipeId, temporary, threadId, sending]);
+
   function replaceProposal(next: SodieActionProposal) {
     setItems((old) =>
       old.map((item) =>
@@ -123,7 +138,7 @@ export default function SodieLauncher() {
           kind: "message",
           sender: "ai",
           content:
-            "Saved to My Recipes as a personal copy. The shared catalog recipe is unchanged.",
+            "Saved to My Recipes as a personal copy.",
         },
       ]);
     } catch {
@@ -221,7 +236,7 @@ export default function SodieLauncher() {
               disabled={sending}
               onClick={() => void proposePersonalEdit()}
             >
-              Propose a personal recipe edit
+              Propose edit for this recipe
             </Button>
           )}
           <Textarea

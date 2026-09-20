@@ -17,6 +17,7 @@ import {
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { ApiError, parseHelpers } from "@/lib/api";
+import { requestSodieProposeEdit } from "@/lib/sodieEvents";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { scrollToTop } from "@/lib/scroll";
 import {
@@ -24,7 +25,7 @@ import {
   getRecipePlanAvailabilityCopy,
   isPastWeek,
 } from "@/lib/weekContext";
-import { CircleCheck, RotateCcw, UtensilsCrossed } from "lucide-react";
+import { CircleCheck, MessageCircle, RotateCcw, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useLayoutEffect, useState } from "react";
@@ -310,6 +311,16 @@ export default function RecipePage({
                     )}
                   </div>
                   <Button
+                    type="button"
+                    size="touch"
+                    variant="outline"
+                    className="w-full h-auto py-4 sm:py-4 font-semibold"
+                    onClick={() => requestSodieProposeEdit(recipe.id)}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2 shrink-0" />
+                    Edit with Sodie
+                  </Button>
+                  <Button
                     asChild
                     size="touch"
                     variant="outline"
@@ -380,6 +391,16 @@ export default function RecipePage({
                     </Button>
                   )}
                 </div>
+                <Button
+                  type="button"
+                  size="touch"
+                  variant="outline"
+                  className="w-full h-auto py-4 sm:py-4 font-semibold"
+                  onClick={() => requestSodieProposeEdit(recipe.id)}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2 shrink-0" />
+                  Edit with Sodie
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
