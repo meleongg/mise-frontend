@@ -25,6 +25,10 @@ import {
   PantryItemInput,
   SodieThread,
   SodieChatResponse,
+  SodieActionProposal,
+  SodieStoredMessage,
+  PersonalRecipe,
+  RecipeEditPatch,
   UserProfileRequest,
   UserProgress,
   UserRecipeProgress,
@@ -386,9 +390,21 @@ export const api = {
     return handleResponse<PantryItem[]>(await fetch(url, options), createRetryFn(url, options));
   },
 
-  async createSodieThread(scope = "global", is_temporary = false): Promise<SodieThread> {
+  async createSodieThread(
+    scope = "global",
+    is_temporary = false,
+    context_id?: string
+  ): Promise<SodieThread> {
     const url = `${API_BASE_URL}/sodie/threads`;
-    const options: RequestInit = { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify({ scope, is_temporary }) };
+    const options: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify({
+        scope,
+        is_temporary,
+        ...(context_id ? { context_id } : {}),
+      }),
+    };
     return handleResponse<SodieThread>(await fetch(url, options), createRetryFn(url, options));
   },
 
@@ -396,6 +412,56 @@ export const api = {
     const url = `${API_BASE_URL}/sodie/threads/${threadId}/chat`;
     const options: RequestInit = { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify({ content }) };
     return handleResponse<SodieChatResponse>(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async proposeRecipeEdit(input: {
+    source_recipe_id: string;
+    patch: RecipeEditPatch;
+    rationale?: string;
+    idempotency_key: string;
+    thread_id?: string;
+  }): Promise<{ proposal: SodieActionProposal; assistant_message?: string }> {
+    const url = `${API_BASE_URL}/sodie/proposals`;
+    const options: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify(input),
+    };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async approveSodieProposal(proposalId: string): Promise<SodieActionProposal> {
+    const url = `${API_BASE_URL}/sodie/proposals/${proposalId}/approve`;
+    const options: RequestInit = { method: "POST", headers: { ...getAuthHeaders() } };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async rejectSodieProposal(proposalId: string): Promise<SodieActionProposal> {
+    const url = `${API_BASE_URL}/sodie/proposals/${proposalId}/reject`;
+    const options: RequestInit = { method: "POST", headers: { ...getAuthHeaders() } };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async clarifySodieProposal(proposalId: string, content: string): Promise<SodieStoredMessage> {
+    const url = `${API_BASE_URL}/sodie/proposals/${proposalId}/clarify`;
+    const options: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify({ content }),
+    };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async listPersonalRecipes(): Promise<PersonalRecipe[]> {
+    const url = `${API_BASE_URL}/personal-recipes`;
+    const options: RequestInit = { method: "GET", headers: { ...getAuthHeaders() } };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async getPersonalRecipe(personalRecipeId: string): Promise<PersonalRecipe> {
+    const url = `${API_BASE_URL}/personal-recipes/${personalRecipeId}`;
+    const options: RequestInit = { method: "GET", headers: { ...getAuthHeaders() } };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
   },
 
   // Account Management
