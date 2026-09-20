@@ -17,7 +17,7 @@ import {
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { ApiError, parseHelpers } from "@/lib/api";
-import { requestSodieProposeEdit } from "@/lib/sodieEvents";
+import { requestSodieRecipeEdit } from "@/lib/sodieEvents";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { scrollToTop } from "@/lib/scroll";
 import {
@@ -315,7 +315,7 @@ export default function RecipePage({
                     size="touch"
                     variant="outline"
                     className="w-full h-auto py-4 sm:py-4 font-semibold"
-                    onClick={() => requestSodieProposeEdit(recipe.id)}
+                    onClick={() => requestSodieRecipeEdit(recipe.id)}
                   >
                     <MessageCircle className="w-4 h-4 mr-2 shrink-0" />
                     Edit with Sodie
@@ -396,7 +396,7 @@ export default function RecipePage({
                   size="touch"
                   variant="outline"
                   className="w-full h-auto py-4 sm:py-4 font-semibold"
-                  onClick={() => requestSodieProposeEdit(recipe.id)}
+                  onClick={() => requestSodieRecipeEdit(recipe.id)}
                 >
                   <MessageCircle className="w-4 h-4 mr-2 shrink-0" />
                   Edit with Sodie

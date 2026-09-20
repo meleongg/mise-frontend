@@ -5,11 +5,12 @@ import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
+import { buildEditPatchFromRequest } from "@/lib/sodieEditPatch";
+import { SODIE_START_RECIPE_EDIT_EVENT } from "@/lib/sodieEvents";
 import type { SodieActionProposal } from "@/types";
 import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { SODIE_PROPOSE_EDIT_EVENT } from "@/lib/sodieEvents";
 
 type ChatItem =
   | { kind: "message"; sender: "user" | "ai"; content: string }
@@ -20,21 +21,27 @@ function recipeIdFromPath(pathname: string): string | null {
   return match?.[1] ?? null;
 }
 
+const EDIT_PROMPT =
+  "What would you like to change about this recipe? For example: add oatmeal, reduce sugar, or make the steps clearer. I’ll show a before/after proposal you can clarify, edit, reject, or approve.";
+
 export default function SodieLauncher() {
   const pathname = usePathname();
   const recipeId = useMemo(() => recipeIdFromPath(pathname), [pathname]);
   const [open, setOpen] = useState(false);
   const [temporary, setTemporary] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
+  const [editRecipeId, setEditRecipeId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [items, setItems] = useState<ChatItem[]>([]);
   const [sending, setSending] = useState(false);
   const [proposalBusy, setProposalBusy] = useState(false);
   const [error, setError] = useState("");
 
+  const activeRecipeId = editRecipeId || recipeId;
+
   async function ensureThread(forRecipeId?: string | null) {
     if (threadId) return threadId;
-    const scopeRecipeId = forRecipeId || recipeId;
+    const scopeRecipeId = forRecipeId || activeRecipeId;
     const thread = await api.createSodieThread(
       scopeRecipeId ? "recipe" : "global",
       temporary,
@@ -44,13 +51,58 @@ export default function SodieLauncher() {
     return thread.id;
   }
 
+  function startRecipeEdit(targetRecipeId: string) {
+    setOpen(true);
+    setEditRecipeId(targetRecipeId);
+    setError("");
+    setItems([
+      {
+        kind: "message",
+        sender: "ai",
+        content: EDIT_PROMPT,
+      },
+    ]);
+    // New edit session should not reuse an old global thread.
+    setThreadId(null);
+  }
+
   async function send() {
     if (!input.trim() || sending) return;
+    const userText = input.trim();
     setSending(true);
     setError("");
+    setInput("");
     try {
+      if (activeRecipeId) {
+        const id = await ensureThread(activeRecipeId);
+        setItems((old) => [
+          ...old,
+          { kind: "message", sender: "user", content: userText },
+        ]);
+        const recipe = await api.getRecipe(activeRecipeId);
+        const patch = buildEditPatchFromRequest(recipe, userText);
+        const response = await api.proposeRecipeEdit({
+          source_recipe_id: activeRecipeId,
+          thread_id: id,
+          idempotency_key: `edit-${activeRecipeId}-${Date.now()}`,
+          rationale: userText,
+          patch,
+        });
+        setItems((old) => [
+          ...old,
+          {
+            kind: "message",
+            sender: "ai",
+            content:
+              "Here’s a personal-copy proposal based on what you asked for. Review the diff, then clarify, request another edit, reject, or approve.",
+          },
+          { kind: "proposal", proposal: response.proposal },
+        ]);
+        return;
+      }
+
       const id = await ensureThread();
-      const response = await api.sendSodieMessage(id, input.trim());
+      const response = await api.sendSodieMessage(id, userText);
       setItems((old) => [
         ...old,
         { kind: "message", sender: "user", content: response.user_message.content },
@@ -59,7 +111,6 @@ export default function SodieLauncher() {
           ? [{ kind: "proposal" as const, proposal: response.proposal }]
           : []),
       ]);
-      setInput("");
     } catch {
       setError("Sodie could not reply just now. Try again.");
     } finally {
@@ -67,54 +118,16 @@ export default function SodieLauncher() {
     }
   }
 
-  async function proposePersonalEdit(forRecipeId?: string) {
-    const targetRecipeId = forRecipeId || recipeId;
-    if (!targetRecipeId || sending) return;
-    setOpen(true);
-    setSending(true);
-    setError("");
-    try {
-      const id = await ensureThread(targetRecipeId);
-      const recipe = await api.getRecipe(targetRecipeId);
-      const response = await api.proposeRecipeEdit({
-        source_recipe_id: targetRecipeId,
-        thread_id: id,
-        idempotency_key: `ui-${targetRecipeId}-${Date.now()}`,
-        rationale: "Personal copy with a weeknight-friendly note from Sodie.",
-        patch: {
-          title: `${recipe.name} (personal)`,
-          notes: "Adjusted for your kitchen — review before saving.",
-          servings: recipe.portion_size || "4 servings",
-        },
-      });
-      setItems((old) => [
-        ...old,
-        {
-          kind: "message",
-          sender: "ai",
-          content:
-            response.assistant_message ||
-            "I prepared a personal recipe edit for your review.",
-        },
-        { kind: "proposal", proposal: response.proposal },
-      ]);
-    } catch {
-      setError("Could not create a proposal. Try again.");
-    } finally {
-      setSending(false);
-    }
-  }
-
   useEffect(() => {
-    function onProposeEdit(event: Event) {
+    function onStartRecipeEdit(event: Event) {
       const detail = (event as CustomEvent<{ recipeId?: string }>).detail;
       if (!detail?.recipeId) return;
-      void proposePersonalEdit(detail.recipeId);
+      startRecipeEdit(detail.recipeId);
     }
-    window.addEventListener(SODIE_PROPOSE_EDIT_EVENT, onProposeEdit);
-    return () => window.removeEventListener(SODIE_PROPOSE_EDIT_EVENT, onProposeEdit);
-    // Re-bind when path/thread state changes so the handler uses current closures.
-  }, [recipeId, temporary, threadId, sending]);
+    window.addEventListener(SODIE_START_RECIPE_EDIT_EVENT, onStartRecipeEdit);
+    return () =>
+      window.removeEventListener(SODIE_START_RECIPE_EDIT_EVENT, onStartRecipeEdit);
+  }, []);
 
   function replaceProposal(next: SodieActionProposal) {
     setItems((old) =>
@@ -137,8 +150,7 @@ export default function SodieLauncher() {
         {
           kind: "message",
           sender: "ai",
-          content:
-            "Saved to My Recipes as a personal copy.",
+          content: "Saved to My Recipes as a personal copy.",
         },
       ]);
     } catch {
@@ -153,6 +165,14 @@ export default function SodieLauncher() {
     setError("");
     try {
       replaceProposal(await api.rejectSodieProposal(proposalId));
+      setItems((old) => [
+        ...old,
+        {
+          kind: "message",
+          sender: "ai",
+          content: "Okay — that proposal was rejected. Tell me if you want a different change.",
+        },
+      ]);
     } catch {
       setError("Could not reject that proposal.");
     } finally {
@@ -168,6 +188,12 @@ export default function SodieLauncher() {
       setItems((old) => [
         ...old,
         { kind: "message", sender: "user", content: message.content },
+        {
+          kind: "message",
+          sender: "ai",
+          content:
+            "Thanks — say more about what to change, or reject this proposal and send a new request.",
+        },
       ]);
     } catch {
       setError("Could not send that clarification.");
@@ -229,21 +255,15 @@ export default function SodieLauncher() {
               )
             )}
           </div>
-          {recipeId && (
-            <Button
-              variant="outline"
-              className="mt-3 w-full"
-              disabled={sending}
-              onClick={() => void proposePersonalEdit()}
-            >
-              Propose edit for this recipe
-            </Button>
-          )}
           <Textarea
             className="mt-3"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="Ask about what you’re cooking…"
+            placeholder={
+              activeRecipeId
+                ? "Describe the change… e.g. Add oatmeal"
+                : "Ask about what you’re cooking…"
+            }
           />
           {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
           <Button
