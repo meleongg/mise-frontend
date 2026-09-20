@@ -177,7 +177,7 @@ export default function SodieLauncher() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-40">
+    <div className="fixed bottom-5 right-5 z-50">
       {open && (
         <section className="mb-3 w-[min(22rem,calc(100vw-2.5rem))] rounded-2xl border bg-white p-4 shadow-xl">
           <div className="flex items-center justify-between">
