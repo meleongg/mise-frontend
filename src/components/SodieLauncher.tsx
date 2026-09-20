@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import type { SodieActionProposal } from "@/types";
-import { MessageCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { SODIE_PROPOSE_EDIT_EVENT } from "@/lib/sodieEvents";
@@ -255,14 +255,19 @@ export default function SodieLauncher() {
           </Button>
         </section>
       )}
-      <Button
-        size="icon"
-        className="h-14 w-14 rounded-full"
+      <button
+        type="button"
         onClick={() => setOpen(!open)}
-        aria-label="Open Sodie chat"
+        aria-label={open ? "Close Sodie chat" : "Open Sodie chat"}
+        aria-expanded={open}
+        className="group flex h-16 w-16 items-center justify-center rounded-full border-2 border-[hsl(var(--paprika))]/25 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 shadow-lg ring-2 ring-white transition hover:scale-105 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[hsl(var(--paprika))]/35"
       >
-        <MessageCircle />
-      </Button>
+        {open ? (
+          <X className="h-6 w-6 text-[hsl(var(--paprika))]" aria-hidden />
+        ) : (
+          <SodieAvatar size="sm" animate="idle" className="drop-shadow-sm" />
+        )}
+      </button>
     </div>
   );
 }
