@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { actions, useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { BarChart3, Calendar, Menu, Settings, User, X } from "lucide-react";
+import { BarChart3, BookHeart, Calendar, Menu, Settings, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -34,6 +34,7 @@ export default function Navbar({
 
   const navLinks = [
     { href: "/weekly-plan", label: "Weekly Plan", Icon: Calendar },
+    { href: "/my-recipes", label: "My Recipes", Icon: BookHeart },
     { href: "/analytics", label: "Analytics", Icon: BarChart3 },
     { href: "/settings/preferences", label: "Preferences", Icon: Settings },
     { href: "/settings/account", label: "Account", Icon: User },

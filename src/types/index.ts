@@ -167,7 +167,53 @@ export interface PantryItem { id: string; name: string; is_baseline: boolean; }
 export interface PantryItemInput { name: string; is_baseline: boolean; }
 export interface SodieThread { id: string; scope: string; context_id?: string; is_temporary: boolean; created_at: string; updated_at: string; messages: SodieStoredMessage[]; }
 export interface SodieStoredMessage { id: string; sender: "user" | "ai"; content: string; created_at: string; }
-export interface SodieChatResponse { user_message: SodieStoredMessage; ai_message: SodieStoredMessage; }
+export interface SodieChatResponse { user_message: SodieStoredMessage; ai_message: SodieStoredMessage; proposal?: SodieActionProposal | null; }
+
+export interface RecipeEditPatch {
+  title?: string;
+  servings?: string;
+  ingredients?: unknown;
+  instructions?: unknown;
+  notes?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SodieActionProposal {
+  id: string;
+  thread_id?: string | null;
+  action_type: string;
+  status: "pending" | "approved" | "rejected" | "expired" | "applied";
+  source_recipe_id?: string | null;
+  personal_recipe_id?: string | null;
+  payload: { before?: Record<string, unknown>; after?: Record<string, unknown>; patch?: RecipeEditPatch };
+  diff: { fields?: Record<string, { before: unknown; after: unknown }> };
+  impact: {
+    serving_text?: string;
+    plan_schedule?: string;
+    shopping_list?: string;
+    list_reconciliation_queued?: boolean;
+  };
+  rationale?: string | null;
+  idempotency_key: string;
+  created_at: string;
+  updated_at: string;
+  applied_at?: string | null;
+}
+
+export interface PersonalRecipe {
+  id: string;
+  source_recipe_id?: string | null;
+  name: string;
+  ingredients: unknown;
+  instructions: unknown;
+  portion_size?: string | null;
+  notes?: string | null;
+  metadata?: Record<string, unknown> | null;
+  current_revision: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface UpdateAccountRequest {
   email?: string;
