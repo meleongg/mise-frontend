@@ -8,10 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { buildEditPatchFromRequest } from "@/lib/sodieEditPatch";
 import { SODIE_START_RECIPE_EDIT_EVENT } from "@/lib/sodieEvents";
+import { cn } from "@/lib/utils";
 import type { SodieActionProposal } from "@/types";
 import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ChatItem =
   | { kind: "message"; sender: "user" | "ai"; content: string }
@@ -28,6 +29,7 @@ const EDIT_PROMPT =
 export default function SodieLauncher() {
   const pathname = usePathname();
   const recipeId = useMemo(() => recipeIdFromPath(pathname), [pathname]);
+  const transcriptRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [temporary, setTemporary] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
@@ -39,6 +41,12 @@ export default function SodieLauncher() {
   const [error, setError] = useState("");
 
   const activeRecipeId = editRecipeId || recipeId;
+
+  useEffect(() => {
+    const node = transcriptRef.current;
+    if (!node) return;
+    node.scrollTop = node.scrollHeight;
+  }, [items, open]);
 
   async function ensureThread(forRecipeId?: string | null) {
     if (threadId) return threadId;
@@ -204,27 +212,41 @@ export default function SodieLauncher() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
       {open && (
-        <section className="mb-3 w-[min(22rem,calc(100vw-2.5rem))] rounded-2xl border bg-white p-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
+        <section
+          className={cn(
+            "mb-3 flex max-h-[min(40rem,calc(100dvh-7.5rem))] w-[min(28rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-3xl border border-stone-200/90 bg-white shadow-2xl",
+            "sm:w-[min(32rem,calc(100vw-2.5rem))]"
+          )}
+        >
+          <header className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-3 sm:px-5">
+            <div className="flex min-w-0 items-center gap-2.5">
               <SodieAvatar size="sm" animate="none" />
-              <strong>Ask Sodie</strong>
+              <div className="min-w-0">
+                <p className="font-semibold text-stone-900">Ask Sodie</p>
+                <p className="truncate text-xs text-stone-500">
+                  {activeRecipeId
+                    ? "Editing this recipe — personal copy on approve"
+                    : "Cooking help for your plan"}
+                </p>
+              </div>
             </div>
             <Button
               size="icon"
               variant="ghost"
+              className="min-h-11 min-w-11 shrink-0"
               onClick={() => setOpen(false)}
               aria-label="Close Sodie"
             >
               <X />
             </Button>
-          </div>
-          <div className="mt-3 flex items-start justify-between gap-3">
+          </header>
+
+          <div className="flex items-start justify-between gap-3 border-b border-stone-100 px-4 py-3 sm:px-5">
             <div className="min-w-0">
               <p className="text-sm font-medium text-stone-900">Private session</p>
-              <p className="text-xs text-stone-600 leading-snug">
+              <p className="text-xs leading-snug text-stone-600">
                 Not shown in history or used for memory
               </p>
             </div>
@@ -235,16 +257,27 @@ export default function SodieLauncher() {
               onCheckedChange={setTemporary}
             />
           </div>
-          <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
+
+          <div
+            ref={transcriptRef}
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5"
+          >
+            {items.length === 0 && (
+              <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-stone-700">
+                Ask about prep, timing, or techniques — or open a recipe and tap{" "}
+                <strong>Edit with Sodie</strong> to change ingredients.
+              </p>
+            )}
             {items.map((item, index) =>
               item.kind === "message" ? (
                 <p
                   key={`m-${index}`}
-                  className={
+                  className={cn(
+                    "max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
                     item.sender === "ai"
-                      ? "rounded bg-amber-50 p-2 text-sm"
-                      : "rounded bg-primary p-2 text-sm text-white"
-                  }
+                      ? "bg-amber-50 text-stone-800"
+                      : "ml-auto bg-[hsl(var(--paprika))] text-white"
+                  )}
                 >
                   {item.content}
                 </p>
@@ -261,24 +294,27 @@ export default function SodieLauncher() {
               )
             )}
           </div>
-          <Textarea
-            className="mt-3"
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder={
-              activeRecipeId
-                ? "Describe the change… e.g. Add oatmeal"
-                : "Ask about what you’re cooking…"
-            }
-          />
-          {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
-          <Button
-            className="mt-2 w-full"
-            disabled={!input.trim() || sending}
-            onClick={() => void send()}
-          >
-            {sending ? "Sodie is thinking…" : "Send"}
-          </Button>
+
+          <div className="border-t border-stone-100 bg-stone-50/80 px-4 py-3 sm:px-5 sm:py-4">
+            <Textarea
+              className="min-h-24 resize-none border-stone-200 bg-white text-sm leading-relaxed shadow-sm"
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder={
+                activeRecipeId
+                  ? "Describe the change… e.g. Add oatmeal"
+                  : "Ask about what you’re cooking…"
+              }
+            />
+            {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+            <Button
+              className="mt-3 min-h-11 w-full bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--paprika))]/90"
+              disabled={!input.trim() || sending}
+              onClick={() => void send()}
+            >
+              {sending ? "Sodie is thinking…" : "Send"}
+            </Button>
+          </div>
         </section>
       )}
       <button
