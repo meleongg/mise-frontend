@@ -3,6 +3,7 @@
 import ProposalCard from "@/components/ProposalCard";
 import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { buildEditPatchFromRequest } from "@/lib/sodieEditPatch";
@@ -220,15 +221,20 @@ export default function SodieLauncher() {
               <X />
             </Button>
           </div>
-          <label className="mt-3 flex gap-2 text-xs">
-            <input
-              type="checkbox"
+          <div className="mt-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-stone-900">Private session</p>
+              <p className="text-xs text-stone-600 leading-snug">
+                Not shown in history or used for memory
+              </p>
+            </div>
+            <Switch
               checked={temporary}
               disabled={!!threadId}
-              onChange={(event) => setTemporary(event.target.checked)}
+              aria-label="Private session"
+              onCheckedChange={setTemporary}
             />
-            Private session — not shown in history or used for memory
-          </label>
+          </div>
           <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
             {items.map((item, index) =>
               item.kind === "message" ? (
