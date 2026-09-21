@@ -8,7 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexts/AppContext";
 import { queryKeys } from "@/hooks/queries";
 import { api } from "@/lib/api";
-import { SODIE_START_RECIPE_EDIT_EVENT } from "@/lib/sodieEvents";
+import {
+  SODIE_OPEN_EVENT,
+  SODIE_START_RECIPE_EDIT_EVENT,
+  type SodieOpenDetail,
+} from "@/lib/sodieEvents";
 import { cn } from "@/lib/utils";
 import type { SodieActionProposal } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -237,9 +241,21 @@ export default function SodieLauncher() {
       if (!detail?.recipeId) return;
       startRecipeEdit(detail.recipeId);
     }
+    function onOpen(event: Event) {
+      const detail = (event as CustomEvent<SodieOpenDetail>).detail ?? {};
+      setOpen(true);
+      setEditRecipeId(null);
+      setError("");
+      if (typeof detail.draft === "string") {
+        setInput(detail.draft);
+      }
+    }
     window.addEventListener(SODIE_START_RECIPE_EDIT_EVENT, onStartRecipeEdit);
-    return () =>
+    window.addEventListener(SODIE_OPEN_EVENT, onOpen);
+    return () => {
       window.removeEventListener(SODIE_START_RECIPE_EDIT_EVENT, onStartRecipeEdit);
+      window.removeEventListener(SODIE_OPEN_EVENT, onOpen);
+    };
   }, []);
 
   function replaceProposal(next: SodieActionProposal) {
@@ -407,6 +423,10 @@ export default function SodieLauncher() {
             >
               {sending ? "Sodie is thinking…" : "Send"}
             </Button>
+            <p className="mt-3 text-xs leading-snug text-stone-500">
+              Sodie uses AI and can make mistakes. Double-check recipes,
+              allergens, and instructions before you cook.
+            </p>
           </div>
         </section>
       )}

@@ -4,11 +4,13 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-export type SodieSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+export type SodieSize = "2xs" | "xs" | "chip" | "sm" | "md" | "lg" | "xl" | "2xl";
 export type SodieAnimate = "none" | "idle" | "celebrate" | "thinking";
 
 const SIZE_PX: Record<SodieSize, number> = {
+  "2xs": 16,
   xs: 24,
+  chip: 32,
   sm: 40,
   md: 64,
   lg: 96,
