@@ -93,9 +93,14 @@ export default function PersonalRecipeDetailPage({
             />
           )}
           <CardHeader>
-            <CardTitle className="text-stone-900">{recipe.name}</CardTitle>
-            <p className="text-sm text-[hsl(var(--paprika))]/90 font-medium">
-              Your copy · revision {recipe.current_revision}
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-stone-900">{recipe.name}</CardTitle>
+              <span className="inline-flex items-center rounded-full border border-[hsl(var(--paprika))]/30 bg-[hsl(var(--paprika))]/10 px-2.5 py-0.5 text-xs font-semibold text-[hsl(var(--paprika))]">
+                Edited with Sodie
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Revision {recipe.current_revision}
               {recipe.portion_size ? ` · ${recipe.portion_size}` : ""}
               {recipe.cuisine ? ` · ${recipe.cuisine}` : ""}
             </p>
