@@ -62,9 +62,9 @@ export default function PlanSodiePrompts({
         <button
           type="button"
           onClick={restore}
-          className="inline-flex items-center gap-2 rounded-full border border-[hsl(var(--paprika))]/25 bg-white/80 px-3 py-1.5 font-body text-xs text-[#262218]/80 shadow-sm transition-colors hover:border-[hsl(var(--paprika))]/45 hover:bg-[hsl(var(--paprika))]/5 hover:text-[#262218]"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--paprika))]/25 bg-white/80 px-2.5 py-1 font-body text-xs text-[#262218]/80 shadow-sm transition-colors hover:border-[hsl(var(--paprika))]/45 hover:bg-[hsl(var(--paprika))]/5 hover:text-[#262218]"
         >
-          <SodieAvatar size="xs" animate="none" />
+          <SodieAvatar size="2xs" animate="none" />
           Suggestions
         </button>
       </div>
