@@ -5,6 +5,7 @@ import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { queryKeys } from "@/hooks/queries";
 import { api } from "@/lib/api";
 import {
   buildEditPatchFromRequest,
@@ -14,8 +15,9 @@ import {
 import { SODIE_START_RECIPE_EDIT_EVENT } from "@/lib/sodieEvents";
 import { cn } from "@/lib/utils";
 import type { SodieActionProposal } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type ChatItem =
@@ -32,6 +34,8 @@ const EDIT_PROMPT =
 
 export default function SodieLauncher() {
   const pathname = usePathname();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const recipeId = useMemo(() => recipeIdFromPath(pathname), [pathname]);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -210,12 +214,19 @@ export default function SodieLauncher() {
     try {
       const next = await api.approveSodieProposal(proposalId);
       replaceProposal(next);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.personalRecipes() });
+      if (next.personal_recipe_id) {
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.personalRecipe(next.personal_recipe_id),
+        });
+        router.push(`/my-recipes/${next.personal_recipe_id}`);
+      }
       setItems((old) => [
         ...old,
         {
           kind: "message",
           sender: "ai",
-          content: "Agreed — saved to My Recipes.",
+          content: "Agreed — saved to My Recipes. Anything else?",
         },
       ]);
     } catch {
@@ -235,7 +246,7 @@ export default function SodieLauncher() {
         {
           kind: "message",
           sender: "ai",
-          content: "Got it — I won’t apply that. Nothing was saved.",
+          content: "Got it — nothing saved. How else should we change it?",
         },
       ]);
     } catch {

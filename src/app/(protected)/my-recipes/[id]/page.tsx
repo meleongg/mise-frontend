@@ -2,9 +2,8 @@
 
 import BackNavButton from "@/components/BackNavButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { api } from "@/lib/api";
-import type { PersonalRecipe } from "@/types";
-import { use, useEffect, useState } from "react";
+import { usePersonalRecipeQuery } from "@/hooks/queries";
+import { use } from "react";
 
 function asList(value: unknown): string[] {
   if (typeof value === "string") return [value];
@@ -12,9 +11,15 @@ function asList(value: unknown): string[] {
   return value.map((item) => {
     if (typeof item === "string") return item;
     if (item && typeof item === "object") {
-      const row = item as { name?: unknown; measure?: unknown; text?: unknown; step?: unknown };
+      const row = item as {
+        name?: unknown;
+        measure?: unknown;
+        text?: unknown;
+        step?: unknown;
+      };
       if (row.text) return `${row.step ? `${row.step}. ` : ""}${String(row.text)}`;
-      if (row.name) return `${row.measure ? `${row.measure} ` : ""}${String(row.name)}`;
+      if (row.name)
+        return `${row.measure ? `${row.measure} ` : ""}${String(row.name)}`;
     }
     return JSON.stringify(item);
   });
@@ -26,28 +31,17 @@ export default function PersonalRecipeDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [recipe, setRecipe] = useState<PersonalRecipe | null>(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const data = await api.getPersonalRecipe(id);
-        if (active) setRecipe(data);
-      } catch {
-        if (active) setError("Personal recipe not found.");
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [id]);
+  const { data: recipe, isLoading, isError } = usePersonalRecipeQuery(id);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <BackNavButton href="/my-recipes">Back to My Recipes</BackNavButton>
-      {error && <p className="mt-6 text-sm text-red-600">{error}</p>}
+      {isLoading && (
+        <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
+      )}
+      {isError && (
+        <p className="mt-6 text-sm text-red-600">Personal recipe not found.</p>
+      )}
       {recipe && (
         <Card className="mt-6">
           <CardHeader>
