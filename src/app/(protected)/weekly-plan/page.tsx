@@ -4,7 +4,7 @@ import RecipeHeroImage from "@/components/RecipeHeroImage";
 import SwapRecipeModal from "@/components/SwapRecipeModal";
 import SodieAiLoading from "@/components/SodieAiLoading";
 import SodieEmptyState from "@/components/SodieEmptyState";
-import SodieCommandBar from "@/components/SodieCommandBar";
+import PlanSodiePrompts from "@/components/PlanSodiePrompts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -416,7 +416,7 @@ export default function WeeklyPlanPage() {
   return (
     <div className="min-h-screen flex flex-col items-center p-4 py-8 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20">
       <div className="w-full max-w-3xl">
-        <SodieCommandBar hasActivePlan={Boolean(currentPlan)} />
+        <PlanSodiePrompts hasActivePlan={Boolean(currentPlan)} />
       </div>
       <Card className="w-full max-w-3xl shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
         <CardHeader>
