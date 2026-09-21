@@ -29,7 +29,6 @@ export function buildEditPatchFromRequest(
   userRequest: string
 ): RecipeEditPatch {
   const request = userRequest.trim();
-  const lower = request.toLowerCase();
   const ingredients = parseIngredients(recipe.ingredients);
   const patch: RecipeEditPatch = {};
 
