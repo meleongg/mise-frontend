@@ -19,22 +19,25 @@ type PlanSodiePromptsProps = {
 
 /**
  * Dismissable Weekly Plan tip with chips that open the global Ask Sodie FAB.
+ * When dismissed, a compact control can restore the tip.
  */
 export default function PlanSodiePrompts({
   hasActivePlan,
 }: PlanSodiePromptsProps) {
-  const [visible, setVisible] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
     try {
-      setVisible(window.localStorage.getItem(DISMISS_KEY) !== "1");
+      setExpanded(window.localStorage.getItem(DISMISS_KEY) !== "1");
     } catch {
-      setVisible(true);
+      setExpanded(true);
     }
+    setReady(true);
   }, []);
 
   function dismiss() {
-    setVisible(false);
+    setExpanded(false);
     try {
       window.localStorage.setItem(DISMISS_KEY, "1");
     } catch {
@@ -42,7 +45,31 @@ export default function PlanSodiePrompts({
     }
   }
 
-  if (!hasActivePlan || !visible) return null;
+  function restore() {
+    setExpanded(true);
+    try {
+      window.localStorage.removeItem(DISMISS_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (!hasActivePlan || !ready) return null;
+
+  if (!expanded) {
+    return (
+      <div className="mx-auto mb-6 flex w-full max-w-3xl justify-end">
+        <button
+          type="button"
+          onClick={restore}
+          className="inline-flex items-center gap-2 rounded-full border border-[hsl(var(--paprika))]/25 bg-white/80 px-3 py-1.5 font-body text-xs text-[#262218]/80 shadow-sm transition-colors hover:border-[hsl(var(--paprika))]/45 hover:bg-[hsl(var(--paprika))]/5 hover:text-[#262218]"
+        >
+          <SodieAvatar size="sm" animate="none" className="!h-5 !w-5" />
+          Suggestions
+        </button>
+      </div>
+    );
+  }
 
   return (
     <section
