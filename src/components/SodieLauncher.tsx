@@ -335,7 +335,7 @@ export default function SodieLauncher() {
               }}
               placeholder={
                 activeRecipeId
-                  ? "e.g. Less sugar, or add oatmeal"
+                  ? "e.g. Scale for 2 more people, or make steps clearer"
                   : "Ask about what you’re cooking…"
               }
             />
