@@ -5,6 +5,7 @@ import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useApp } from "@/contexts/AppContext";
 import { queryKeys } from "@/hooks/queries";
 import { api } from "@/lib/api";
 import { SODIE_START_RECIPE_EDIT_EVENT } from "@/lib/sodieEvents";
@@ -19,10 +20,44 @@ type ChatItem =
   | { kind: "message"; sender: "user" | "ai"; content: string }
   | { kind: "proposal"; proposal: SodieActionProposal };
 
+type PageScope = "global" | "plan" | "recipe" | "kitchen" | "shopping";
+
 function recipeIdFromPath(pathname: string): string | null {
   const match = pathname.match(/^\/recipe\/([^/]+)/);
   return match?.[1] ?? null;
 }
+
+function pageContextFromPath(
+  pathname: string,
+  currentWeek: number
+): { scope: PageScope; contextId?: string } {
+  if (pathname.startsWith("/weekly-plan")) {
+    return {
+      scope: "plan",
+      contextId: currentWeek > 0 ? String(currentWeek) : undefined,
+    };
+  }
+  const cookMatch = pathname.match(/^\/recipe\/([^/]+)\/cook/);
+  if (cookMatch) {
+    return { scope: "kitchen", contextId: cookMatch[1] };
+  }
+  const recipeMatch = pathname.match(/^\/recipe\/([^/]+)/);
+  if (recipeMatch) {
+    return { scope: "recipe", contextId: recipeMatch[1] };
+  }
+  if (pathname.startsWith("/shopping")) {
+    return { scope: "shopping" };
+  }
+  return { scope: "global" };
+}
+
+const SCOPE_LABEL: Record<PageScope, string> = {
+  global: "Cooking help for your plan",
+  plan: "Helping with this week’s plan",
+  recipe: "Helping with this recipe",
+  kitchen: "Kitchen Mode help",
+  shopping: "Shopping help",
+};
 
 const EDIT_PROMPT =
   "What would you like to change about this recipe? I’ll show a before/after proposal you can reject or approve. Keep chatting if you want to tweak it.";
@@ -30,12 +65,18 @@ const EDIT_PROMPT =
 export default function SodieLauncher() {
   const pathname = usePathname();
   const router = useRouter();
+  const { state } = useApp();
   const queryClient = useQueryClient();
   const recipeId = useMemo(() => recipeIdFromPath(pathname), [pathname]);
+  const pageContext = useMemo(
+    () => pageContextFromPath(pathname, state.currentWeek),
+    [pathname, state.currentWeek]
+  );
   const transcriptRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [temporary, setTemporary] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
+  const [threadScopeKey, setThreadScopeKey] = useState<string | null>(null);
   const [editRecipeId, setEditRecipeId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [items, setItems] = useState<ChatItem[]>([]);
@@ -44,6 +85,7 @@ export default function SodieLauncher() {
   const [error, setError] = useState("");
 
   const activeRecipeId = editRecipeId || recipeId;
+  const pageScopeKey = `${pageContext.scope}:${pageContext.contextId ?? ""}`;
 
   useEffect(() => {
     const node = transcriptRef.current;
@@ -51,15 +93,30 @@ export default function SodieLauncher() {
     node.scrollTop = node.scrollHeight;
   }, [items, open]);
 
+  // Re-scope on navigation so chat does not keep a stale global/recipe thread.
+  useEffect(() => {
+    if (editRecipeId) return;
+    if (threadScopeKey && threadScopeKey !== pageScopeKey) {
+      setThreadId(null);
+      setThreadScopeKey(null);
+      setItems([]);
+      setError("");
+      setInput("");
+    }
+  }, [pageScopeKey, threadScopeKey, editRecipeId]);
+
   async function ensureThread(forRecipeId?: string | null) {
     if (threadId) return threadId;
     const scopeRecipeId = forRecipeId || activeRecipeId;
-    const thread = await api.createSodieThread(
-      scopeRecipeId ? "recipe" : "global",
-      temporary,
-      scopeRecipeId || undefined
-    );
+    const scope: PageScope = scopeRecipeId
+      ? pageContext.scope === "kitchen"
+        ? "kitchen"
+        : "recipe"
+      : pageContext.scope;
+    const contextId = scopeRecipeId || pageContext.contextId;
+    const thread = await api.createSodieThread(scope, temporary, contextId);
     setThreadId(thread.id);
+    setThreadScopeKey(`${scope}:${contextId ?? ""}`);
     return thread.id;
   }
 
@@ -76,6 +133,7 @@ export default function SodieLauncher() {
     ]);
     // New edit session should not reuse an old global thread.
     setThreadId(null);
+    setThreadScopeKey(null);
   }
 
   const pendingProposal = [...items]
@@ -259,7 +317,7 @@ export default function SodieLauncher() {
                 <p className="truncate text-xs text-stone-500">
                   {activeRecipeId
                     ? "Editing this recipe — personal copy on approve"
-                    : "Cooking help for your plan"}
+                    : SCOPE_LABEL[pageContext.scope]}
                 </p>
               </div>
             </div>
