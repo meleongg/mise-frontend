@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
-import { buildEditPatchFromRequest } from "@/lib/sodieEditPatch";
+import {
+  buildEditPatchFromRequest,
+  isClarifyFollowUp,
+  patchChangesContent,
+} from "@/lib/sodieEditPatch";
 import { SODIE_START_RECIPE_EDIT_EVENT } from "@/lib/sodieEvents";
 import { cn } from "@/lib/utils";
 import type { SodieActionProposal } from "@/types";
@@ -24,7 +28,7 @@ function recipeIdFromPath(pathname: string): string | null {
 }
 
 const EDIT_PROMPT =
-  "What would you like to change about this recipe? For example: add oatmeal, reduce sugar, or make the steps clearer. I’ll show a before/after proposal you can clarify, edit, reject, or approve.";
+  "What would you like to change about this recipe? I’ll show a before/after proposal you can reject or approve. Keep chatting if you want to tweak it.";
 
 export default function SodieLauncher() {
   const pathname = usePathname();
@@ -75,6 +79,43 @@ export default function SodieLauncher() {
     setThreadId(null);
   }
 
+  const pendingProposal = [...items]
+    .reverse()
+    .find(
+      (item): item is { kind: "proposal"; proposal: SodieActionProposal } =>
+        item.kind === "proposal" && item.proposal.status === "pending"
+    );
+
+  async function createProposalFromRequest(userText: string, replaceId?: string) {
+    if (!activeRecipeId) return;
+    const id = await ensureThread(activeRecipeId);
+    if (replaceId) {
+      await api.rejectSodieProposal(replaceId);
+    }
+    const recipe = await api.getRecipe(activeRecipeId);
+    const patch = buildEditPatchFromRequest(recipe, userText);
+    const response = await api.proposeRecipeEdit({
+      source_recipe_id: activeRecipeId,
+      thread_id: id,
+      idempotency_key: `edit-${activeRecipeId}-${Date.now()}`,
+      rationale: userText,
+      patch,
+    });
+    setItems((old) => [
+      ...old.filter(
+        (item) => !(replaceId && item.kind === "proposal" && item.proposal.id === replaceId)
+      ),
+      {
+        kind: "message",
+        sender: "ai",
+        content: replaceId
+          ? "Updated the proposal from what you just said."
+          : "Here’s a proposal from what you asked for.",
+      },
+      { kind: "proposal", proposal: response.proposal },
+    ]);
+  }
+
   async function send() {
     if (!input.trim() || sending) return;
     const userText = input.trim();
@@ -83,30 +124,45 @@ export default function SodieLauncher() {
     setInput("");
     try {
       if (activeRecipeId) {
-        const id = await ensureThread(activeRecipeId);
         setItems((old) => [
           ...old,
           { kind: "message", sender: "user", content: userText },
         ]);
+
+        if (pendingProposal) {
+          if (isClarifyFollowUp(userText)) {
+            await api.clarifySodieProposal(pendingProposal.proposal.id, userText);
+            setItems((old) => [
+              ...old,
+              {
+                kind: "message",
+                sender: "ai",
+                content:
+                  "The pending proposal is unchanged — Approve to save it, Reject to discard it, or describe a different change to update the diff.",
+              },
+            ]);
+            return;
+          }
+          await createProposalFromRequest(userText, pendingProposal.proposal.id);
+          return;
+        }
+
         const recipe = await api.getRecipe(activeRecipeId);
         const patch = buildEditPatchFromRequest(recipe, userText);
-        const response = await api.proposeRecipeEdit({
-          source_recipe_id: activeRecipeId,
-          thread_id: id,
-          idempotency_key: `edit-${activeRecipeId}-${Date.now()}`,
-          rationale: userText,
-          patch,
-        });
-        setItems((old) => [
-          ...old,
-          {
-            kind: "message",
-            sender: "ai",
-            content:
-              "Here’s a personal-copy proposal based on what you asked for. Review the diff, then clarify, request another edit, reject, or approve.",
-          },
-          { kind: "proposal", proposal: response.proposal },
-        ]);
+        if (!patchChangesContent(patch) && isClarifyFollowUp(userText)) {
+          setItems((old) => [
+            ...old,
+            {
+              kind: "message",
+              sender: "ai",
+              content:
+                "Tell me the change you want (for example: less sugar, add oatmeal) and I’ll draft a proposal.",
+            },
+          ]);
+          return;
+        }
+
+        await createProposalFromRequest(userText);
         return;
       }
 
@@ -159,8 +215,7 @@ export default function SodieLauncher() {
         {
           kind: "message",
           sender: "ai",
-          content:
-            "Agreed — I’ve saved that personal copy to My Recipes. The shared catalog recipe is still unchanged.",
+          content: "Agreed — saved to My Recipes.",
         },
       ]);
     } catch {
@@ -180,72 +235,11 @@ export default function SodieLauncher() {
         {
           kind: "message",
           sender: "ai",
-          content:
-            "Understood — I won’t apply that change. Nothing was saved. Tell me a different edit if you want to try again.",
+          content: "Got it — I won’t apply that. Nothing was saved.",
         },
       ]);
     } catch {
       setError("Could not reject that proposal.");
-    } finally {
-      setProposalBusy(false);
-    }
-  }
-
-  /** Clarify = ask a question about the pending diff; proposal stays as-is. */
-  async function clarify(proposalId: string, content: string) {
-    setProposalBusy(true);
-    setError("");
-    try {
-      await api.clarifySodieProposal(proposalId, content);
-      setItems((old) => [
-        ...old,
-        { kind: "message", sender: "user", content },
-        {
-          kind: "message",
-          sender: "ai",
-          content:
-            "Good question — that pending proposal is still the same. Use Edit request if you want a new before/after diff, Approve to save it, or Reject to discard it.",
-        },
-      ]);
-    } catch {
-      setError("Could not send that clarification.");
-    } finally {
-      setProposalBusy(false);
-    }
-  }
-
-  /** Edit request = replace the pending proposal with a new diff from the follow-up. */
-  async function reviseProposal(proposalId: string, content: string) {
-    if (!activeRecipeId) return;
-    setProposalBusy(true);
-    setError("");
-    try {
-      await api.rejectSodieProposal(proposalId);
-      const id = await ensureThread(activeRecipeId);
-      const recipe = await api.getRecipe(activeRecipeId);
-      const patch = buildEditPatchFromRequest(recipe, content);
-      const response = await api.proposeRecipeEdit({
-        source_recipe_id: activeRecipeId,
-        thread_id: id,
-        idempotency_key: `edit-${activeRecipeId}-${Date.now()}`,
-        rationale: content,
-        patch,
-      });
-      setItems((old) => [
-        ...old.filter(
-          (item) => !(item.kind === "proposal" && item.proposal.id === proposalId)
-        ),
-        { kind: "message", sender: "user", content },
-        {
-          kind: "message",
-          sender: "ai",
-          content:
-            "Updated — here’s a new proposal from your edit request. Review the diff again.",
-        },
-        { kind: "proposal", proposal: response.proposal },
-      ]);
-    } catch {
-      setError("Could not revise that proposal.");
     } finally {
       setProposalBusy(false);
     }
@@ -328,10 +322,6 @@ export default function SodieLauncher() {
                   busy={proposalBusy}
                   onApprove={() => void approve(item.proposal.id)}
                   onReject={() => void reject(item.proposal.id)}
-                  onClarify={(content) => void clarify(item.proposal.id, content)}
-                  onEditRequest={(content) =>
-                    void reviseProposal(item.proposal.id, content)
-                  }
                 />
               )
             )}
@@ -350,13 +340,10 @@ export default function SodieLauncher() {
               }}
               placeholder={
                 activeRecipeId
-                  ? "Describe the change… e.g. Add oatmeal"
+                  ? "e.g. Less sugar, or add oatmeal"
                   : "Ask about what you’re cooking…"
               }
             />
-            <p className="mt-1.5 text-[11px] text-stone-500">
-              Enter to send · Shift+Enter for a new line
-            </p>
             {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
             <Button
               className="mt-3 min-h-11 w-full bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--paprika))]/90"
