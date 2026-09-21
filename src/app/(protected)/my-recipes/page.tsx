@@ -71,7 +71,7 @@ export default function MyRecipesPage() {
             <CardHeader>
               <CardTitle>{recipe.name}</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Revision {recipe.current_revision}
+                Your copy · revision {recipe.current_revision}
                 {recipe.portion_size ? ` · ${recipe.portion_size}` : ""}
               </p>
             </CardHeader>

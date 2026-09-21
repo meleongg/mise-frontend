@@ -484,6 +484,31 @@ export const api = {
     return handleResponse(await fetch(url, options), createRetryFn(url, options));
   },
 
+  async updatePersonalRecipe(
+    personalRecipeId: string,
+    input: {
+      name?: string;
+      ingredients?: unknown;
+      instructions?: unknown;
+      portion_size?: string;
+      notes?: string;
+    }
+  ): Promise<PersonalRecipe> {
+    const url = `${API_BASE_URL}/personal-recipes/${personalRecipeId}`;
+    const options: RequestInit = {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify(input),
+    };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async archivePersonalRecipe(personalRecipeId: string): Promise<PersonalRecipe> {
+    const url = `${API_BASE_URL}/personal-recipes/${personalRecipeId}`;
+    const options: RequestInit = { method: "DELETE", headers: { ...getAuthHeaders() } };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
   // Account Management
   async updateAccount(
     userId: string,
