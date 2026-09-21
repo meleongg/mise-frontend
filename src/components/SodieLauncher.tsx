@@ -423,6 +423,10 @@ export default function SodieLauncher() {
             >
               {sending ? "Sodie is thinking…" : "Send"}
             </Button>
+            <p className="mt-3 text-xs leading-snug text-stone-500">
+              Sodie uses AI and can make mistakes. Double-check recipes,
+              allergens, and instructions before you cook.
+            </p>
           </div>
         </section>
       )}
