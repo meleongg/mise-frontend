@@ -159,7 +159,8 @@ export default function SodieLauncher() {
         {
           kind: "message",
           sender: "ai",
-          content: "Saved to My Recipes as a personal copy.",
+          content:
+            "Agreed — I’ve saved that personal copy to My Recipes. The shared catalog recipe is still unchanged.",
         },
       ]);
     } catch {
@@ -179,7 +180,8 @@ export default function SodieLauncher() {
         {
           kind: "message",
           sender: "ai",
-          content: "Okay — that proposal was rejected. Tell me if you want a different change.",
+          content:
+            "Understood — I won’t apply that change. Nothing was saved. Tell me a different edit if you want to try again.",
         },
       ]);
     } catch {
@@ -189,23 +191,61 @@ export default function SodieLauncher() {
     }
   }
 
+  /** Clarify = ask a question about the pending diff; proposal stays as-is. */
   async function clarify(proposalId: string, content: string) {
     setProposalBusy(true);
     setError("");
     try {
-      const message = await api.clarifySodieProposal(proposalId, content);
+      await api.clarifySodieProposal(proposalId, content);
       setItems((old) => [
         ...old,
-        { kind: "message", sender: "user", content: message.content },
+        { kind: "message", sender: "user", content },
         {
           kind: "message",
           sender: "ai",
           content:
-            "Thanks — say more about what to change, or reject this proposal and send a new request.",
+            "Good question — that pending proposal is still the same. Use Edit request if you want a new before/after diff, Approve to save it, or Reject to discard it.",
         },
       ]);
     } catch {
       setError("Could not send that clarification.");
+    } finally {
+      setProposalBusy(false);
+    }
+  }
+
+  /** Edit request = replace the pending proposal with a new diff from the follow-up. */
+  async function reviseProposal(proposalId: string, content: string) {
+    if (!activeRecipeId) return;
+    setProposalBusy(true);
+    setError("");
+    try {
+      await api.rejectSodieProposal(proposalId);
+      const id = await ensureThread(activeRecipeId);
+      const recipe = await api.getRecipe(activeRecipeId);
+      const patch = buildEditPatchFromRequest(recipe, content);
+      const response = await api.proposeRecipeEdit({
+        source_recipe_id: activeRecipeId,
+        thread_id: id,
+        idempotency_key: `edit-${activeRecipeId}-${Date.now()}`,
+        rationale: content,
+        patch,
+      });
+      setItems((old) => [
+        ...old.filter(
+          (item) => !(item.kind === "proposal" && item.proposal.id === proposalId)
+        ),
+        { kind: "message", sender: "user", content },
+        {
+          kind: "message",
+          sender: "ai",
+          content:
+            "Updated — here’s a new proposal from your edit request. Review the diff again.",
+        },
+        { kind: "proposal", proposal: response.proposal },
+      ]);
+    } catch {
+      setError("Could not revise that proposal.");
     } finally {
       setProposalBusy(false);
     }
@@ -289,7 +329,9 @@ export default function SodieLauncher() {
                   onApprove={() => void approve(item.proposal.id)}
                   onReject={() => void reject(item.proposal.id)}
                   onClarify={(content) => void clarify(item.proposal.id, content)}
-                  onEditRequest={(content) => void clarify(item.proposal.id, content)}
+                  onEditRequest={(content) =>
+                    void reviseProposal(item.proposal.id, content)
+                  }
                 />
               )
             )}
@@ -300,12 +342,21 @@ export default function SodieLauncher() {
               className="min-h-24 resize-none border-stone-200 bg-white text-sm leading-relaxed shadow-sm"
               value={input}
               onChange={(event) => setInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  if (!sending && input.trim()) void send();
+                }
+              }}
               placeholder={
                 activeRecipeId
                   ? "Describe the change… e.g. Add oatmeal"
                   : "Ask about what you’re cooking…"
               }
             />
+            <p className="mt-1.5 text-[11px] text-stone-500">
+              Enter to send · Shift+Enter for a new line
+            </p>
             {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
             <Button
               className="mt-3 min-h-11 w-full bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--paprika))]/90"

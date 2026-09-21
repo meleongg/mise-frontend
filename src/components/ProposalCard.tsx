@@ -111,6 +111,12 @@ export default function ProposalCard({
 
       {pending && (
         <div className="mt-4 space-y-3">
+          <p className="text-xs leading-relaxed text-stone-600">
+            <strong>Clarify</strong> asks a question (diff stays the same).{" "}
+            <strong>Edit request</strong> builds a new diff from your follow-up.{" "}
+            <strong>Reject</strong> discards it; <strong>Approve</strong> saves a
+            personal copy.
+          </p>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
@@ -172,10 +178,22 @@ export default function ProposalCard({
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
                 className="min-h-24 text-sm"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    const content = note.trim();
+                    if (busy || !content) return;
+                    if (clarifyOpen) onClarify(content);
+                    else onEditRequest(content);
+                    setNote("");
+                    setClarifyOpen(false);
+                    setEditOpen(false);
+                  }
+                }}
                 placeholder={
                   clarifyOpen
-                    ? "What should Sodie clarify?"
-                    : "What should change in this proposal?"
+                    ? "Ask about this proposal…"
+                    : "Describe the new change… e.g. Add oats instead"
                 }
               />
               <Button
@@ -191,7 +209,7 @@ export default function ProposalCard({
                   setEditOpen(false);
                 }}
               >
-                Send follow-up
+                {clarifyOpen ? "Ask clarifying question" : "Submit edit request"}
               </Button>
             </div>
           )}
