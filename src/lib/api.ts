@@ -435,7 +435,12 @@ export const api = {
     request: string;
     idempotency_key: string;
     thread_id?: string;
-  }): Promise<{ proposal: SodieActionProposal; assistant_message?: string }> {
+    pending_proposal_id?: string;
+  }): Promise<{
+    kind: "proposal" | "clarify" | "needs_more_info";
+    proposal?: SodieActionProposal | null;
+    assistant_message?: string;
+  }> {
     const url = `${API_BASE_URL}/sodie/proposals/from-request`;
     const options: RequestInit = {
       method: "POST",

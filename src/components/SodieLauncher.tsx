@@ -7,11 +7,6 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { queryKeys } from "@/hooks/queries";
 import { api } from "@/lib/api";
-import {
-  buildEditPatchFromRequest,
-  isClarifyFollowUp,
-  patchChangesContent,
-} from "@/lib/sodieEditPatch";
 import { SODIE_START_RECIPE_EDIT_EVENT } from "@/lib/sodieEvents";
 import { cn } from "@/lib/utils";
 import type { SodieActionProposal } from "@/types";
@@ -90,45 +85,54 @@ export default function SodieLauncher() {
         item.kind === "proposal" && item.proposal.status === "pending"
     );
 
-  async function createProposalFromRequest(userText: string, replaceId?: string) {
+  async function handleEditFollowUp(userText: string) {
     if (!activeRecipeId) return;
     const id = await ensureThread(activeRecipeId);
-    if (replaceId) {
-      await api.rejectSodieProposal(replaceId);
+    const replacedId = pendingProposal?.proposal.id;
+    const response = await api.proposeRecipeEditFromRequest({
+      source_recipe_id: activeRecipeId,
+      thread_id: id,
+      idempotency_key: `edit-${activeRecipeId}-${Date.now()}`,
+      request: userText,
+      pending_proposal_id: replacedId,
+    });
+
+    if (response.kind === "clarify" || response.kind === "needs_more_info") {
+      setItems((old) => [
+        ...old,
+        {
+          kind: "message",
+          sender: "ai",
+          content:
+            response.assistant_message ||
+            "Tell me the change you want and I’ll draft a proposal.",
+        },
+      ]);
+      return;
     }
-    const key = `edit-${activeRecipeId}-${Date.now()}`;
-    let response: { proposal: SodieActionProposal; assistant_message?: string };
-    try {
-      response = await api.proposeRecipeEditFromRequest({
-        source_recipe_id: activeRecipeId,
-        thread_id: id,
-        idempotency_key: key,
-        request: userText,
-      });
-    } catch {
-      // Fallback if structured LLM draft is unavailable
-      const recipe = await api.getRecipe(activeRecipeId);
-      const patch = buildEditPatchFromRequest(recipe, userText);
-      response = await api.proposeRecipeEdit({
-        source_recipe_id: activeRecipeId,
-        thread_id: id,
-        idempotency_key: `${key}-fallback`,
-        rationale: userText,
-        patch,
-      });
+
+    if (!response.proposal) {
+      setItems((old) => [
+        ...old,
+        {
+          kind: "message",
+          sender: "ai",
+          content: "I couldn’t draft that edit — try naming a concrete change.",
+        },
+      ]);
+      return;
     }
+
     setItems((old) => [
       ...old.filter(
-        (item) => !(replaceId && item.kind === "proposal" && item.proposal.id === replaceId)
+        (item) =>
+          !(replacedId && item.kind === "proposal" && item.proposal.id === replacedId)
       ),
       {
         kind: "message",
         sender: "ai",
         content:
-          response.assistant_message ||
-          (replaceId
-            ? "Updated the proposal from what you just said."
-            : "Here’s a proposal from what you asked for."),
+          response.assistant_message || "Here’s a proposal from what you asked for.",
       },
       { kind: "proposal", proposal: response.proposal },
     ]);
@@ -146,41 +150,7 @@ export default function SodieLauncher() {
           ...old,
           { kind: "message", sender: "user", content: userText },
         ]);
-
-        if (pendingProposal) {
-          if (isClarifyFollowUp(userText)) {
-            await api.clarifySodieProposal(pendingProposal.proposal.id, userText);
-            setItems((old) => [
-              ...old,
-              {
-                kind: "message",
-                sender: "ai",
-                content:
-                  "The pending proposal is unchanged — Approve to save it, Reject to discard it, or describe a different change to update the diff.",
-              },
-            ]);
-            return;
-          }
-          await createProposalFromRequest(userText, pendingProposal.proposal.id);
-          return;
-        }
-
-        const recipe = await api.getRecipe(activeRecipeId);
-        const patch = buildEditPatchFromRequest(recipe, userText);
-        if (!patchChangesContent(patch) && isClarifyFollowUp(userText)) {
-          setItems((old) => [
-            ...old,
-            {
-              kind: "message",
-              sender: "ai",
-              content:
-                "Tell me the change you want (for example: less sugar, add oatmeal) and I’ll draft a proposal.",
-            },
-          ]);
-          return;
-        }
-
-        await createProposalFromRequest(userText);
+        await handleEditFollowUp(userText);
         return;
       }
 
