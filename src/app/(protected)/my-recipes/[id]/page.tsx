@@ -3,6 +3,14 @@
 import BackNavButton from "@/components/BackNavButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { queryKeys, usePersonalRecipeQuery } from "@/hooks/queries";
 import { api } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
@@ -44,16 +52,17 @@ export default function PersonalRecipeDetailPage({
   const queryClient = useQueryClient();
   const { data: recipe, isLoading, isError } = usePersonalRecipeQuery(id);
   const [busy, setBusy] = useState(false);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [error, setError] = useState("");
 
   async function handleArchive() {
     if (!recipe || busy) return;
-    if (!window.confirm(`Remove “${recipe.name}” from My Recipes?`)) return;
     setBusy(true);
     setError("");
     try {
       await api.archivePersonalRecipe(recipe.id);
       await queryClient.invalidateQueries({ queryKey: queryKeys.personalRecipes() });
+      setShowRemoveDialog(false);
       router.push("/my-recipes");
     } catch {
       setError("Could not remove that recipe.");
@@ -128,7 +137,7 @@ export default function PersonalRecipeDetailPage({
                 type="button"
                 variant="outline"
                 disabled={busy}
-                onClick={() => void handleArchive()}
+                onClick={() => setShowRemoveDialog(true)}
               >
                 Remove from My Recipes
               </Button>
@@ -141,6 +150,44 @@ export default function PersonalRecipeDetailPage({
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <DialogContent
+          showCloseButton={false}
+          className="bg-white border-2 border-[hsl(var(--paprika))]/30 sm:max-w-md"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-primary">
+              Remove from My Recipes?
+            </DialogTitle>
+            <DialogDescription className="mt-2">
+              {recipe
+                ? `“${recipe.name}” will leave My Recipes. You can still cook the catalog version from your plan, and you can create a new personal copy later with Edit with Sodie.`
+                : "This personal copy will leave My Recipes."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto min-w-[100px]"
+              disabled={busy}
+              onClick={() => setShowRemoveDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="w-full sm:w-auto min-w-[120px]"
+              disabled={busy}
+              onClick={() => void handleArchive()}
+            >
+              {busy ? "Removing…" : "Remove"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
