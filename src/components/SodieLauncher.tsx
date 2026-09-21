@@ -123,6 +123,9 @@ export default function SodieLauncher() {
       return;
     }
 
+    const proposal = response.proposal;
+    const assistantMessage =
+      response.assistant_message || "Here’s a proposal from what you asked for.";
     setItems((old) => [
       ...old.filter(
         (item) =>
@@ -131,10 +134,9 @@ export default function SodieLauncher() {
       {
         kind: "message",
         sender: "ai",
-        content:
-          response.assistant_message || "Here’s a proposal from what you asked for.",
+        content: assistantMessage,
       },
-      { kind: "proposal", proposal: response.proposal },
+      { kind: "proposal", proposal },
     ]);
   }
 
