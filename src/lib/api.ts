@@ -430,6 +430,26 @@ export const api = {
     return handleResponse(await fetch(url, options), createRetryFn(url, options));
   },
 
+  async proposeRecipeEditFromRequest(input: {
+    source_recipe_id: string;
+    request: string;
+    idempotency_key: string;
+    thread_id?: string;
+    pending_proposal_id?: string;
+  }): Promise<{
+    kind: "proposal" | "clarify" | "needs_more_info";
+    proposal?: SodieActionProposal | null;
+    assistant_message?: string;
+  }> {
+    const url = `${API_BASE_URL}/sodie/proposals/from-request`;
+    const options: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify(input),
+    };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
   async approveSodieProposal(proposalId: string): Promise<SodieActionProposal> {
     const url = `${API_BASE_URL}/sodie/proposals/${proposalId}/approve`;
     const options: RequestInit = { method: "POST", headers: { ...getAuthHeaders() } };
@@ -461,6 +481,31 @@ export const api = {
   async getPersonalRecipe(personalRecipeId: string): Promise<PersonalRecipe> {
     const url = `${API_BASE_URL}/personal-recipes/${personalRecipeId}`;
     const options: RequestInit = { method: "GET", headers: { ...getAuthHeaders() } };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async updatePersonalRecipe(
+    personalRecipeId: string,
+    input: {
+      name?: string;
+      ingredients?: unknown;
+      instructions?: unknown;
+      portion_size?: string;
+      notes?: string;
+    }
+  ): Promise<PersonalRecipe> {
+    const url = `${API_BASE_URL}/personal-recipes/${personalRecipeId}`;
+    const options: RequestInit = {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify(input),
+    };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
+  async archivePersonalRecipe(personalRecipeId: string): Promise<PersonalRecipe> {
+    const url = `${API_BASE_URL}/personal-recipes/${personalRecipeId}`;
+    const options: RequestInit = { method: "DELETE", headers: { ...getAuthHeaders() } };
     return handleResponse(await fetch(url, options), createRetryFn(url, options));
   },
 

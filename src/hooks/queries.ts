@@ -27,6 +27,9 @@ export const queryKeys = {
   recipeProgress: (userId: string, weekNumber: number) =>
     ["recipeProgress", userId, weekNumber] as const,
   recipe: (recipeId: string) => ["recipe", recipeId] as const,
+  personalRecipes: () => ["personalRecipes"] as const,
+  personalRecipe: (personalRecipeId: string) =>
+    ["personalRecipe", personalRecipeId] as const,
   userProgress: (userId: string) => ["userProgress", userId] as const,
   nextWeekEligibility: (userId: string) =>
     ["nextWeekEligibility", userId] as const,
@@ -104,6 +107,25 @@ export function useRecipeQuery(recipeId: string | undefined) {
     queryFn: () => api.getRecipe(recipeId!),
     enabled: !!recipeId,
     staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+/** Personal copies created by Sodie Approve — short stale time so saves show up fast. */
+export function usePersonalRecipesQuery(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.personalRecipes(),
+    queryFn: () => api.listPersonalRecipes(),
+    enabled,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function usePersonalRecipeQuery(personalRecipeId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.personalRecipe(personalRecipeId!),
+    queryFn: () => api.getPersonalRecipe(personalRecipeId!),
+    enabled: !!personalRecipeId,
+    staleTime: 30 * 1000,
   });
 }
 

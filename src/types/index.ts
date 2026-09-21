@@ -213,6 +213,10 @@ export interface PersonalRecipe {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  image_url?: string | null;
+  cuisine?: string | null;
+  dietary_tags?: unknown;
+  allergens?: unknown;
 }
 
 export interface UpdateAccountRequest {
