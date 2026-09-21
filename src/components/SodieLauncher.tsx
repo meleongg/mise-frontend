@@ -96,15 +96,27 @@ export default function SodieLauncher() {
     if (replaceId) {
       await api.rejectSodieProposal(replaceId);
     }
-    const recipe = await api.getRecipe(activeRecipeId);
-    const patch = buildEditPatchFromRequest(recipe, userText);
-    const response = await api.proposeRecipeEdit({
-      source_recipe_id: activeRecipeId,
-      thread_id: id,
-      idempotency_key: `edit-${activeRecipeId}-${Date.now()}`,
-      rationale: userText,
-      patch,
-    });
+    const key = `edit-${activeRecipeId}-${Date.now()}`;
+    let response: { proposal: SodieActionProposal; assistant_message?: string };
+    try {
+      response = await api.proposeRecipeEditFromRequest({
+        source_recipe_id: activeRecipeId,
+        thread_id: id,
+        idempotency_key: key,
+        request: userText,
+      });
+    } catch {
+      // Fallback if structured LLM draft is unavailable
+      const recipe = await api.getRecipe(activeRecipeId);
+      const patch = buildEditPatchFromRequest(recipe, userText);
+      response = await api.proposeRecipeEdit({
+        source_recipe_id: activeRecipeId,
+        thread_id: id,
+        idempotency_key: `${key}-fallback`,
+        rationale: userText,
+        patch,
+      });
+    }
     setItems((old) => [
       ...old.filter(
         (item) => !(replaceId && item.kind === "proposal" && item.proposal.id === replaceId)
@@ -112,9 +124,11 @@ export default function SodieLauncher() {
       {
         kind: "message",
         sender: "ai",
-        content: replaceId
-          ? "Updated the proposal from what you just said."
-          : "Here’s a proposal from what you asked for.",
+        content:
+          response.assistant_message ||
+          (replaceId
+            ? "Updated the proposal from what you just said."
+            : "Here’s a proposal from what you asked for."),
       },
       { kind: "proposal", proposal: response.proposal },
     ]);

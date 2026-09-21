@@ -430,6 +430,21 @@ export const api = {
     return handleResponse(await fetch(url, options), createRetryFn(url, options));
   },
 
+  async proposeRecipeEditFromRequest(input: {
+    source_recipe_id: string;
+    request: string;
+    idempotency_key: string;
+    thread_id?: string;
+  }): Promise<{ proposal: SodieActionProposal; assistant_message?: string }> {
+    const url = `${API_BASE_URL}/sodie/proposals/from-request`;
+    const options: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify(input),
+    };
+    return handleResponse(await fetch(url, options), createRetryFn(url, options));
+  },
+
   async approveSodieProposal(proposalId: string): Promise<SodieActionProposal> {
     const url = `${API_BASE_URL}/sodie/proposals/${proposalId}/approve`;
     const options: RequestInit = { method: "POST", headers: { ...getAuthHeaders() } };

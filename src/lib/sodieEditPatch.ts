@@ -27,6 +27,24 @@ function ingredientMeasure(item: unknown): string {
   return "";
 }
 
+function bumpMeasure(measure: string, factor = 2): string {
+  const trimmed = measure.trim();
+  if (!trimmed) return "to taste";
+  const match = trimmed.match(/^(\d+(?:\.\d+)?)(?:\s*\/\s*(\d+))?(.*)$/);
+  if (!match) return `${trimmed} (increased)`;
+  const whole = Number(match[1]);
+  const denom = match[2] ? Number(match[2]) : null;
+  const rest = (match[3] || "").trim();
+  let value = denom ? whole / denom : whole;
+  if (!Number.isFinite(value) || value <= 0) return `${trimmed} (increased)`;
+  value = value * factor;
+  const display =
+    Number.isInteger(value) || value >= 1
+      ? String(Number(value.toFixed(2)))
+      : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  return `${display}${rest ? ` ${rest}` : ""}`.trim();
+}
+
 function halveMeasure(measure: string): string {
   const trimmed = measure.trim();
   if (!trimmed) return "reduced amount";
@@ -59,7 +77,7 @@ function withIngredient(
 export function isClarifyFollowUp(userRequest: string): boolean {
   const text = userRequest.trim();
   const editSignal =
-    /\b(add|remove|less|fewer|more|reduce|increase|change|replace|without|include|cut|halve|double|rename|title|servings?)\b/i.test(
+    /\b(add|remove|less|fewer|more|reduce|increase|change|replace|without|include|cut|halve|double|rename|title|servings?|saltier|sweeter|spicier)\b/i.test(
       text
     );
   if (editSignal) return false;
@@ -93,6 +111,13 @@ export function buildEditPatchFromRequest(
   const reduceMatch = request.match(
     /\b(?:(?:include|use|with)\s+)?(?:less|fewer|reduce(?:d)?|lower|cut(?:\s+back)?(?:\s+on)?|decrease|halve)\s+(?:the\s+|some\s+)?([a-z][a-z\s-]{0,30}?)(?:\s+(?:in|from|but|and|while|so|to)\b|[.?!]|$)/i
   );
+  // "more salt", "saltier", "make it saltier"
+  const saltier = /\bsaltier\b/i.test(request);
+  const increaseMatch = saltier
+    ? (["salt"] as const)
+    : request.match(
+        /\b(?:more|extra|increase(?:d)?|bump(?:\s+up)?)\s+(?:the\s+|some\s+)?([a-z][a-z\s-]{0,30}?)(?:\s+(?:in|for|but|and|while|so|to)\b|[.?!]|$)/i
+      );
   const servingsMatch = request.match(
     /\b(?:serves?|servings?|portion(?:s| size)?|make it for)\s+(\d+\s*(?:-\s*\d+)?(?:\s*(?:people|servings?|portions?))?)/i
   );
@@ -103,7 +128,8 @@ export function buildEditPatchFromRequest(
     /\b(note|notes|tip|remind me|remember)\b/i.test(request) &&
     !addMatch &&
     !removeMatch &&
-    !reduceMatch;
+    !reduceMatch &&
+    !increaseMatch;
 
   if (addMatch?.[1]) {
     const addition = addMatch[1].trim().replace(/^["']|["']$/g, "");
@@ -136,6 +162,33 @@ export function buildEditPatchFromRequest(
     });
     if (changed) {
       patch.ingredients = next;
+    }
+  } else if (increaseMatch) {
+    const target = (
+      Array.isArray(increaseMatch) && typeof increaseMatch[1] === "string"
+        ? increaseMatch[1]
+        : increaseMatch[0]
+    )
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+    const needle = target.split(" ")[0] || target;
+    let changed = false;
+    const next = ingredients.map((item) => {
+      if (!ingredientName(item).includes(needle)) {
+        return item;
+      }
+      changed = true;
+      return withIngredient(item, {
+        name: ingredientName(item),
+        measure: bumpMeasure(ingredientMeasure(item)),
+      });
+    });
+    if (changed) {
+      patch.ingredients = next;
+    } else if (needle === "salt") {
+      ingredients.push({ name: "salt", measure: "1/2 tsp" });
+      patch.ingredients = ingredients;
     }
   }
 
