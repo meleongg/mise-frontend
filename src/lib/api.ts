@@ -396,6 +396,26 @@ export const api = {
     );
   },
 
+  async listSodieThreadProposals(
+    threadId: string,
+    filters?: { status?: string }
+  ): Promise<SodieActionProposal[]> {
+    const params = new URLSearchParams();
+    if (filters?.status) params.set("status", filters.status);
+    const qs = params.toString();
+    const url = `${API_BASE_URL}/sodie/threads/${threadId}/proposals${
+      qs ? `?${qs}` : ""
+    }`;
+    const options: RequestInit = {
+      method: "GET",
+      headers: { ...getAuthHeaders() },
+    };
+    return handleResponse<SodieActionProposal[]>(
+      await fetch(url, options),
+      createRetryFn(url, options)
+    );
+  },
+
   async deleteSodieThread(threadId: string): Promise<void> {
     const url = `${API_BASE_URL}/sodie/threads/${threadId}`;
     const options: RequestInit = {
@@ -437,7 +457,7 @@ export const api = {
     thread_id?: string;
     pending_proposal_id?: string;
   }): Promise<{
-    kind: "proposal" | "clarify" | "needs_more_info";
+    kind: "proposal" | "clarify" | "needs_more_info" | "coach_qa";
     proposal?: SodieActionProposal | null;
     assistant_message?: string;
   }> {
