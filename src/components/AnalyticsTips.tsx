@@ -56,15 +56,6 @@ function buildTips(props: AnalyticsTipsProps): Tip[] {
     askDraft: `How am I doing overall? I've completed ${completedRecipes} of ${totalRecipes} recipes.`,
   });
 
-  if (currentStreak > 0) {
-    tips.push({
-      id: "streak",
-      title: "Streak",
-      body: `Current streak: ${currentStreak} week${currentStreak === 1 ? "" : "s"} with progress.`,
-      askDraft: `I have a ${currentStreak}-week streak — what should I cook next to keep it going?`,
-    });
-  }
-
   if (feedbackTotal > 0) {
     const dominant = (
       Object.entries(feedbackDistribution) as Array<
@@ -82,9 +73,33 @@ function buildTips(props: AnalyticsTipsProps): Tip[] {
         id: "feedback",
         title: "Difficulty fit",
         body: `Most recent feedback leans ${label} (${dominant[1]} of ${feedbackTotal}).`,
-        askDraft: `My feedback mostly says recipes feel ${label}. What pattern do you see, and should I tweak preferences?`,
+        askDraft:
+          dominant[0] === "too_hard"
+            ? "Recipes often feel too hard or take too long. Propose a preference tweak I can approve — maybe shorter max cook or prep time."
+            : dominant[0] === "too_easy"
+              ? "Recipes often feel too easy. What preference tweak would you propose that I can approve?"
+              : `My feedback mostly says recipes feel ${label}. What pattern do you see, and should I tweak preferences?`,
       });
     }
+  }
+
+  if (feedbackTotal > 0 || completedRecipes > 0) {
+    tips.push({
+      id: "pref-tweak",
+      title: "Preference tweak",
+      body: "Ask Sodie for a reviewable preference change (prep/cook time, portions, or recipe repeat).",
+      askDraft:
+        "Based on my analytics, propose one cooking preference tweak I can approve or reject.",
+    });
+  }
+
+  if (currentStreak > 0 && tips.length < 3) {
+    tips.push({
+      id: "streak",
+      title: "Streak",
+      body: `Current streak: ${currentStreak} week${currentStreak === 1 ? "" : "s"} with progress.`,
+      askDraft: `I have a ${currentStreak}-week streak — what should I cook next to keep it going?`,
+    });
   }
 
   return tips.slice(0, 3);
@@ -175,8 +190,8 @@ export default function AnalyticsTips(props: AnalyticsTipsProps) {
             Enable Tips
           </Button>
           <p className="text-xs text-stone-500">
-            Stored only on this device. Preference suggestions still need your
-            approval in chat later.
+            Stored only on this device. Preference tweaks always show a
+            before/after card — Approve before anything is saved.
           </p>
         </div>
       ) : (

@@ -101,7 +101,11 @@ export default function ProposalCard({
     <article className="rounded-2xl border border-[hsl(var(--turmeric))]/40 bg-gradient-to-br from-amber-50 to-orange-50/70 p-4 text-sm shadow-sm">
       <header className="mb-3 space-y-1">
         <div className="flex items-center justify-between gap-2">
-          <p className="font-semibold text-stone-900">Recipe edit proposal</p>
+          <p className="font-semibold text-stone-900">
+            {proposal.action_type === "propose_preference_tweak"
+              ? "Preference tweak proposal"
+              : "Recipe edit proposal"}
+          </p>
           <span
             className={cn(
               "rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide",

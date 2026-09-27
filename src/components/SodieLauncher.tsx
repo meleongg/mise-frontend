@@ -13,6 +13,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexts/AppContext";
+import { useUser } from "@/hooks";
 import { queryKeys } from "@/hooks/queries";
 import { api } from "@/lib/api";
 import {
@@ -133,6 +134,7 @@ export default function SodieLauncher() {
   const pathname = usePathname();
   const router = useRouter();
   const { state } = useApp();
+  const { user, setUser } = useUser();
   const queryClient = useQueryClient();
   const pageContext = useMemo(
     () => pageContextFromPath(pathname, state.currentWeek),
@@ -472,6 +474,67 @@ export default function SodieLauncher() {
     return true;
   }
 
+  async function handlePreferenceFollowUp(userText: string) {
+    const id = await ensureThread();
+    const replacedId =
+      pendingProposal?.proposal.action_type === "propose_preference_tweak"
+        ? pendingProposal.proposal.id
+        : undefined;
+    const response = await api.proposePreferenceFromRequest({
+      thread_id: id,
+      idempotency_key: `pref-${Date.now()}`,
+      request: userText,
+      pending_proposal_id: replacedId,
+    });
+
+    if (response.kind === "coach_qa") {
+      return false;
+    }
+
+    if (response.kind === "clarify" || response.kind === "needs_more_info") {
+      setItems((old) => [
+        ...old,
+        {
+          kind: "message",
+          sender: "ai",
+          content:
+            response.assistant_message ||
+            "Which preference should we change — prep time, cook time, portions, or repeat cooldown?",
+        },
+      ]);
+      return true;
+    }
+
+    if (!response.proposal) {
+      setItems((old) => [
+        ...old,
+        {
+          kind: "message",
+          sender: "ai",
+          content: "I couldn’t draft that preference change. Try naming a specific setting.",
+        },
+      ]);
+      return true;
+    }
+
+    const proposal = response.proposal;
+    const assistantMessage =
+      response.assistant_message || "Here’s a preference tweak for your review.";
+    setItems((old) => [
+      ...old.filter(
+        (item) =>
+          !(replacedId && item.kind === "proposal" && item.proposal.id === replacedId)
+      ),
+      {
+        kind: "message",
+        sender: "ai",
+        content: assistantMessage,
+      },
+      { kind: "proposal", proposal },
+    ]);
+    return true;
+  }
+
   async function send() {
     if (!input.trim() || sending) return;
     const userText = input.trim();
@@ -497,6 +560,10 @@ export default function SodieLauncher() {
             : undefined;
         if (pageRecipeId) {
           const handled = await handleEditFollowUp(userText, pageRecipeId);
+          if (handled) return;
+        }
+        if (pageContext.scope === "analytics") {
+          const handled = await handlePreferenceFollowUp(userText);
           if (handled) return;
         }
       }
@@ -557,6 +624,25 @@ export default function SodieLauncher() {
     try {
       const next = await api.approveSodieProposal(proposalId);
       replaceProposal(next);
+      if (next.action_type === "propose_preference_tweak") {
+        if (user?.id) {
+          try {
+            setUser(await api.getUser(user.id));
+          } catch {
+            /* profile refresh is best-effort; proposal already applied */
+          }
+        }
+        setItems((old) => [
+          ...old,
+          {
+            kind: "message",
+            sender: "ai",
+            content:
+              "Preferences updated. Review them anytime under Settings → Preferences.",
+          },
+        ]);
+        return;
+      }
       await queryClient.invalidateQueries({ queryKey: queryKeys.personalRecipes() });
       if (next.personal_recipe_id) {
         await queryClient.invalidateQueries({
@@ -773,7 +859,7 @@ export default function SodieLauncher() {
                         : pageContext.scope === "settings"
                         ? "Ask about Preferences or Account settings. These chats stay private and don’t use your cooking plan."
                         : pageContext.scope === "analytics"
-                          ? "Ask about your progress, streaks, or difficulty fit — I’ll stick to your Analytics numbers."
+                          ? "Ask about your progress — or request a preference tweak and I’ll show a before/after card to approve."
                         : pageContext.scope === "personal_recipe"
                           ? "Ask about this personal recipe — ingredients, technique, or how it differs from the catalog version."
                           : pageContext.scope === "recipe" ||
