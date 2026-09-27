@@ -1,5 +1,6 @@
 "use client";
 
+import AnalyticsTips from "@/components/AnalyticsTips";
 import SodiePageIntro from "@/components/SodiePageIntro";
 import {
   Card,
@@ -239,6 +240,14 @@ export default function AnalyticsPage() {
         <SodiePageIntro
           title="Your Cooking Journey"
           description="See how you're growing in the kitchen — Sodie cheers on every milestone."
+        />
+
+        <AnalyticsTips
+          completionRate={analytics.completionRate}
+          completedRecipes={analytics.completedRecipes}
+          totalRecipes={analytics.totalRecipes}
+          currentStreak={analytics.currentStreak}
+          feedbackDistribution={analytics.feedbackDistribution}
         />
 
         {/* Stats Grid */}
