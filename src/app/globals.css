@@ -241,6 +241,11 @@
   outline-color: hsl(var(--ring) / 0.5);
 }
 
+html {
+  /* Keep layout stable when Radix Dialog locks body scroll (avoids scrollbar jump). */
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   background: linear-gradient(
