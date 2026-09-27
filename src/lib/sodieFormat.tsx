@@ -72,6 +72,7 @@ export function threadHistoryLabel(
   if (scope === "kitchen") return "Kitchen";
   if (scope === "shopping") return "Shopping";
   if (scope === "settings") return "Settings";
+  if (scope === "analytics") return "Analytics";
   if (scope === "global") return "General";
   return scope;
 }

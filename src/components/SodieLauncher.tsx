@@ -42,7 +42,8 @@ type PageScope =
   | "kitchen"
   | "shopping"
   | "personal_recipe"
-  | "settings";
+  | "settings"
+  | "analytics";
 type PanelView = "chat" | "history";
 
 function pageContextFromPath(
@@ -78,6 +79,9 @@ function pageContextFromPath(
     pathname.startsWith("/settings/account")
   ) {
     return { scope: "settings" };
+  }
+  if (pathname.startsWith("/analytics")) {
+    return { scope: "analytics" };
   }
   return { scope: "global" };
 }
@@ -119,6 +123,7 @@ const SCOPE_LABEL: Record<PageScope, string> = {
   shopping: "Shopping help",
   personal_recipe: "Helping with your My Recipes copy",
   settings: "Settings help (private)",
+  analytics: "Talking about your cooking progress",
 };
 
 const EDIT_PROMPT =
@@ -719,8 +724,10 @@ export default function SodieLauncher() {
                   <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-stone-700">
                     {editingRecipeId
                       ? "Tell me what to change — I’ll draft a before/after proposal you can approve or reject."
-                      : pageContext.scope === "settings"
+                        : pageContext.scope === "settings"
                         ? "Ask about Preferences or Account settings. These chats stay private and don’t use your cooking plan."
+                        : pageContext.scope === "analytics"
+                          ? "Ask about your progress, streaks, or difficulty fit — I’ll stick to your Analytics numbers."
                         : pageContext.scope === "personal_recipe"
                           ? "Ask about this personal recipe — ingredients, technique, or how it differs from the catalog version."
                           : pageContext.scope === "recipe" ||
@@ -779,6 +786,8 @@ export default function SodieLauncher() {
                       ? "e.g. Scale for 2 more people, or make steps clearer"
                       : pageContext.scope === "settings"
                         ? "e.g. Where do I change dietary preferences?"
+                        : pageContext.scope === "analytics"
+                          ? "e.g. Am I leveling up, or stuck on hard recipes?"
                         : pageContext.scope === "personal_recipe"
                           ? "e.g. How do I cook this version tonight?"
                           : pageContext.scope === "recipe" ||
