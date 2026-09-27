@@ -61,8 +61,17 @@ export function threadHistoryLabel(
     if (name) return name;
     return scope === "kitchen" ? "Kitchen" : "Recipe";
   }
+  if (scope === "personal_recipe") {
+    if (contextId) {
+      const name = recipeNames[contextId];
+      if (name) return name;
+      return "My recipe";
+    }
+    return "My Recipes";
+  }
   if (scope === "kitchen") return "Kitchen";
   if (scope === "shopping") return "Shopping";
+  if (scope === "settings") return "Settings";
   if (scope === "global") return "General";
   return scope;
 }
