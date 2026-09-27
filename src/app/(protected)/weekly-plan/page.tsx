@@ -137,11 +137,30 @@ export default function WeeklyPlanPage() {
     ...response,
     created_at: response.generated_at,
     recipe_schedule: response.recipe_schedule,
+    entries: response.entries,
   });
 
-  // Helper to get recipes sorted by order from recipe_schedule
+  // Prefer plan entries order when present; fall back to recipe_schedule.
   const getSortedRecipes = (plan: WeeklyPlan | null) => {
     if (!plan) return [];
+
+    if (plan.entries && plan.entries.length > 0) {
+      const byId = new Map(plan.recipes.map((recipe) => [recipe.id, recipe]));
+      const fromEntries = plan.entries
+        .slice()
+        .sort((a, b) => a.position - b.position)
+        .map((entry) => {
+          const catalogId = entry.catalog_recipe_id;
+          if (catalogId && byId.has(catalogId)) {
+            return byId.get(catalogId)!;
+          }
+          return null;
+        })
+        .filter((recipe): recipe is (typeof plan.recipes)[number] => recipe != null);
+      if (fromEntries.length > 0) {
+        return fromEntries;
+      }
+    }
 
     try {
       const schedule: RecipeScheduleItem[] = plan.recipe_schedule

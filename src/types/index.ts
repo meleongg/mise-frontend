@@ -71,6 +71,19 @@ export interface Recipe {
   created_at: string;
 }
 
+export interface WeeklyPlanEntry {
+  id: string;
+  weekly_plan_id: string;
+  position: number;
+  catalog_recipe_id?: string | null;
+  personal_recipe_id?: string | null;
+  recipe_snapshot: Record<string, unknown>;
+  selected_servings?: string | null;
+  lifecycle_state: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
 export interface WeeklyPlan {
   id: string;
   user_id: string;
@@ -81,6 +94,7 @@ export interface WeeklyPlan {
   is_unlocked: boolean;
   created_at: string;
   recipes: Recipe[]; // Populated in responses
+  entries?: WeeklyPlanEntry[];
 }
 
 export interface UserRecipeProgress {
@@ -121,6 +135,7 @@ export interface WeeklyPlanResponse {
   generated_at: string;
   is_unlocked: boolean;
   recipes: Recipe[]; // Already sorted by order via backend
+  entries?: WeeklyPlanEntry[];
 }
 export interface GenerateWeeklyPlanRequest {
   initial_intent: string;
