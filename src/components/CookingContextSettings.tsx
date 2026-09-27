@@ -1,8 +1,16 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks";
 import { api } from "@/lib/api";
@@ -21,6 +29,12 @@ const BASELINE = [
 ];
 
 type Retention = "3_months" | "18_months" | "36_months" | "manual";
+
+const CARD_CLASS =
+  "shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm";
+
+const SAVE_CLASS =
+  "w-full sm:w-auto min-w-[12rem] px-8 font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))] shadow-md";
 
 export default function CookingContextSettings() {
   const { user, updateUserProfile } = useUser();
@@ -107,155 +121,198 @@ export default function CookingContextSettings() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-5 rounded-xl border-2 border-[hsl(var(--paprika))]/25 bg-white/90 p-5 sm:p-6">
-        <div className="space-y-1">
-          <h2 className="font-heading text-lg font-bold text-[#262218]">
-            Shopping & pantry
-          </h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Location and staples for future shopping lists. Separate from Sodie
-            chat privacy.
-          </p>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="city" className="text-sm font-semibold">
-              City
-            </Label>
-            <Input
-              id="city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="e.g., Vancouver"
-              className="border-2 focus:border-primary"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="retailer" className="text-sm font-semibold">
-              Preferred retailer
-            </Label>
-            <Input
-              id="retailer"
-              value={retailer}
-              onChange={(e) => setRetailer(e.target.value)}
-              placeholder="e.g., Costco"
-              className="border-2 focus:border-primary"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
+    <>
+      <Card className={CARD_CLASS}>
+        <CardContent className="space-y-4 pt-6">
           <div className="space-y-1">
+            <h2 className="font-heading text-lg font-bold text-[#262218]">
+              Shopping & pantry
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Location and staples for future shopping lists.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="city" className="text-sm font-semibold">
+                City
+              </Label>
+              <Input
+                id="city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="e.g., Vancouver"
+                className="border-2 focus:border-primary"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="retailer" className="text-sm font-semibold">
+                Preferred retailer
+              </Label>
+              <Input
+                id="retailer"
+                value={retailer}
+                onChange={(e) => setRetailer(e.target.value)}
+                placeholder="e.g., Costco"
+                className="border-2 focus:border-primary"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label className="text-sm font-semibold">Pantry baseline</Label>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Remove items you do not normally keep; add your staples.
             </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {items.map((name) => (
-              <button
-                key={name}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {items.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() =>
+                    setItems((current) =>
+                      current.filter((value) => value !== name)
+                    )
+                  }
+                  className="rounded-full border-2 border-[hsl(var(--paprika))]/20 bg-[hsl(var(--paprika))]/5 px-3 py-1.5 text-sm text-stone-700 hover:border-[hsl(var(--paprika))]/40"
+                >
+                  {name} ×
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+              <Input
+                value={item}
+                onChange={(e) => setItem(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addItem();
+                  }
+                }}
+                placeholder="Add pantry item"
+                className="border-2 focus:border-primary"
+              />
+              <Button
                 type="button"
-                onClick={() =>
-                  setItems((current) => current.filter((value) => value !== name))
-                }
-                className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-sm text-stone-700 hover:border-stone-300 hover:bg-stone-100"
+                variant="outline"
+                className="shrink-0 border-[hsl(var(--paprika))]/30 font-body"
+                onClick={addItem}
               >
-                {name} ×
-              </button>
-            ))}
+                Add
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Input
-              value={item}
-              onChange={(e) => setItem(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addItem();
-                }
-              }}
-              placeholder="Add pantry item"
-              className="border-2 focus:border-primary"
-            />
+
+          <div className="flex justify-end pt-2">
             <Button
               type="button"
-              variant="outline"
-              className="shrink-0 border-[hsl(var(--paprika))]/30"
-              onClick={addItem}
+              size="touch"
+              disabled={savingShopping}
+              className={SAVE_CLASS}
+              onClick={() => void saveShopping()}
             >
-              Add
+              {savingShopping ? "Saving..." : "Save shopping & pantry"}
             </Button>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <Button
-          type="button"
-          disabled={savingShopping}
-          className="bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--paprika))]/90"
-          onClick={() => void saveShopping()}
-        >
-          {savingShopping ? "Saving…" : "Save shopping & pantry"}
-        </Button>
-      </section>
-
-      <section className="space-y-5 rounded-xl border-2 border-[hsl(var(--sage))]/30 bg-[hsl(var(--sage))]/5 p-5 sm:p-6">
-        <div className="space-y-1">
-          <h2 className="font-heading text-lg font-bold text-[#262218]">
-            Sodie privacy
-          </h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Memory and how long regular (non-private) chats are kept. Does not
-            change shopping settings.
-          </p>
-        </div>
-
-        <div className="flex items-start justify-between gap-4 rounded-lg border border-[hsl(var(--sage))]/25 bg-white/70 px-4 py-3">
+      <Card className={CARD_CLASS}>
+        <CardContent className="space-y-4 pt-6">
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-stone-900">
-              Enable Sodie Memory
-            </p>
+            <h2 className="font-heading text-lg font-bold text-[#262218]">
+              Sodie privacy
+            </h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Let Sodie save only approved preferences. You will be able to
-              review and forget them.
+              Memory and how long regular (non-private) chats are kept.
             </p>
           </div>
-          <Switch
-            checked={memory}
-            onCheckedChange={setMemory}
-            aria-label="Enable Sodie Memory"
-            className="mt-0.5 shrink-0"
-          />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="retention" className="text-sm font-semibold">
-            Chat retention
-          </Label>
-          <select
-            id="retention"
-            value={retention}
-            onChange={(e) => setRetention(e.target.value as Retention)}
-            className="w-full rounded-md border-2 border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-          >
-            <option value="3_months">3 months</option>
-            <option value="18_months">18 months</option>
-            <option value="36_months">36 months</option>
-            <option value="manual">Keep until I delete</option>
-          </select>
-        </div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="sodie-memory" className="text-sm font-semibold">
+                Enable Sodie Memory
+              </Label>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Let Sodie save only approved preferences. You will be able to
+                review and forget them.
+              </p>
+            </div>
+            <Switch
+              id="sodie-memory"
+              checked={memory}
+              onCheckedChange={setMemory}
+              aria-label="Enable Sodie Memory"
+              className="mt-0.5 shrink-0"
+            />
+          </div>
 
-        <Button
-          type="button"
-          disabled={savingSodie}
-          className="bg-[hsl(var(--sage))] text-white hover:bg-[hsl(var(--sage))]/90"
-          onClick={() => void saveSodie()}
-        >
-          {savingSodie ? "Saving…" : "Save Sodie privacy"}
-        </Button>
-      </section>
-    </div>
+          <div className="space-y-2">
+            <Label htmlFor="retention" className="text-sm font-semibold">
+              Chat retention
+            </Label>
+            <Select
+              value={retention}
+              onValueChange={(value) => setRetention(value as Retention)}
+            >
+              <SelectTrigger
+                id="retention"
+                className="w-full border-2 focus:border-primary"
+              >
+                <SelectValue placeholder="Choose retention" />
+              </SelectTrigger>
+              <SelectContent
+                position="popper"
+                sideOffset={5}
+                className="z-[9999] max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)] bg-background border border-border shadow-lg backdrop-blur-none"
+                style={{
+                  backgroundColor: "hsl(var(--background))",
+                  opacity: 1,
+                }}
+              >
+                <SelectItem
+                  value="3_months"
+                  className="cursor-pointer border-b border-border/50"
+                >
+                  3 months
+                </SelectItem>
+                <SelectItem
+                  value="18_months"
+                  className="cursor-pointer border-b border-border/50"
+                >
+                  18 months
+                </SelectItem>
+                <SelectItem
+                  value="36_months"
+                  className="cursor-pointer border-b border-border/50"
+                >
+                  36 months
+                </SelectItem>
+                <SelectItem
+                  value="manual"
+                  className="cursor-pointer border-b border-border/50"
+                >
+                  Keep until I delete
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button
+              type="button"
+              size="touch"
+              disabled={savingSodie}
+              className={SAVE_CLASS}
+              onClick={() => void saveSodie()}
+            >
+              {savingSodie ? "Saving..." : "Save Sodie privacy"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 }

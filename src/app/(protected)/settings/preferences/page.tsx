@@ -218,7 +218,14 @@ export default function SettingsPage() {
           <Card className="shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm">
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Cuisine Preference */}
+                <div className="space-y-1">
+                  <h2 className="font-heading text-lg font-bold text-[#262218]">
+                    Cooking preferences
+                  </h2>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Cuisine, skill, diet, and timing used for weekly plans.
+                  </p>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="cuisine" className="text-sm font-semibold">
                     Preferred Cuisine <span className="text-red-600">*</span>
@@ -557,23 +564,14 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
-                  <BackNavButton
-                    type="button"
-                    variant="outline"
-                    onClick={() => router.push("/weekly-plan")}
-                    className="w-full sm:w-auto border-[hsl(var(--paprika))]/30 font-body"
-                    disabled={isSaving}
-                  >
-                    Back to weekly plan
-                  </BackNavButton>
+                <div className="flex justify-end pt-4">
                   <Button
                     type="submit"
                     size="touch"
                     disabled={isSaving}
                     className="w-full sm:w-auto min-w-[12rem] px-8 font-semibold font-body bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))] shadow-md"
                   >
-                    {isSaving ? "Saving..." : "Save Changes"}
+                    {isSaving ? "Saving..." : "Save cooking preferences"}
                   </Button>
                 </div>
               </form>
@@ -581,6 +579,17 @@ export default function SettingsPage() {
           </Card>
 
           <CookingContextSettings />
+
+          <div className="flex justify-start">
+            <BackNavButton
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/weekly-plan")}
+              className="w-full sm:w-auto border-[hsl(var(--paprika))]/30 font-body"
+            >
+              Back to weekly plan
+            </BackNavButton>
+          </div>
         </div>
       </div>
     </>
