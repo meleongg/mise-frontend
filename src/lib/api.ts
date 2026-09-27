@@ -6,8 +6,6 @@ import {
 } from "@/contexts/AuthContext";
 import {
   ChangePasswordRequest,
-  GeneralChatRequest,
-  GeneralChatResponse,
   InstructionStep,
   MessageResponse,
   NextWeekEligibility,
@@ -179,26 +177,6 @@ function createRetryFn(
 }
 
 export const api = {
-  async generalChat(
-    userId: string,
-    chatInput: GeneralChatRequest
-  ): Promise<GeneralChatResponse> {
-    const url = `${PLAN_BASE_URL}/general/${userId}`;
-    const options: RequestInit = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(chatInput),
-    };
-    const response = await fetch(url, options);
-    return handleResponse<GeneralChatResponse>(
-      response,
-      createRetryFn(url, options)
-    );
-  },
-
   async generateWeeklyPlan(
     userId: string,
     initial_intent: string,

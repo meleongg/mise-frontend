@@ -122,15 +122,6 @@ export interface WeeklyPlanResponse {
   is_unlocked: boolean;
   recipes: Recipe[]; // Already sorted by order via backend
 }
-export interface GeneralChatRequest {
-  user_message: string;
-  week_number?: number;
-}
-
-export interface GeneralChatResponse {
-  response: string;
-}
-
 export interface GenerateWeeklyPlanRequest {
   initial_intent: string;
   confirm_regeneration?: boolean;
