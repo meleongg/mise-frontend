@@ -457,7 +457,7 @@ export const api = {
     thread_id?: string;
     pending_proposal_id?: string;
   }): Promise<{
-    kind: "proposal" | "clarify" | "needs_more_info";
+    kind: "proposal" | "clarify" | "needs_more_info" | "coach_qa";
     proposal?: SodieActionProposal | null;
     assistant_message?: string;
   }> {

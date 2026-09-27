@@ -408,17 +408,25 @@ export default function SodieLauncher() {
         item.kind === "proposal" && item.proposal.status === "pending"
     );
 
-  async function handleEditFollowUp(userText: string) {
-    if (!editingRecipeId) return;
-    const id = await ensureThread(editingRecipeId);
+  async function handleEditFollowUp(userText: string, recipeId?: string) {
+    const targetRecipeId = recipeId || editingRecipeId;
+    if (!targetRecipeId) return false;
+    const id = await ensureThread(targetRecipeId);
     const replacedId = pendingProposal?.proposal.id;
     const response = await api.proposeRecipeEditFromRequest({
-      source_recipe_id: editingRecipeId,
+      source_recipe_id: targetRecipeId,
       thread_id: id,
-      idempotency_key: `edit-${editingRecipeId}-${Date.now()}`,
+      idempotency_key: `edit-${targetRecipeId}-${Date.now()}`,
       request: userText,
       pending_proposal_id: replacedId,
     });
+
+    if (response.kind === "coach_qa") {
+      return false;
+    }
+
+    // Stay in edit mode for follow-ups after an edit-class reply.
+    setEditRecipeId(targetRecipeId);
 
     if (response.kind === "clarify" || response.kind === "needs_more_info") {
       setItems((old) => [
@@ -431,7 +439,7 @@ export default function SodieLauncher() {
             "Tell me the change you want and I’ll draft a proposal.",
         },
       ]);
-      return;
+      return true;
     }
 
     if (!response.proposal) {
@@ -443,7 +451,7 @@ export default function SodieLauncher() {
           content: "I couldn’t draft that edit — try naming a concrete change.",
         },
       ]);
-      return;
+      return true;
     }
 
     const proposal = response.proposal;
@@ -461,6 +469,7 @@ export default function SodieLauncher() {
       },
       { kind: "proposal", proposal },
     ]);
+    return true;
   }
 
   async function send() {
@@ -476,8 +485,20 @@ export default function SodieLauncher() {
     ]);
     try {
       if (editingRecipeId) {
-        await handleEditFollowUp(userText);
-        return;
+        const handled = await handleEditFollowUp(userText);
+        if (handled) return;
+      } else {
+        // FAB on recipe/kitchen pages: classify edit vs coach so "add more salt"
+        // creates a real proposal without requiring Edit with Sodie first.
+        const pageRecipeId =
+          (pageContext.scope === "recipe" || pageContext.scope === "kitchen") &&
+          pageContext.contextId
+            ? pageContext.contextId
+            : undefined;
+        if (pageRecipeId) {
+          const handled = await handleEditFollowUp(userText, pageRecipeId);
+          if (handled) return;
+        }
       }
 
       const id = await ensureThread();
@@ -757,8 +778,8 @@ export default function SodieLauncher() {
                           ? "Ask about this personal recipe — ingredients, technique, or how it differs from the catalog version."
                           : pageContext.scope === "recipe" ||
                               pageContext.scope === "kitchen"
-                            ? "Ask about timing, technique, or ingredients for this dish. To change the recipe itself, tap Edit with Sodie on the page."
-                            : "Ask about prep, timing, or techniques — or open a recipe and tap Edit with Sodie to change ingredients."}
+                            ? "Ask about timing or technique — or tell me what to change and I’ll draft a before/after proposal you can approve."
+                            : "Ask about prep, timing, or techniques — or open a recipe and ask Sodie to change ingredients."}
                   </p>
                 )}
                 {items.map((item, index) =>
