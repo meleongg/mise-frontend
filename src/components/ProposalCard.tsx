@@ -104,7 +104,9 @@ export default function ProposalCard({
           <p className="font-semibold text-stone-900">
             {proposal.action_type === "propose_preference_tweak"
               ? "Preference tweak proposal"
-              : "Recipe edit proposal"}
+              : proposal.action_type === "propose_recipe_pick"
+                ? "Recipe suggestion"
+                : "Recipe edit proposal"}
           </p>
           <span
             className={cn(
@@ -127,7 +129,38 @@ export default function ProposalCard({
       </header>
 
       <div className="space-y-3">
-        {Object.entries(fields).map(([field, change]) => {
+        {proposal.action_type === "propose_recipe_pick" ? (
+          <div className="rounded-xl border border-white/80 bg-white/90 p-3 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+              Suggested recipe
+            </p>
+            <p className="mt-1 text-base font-semibold text-stone-900">
+              {formatValue(
+                (proposal.payload?.after as { name?: unknown } | undefined)?.name ??
+                  fields.recipe?.after
+              )}
+            </p>
+            <p className="mt-1 text-sm text-stone-600">
+              {[
+                formatValue(
+                  (proposal.payload?.after as { cuisine?: unknown } | undefined)
+                    ?.cuisine ?? fields.cuisine?.after
+                ),
+                formatValue(
+                  (proposal.payload?.after as { difficulty?: unknown } | undefined)
+                    ?.difficulty ?? fields.difficulty?.after
+                ),
+              ]
+                .filter((part) => part !== "—")
+                .join(" · ")}
+            </p>
+            <p className="mt-2 text-xs text-stone-500">
+              Approve opens this catalog recipe. Your weekly plan is unchanged
+              until plan-entry lineage ships.
+            </p>
+          </div>
+        ) : (
+          Object.entries(fields).map(([field, change]) => {
           const isList =
             Array.isArray(change.before) || Array.isArray(change.after);
           const { beforeText, afterText } = isList
@@ -166,7 +199,8 @@ export default function ProposalCard({
               </div>
             </div>
           );
-        })}
+        })
+        )}
       </div>
 
       {pending && (
