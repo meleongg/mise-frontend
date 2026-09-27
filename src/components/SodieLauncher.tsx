@@ -9,6 +9,10 @@ import { useApp } from "@/contexts/AppContext";
 import { queryKeys } from "@/hooks/queries";
 import { api } from "@/lib/api";
 import {
+  renderSodieMessageContent,
+  threadHistoryLabel,
+} from "@/lib/sodieFormat";
+import {
   SODIE_OPEN_EVENT,
   SODIE_START_RECIPE_EDIT_EVENT,
   type SodieOpenDetail,
@@ -122,6 +126,7 @@ export default function SodieLauncher() {
   const [proposalBusy, setProposalBusy] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<SodieThread[]>([]);
+  const [historyLabels, setHistoryLabels] = useState<Record<string, string>>({});
   const [historyLoading, setHistoryLoading] = useState(false);
   const [resuming, setResuming] = useState(false);
 
@@ -202,7 +207,30 @@ export default function SodieLauncher() {
     setHistoryLoading(true);
     setError("");
     try {
-      setHistory(await api.listSodieThreads());
+      const threads = await api.listSodieThreads();
+      setHistory(threads);
+      const recipeIds = [
+        ...new Set(
+          threads
+            .filter(
+              (t) =>
+                (t.scope === "recipe" || t.scope === "kitchen") && t.context_id
+            )
+            .map((t) => t.context_id as string)
+        ),
+      ];
+      const names: Record<string, string> = {};
+      await Promise.all(
+        recipeIds.map(async (id) => {
+          try {
+            const recipe = await api.getRecipe(id);
+            if (recipe?.name) names[id] = recipe.name;
+          } catch {
+            /* keep generic Recipe/Kitchen label */
+          }
+        })
+      );
+      setHistoryLabels(names);
     } catch {
       setError("Could not load chat history.");
     } finally {
@@ -370,12 +398,13 @@ export default function SodieLauncher() {
     setSending(true);
     setError("");
     setInput("");
+    // Show the user bubble immediately so send doesn't look stuck.
+    setItems((old) => [
+      ...old,
+      { kind: "message", sender: "user", content: userText },
+    ]);
     try {
       if (editingRecipeId) {
-        setItems((old) => [
-          ...old,
-          { kind: "message", sender: "user", content: userText },
-        ]);
         await handleEditFollowUp(userText);
         return;
       }
@@ -384,7 +413,6 @@ export default function SodieLauncher() {
       const response = await api.sendSodieMessage(id, userText);
       setItems((old) => [
         ...old,
-        { kind: "message", sender: "user", content: response.user_message.content },
         { kind: "message", sender: "ai", content: response.ai_message.content },
         ...(response.proposal
           ? [{ kind: "proposal" as const, proposal: response.proposal }]
@@ -598,8 +626,11 @@ export default function SodieLauncher() {
                       className="min-w-0 flex-1 px-3 py-3 text-left transition-colors hover:bg-white"
                     >
                       <p className="text-xs font-medium text-[hsl(var(--paprika))]">
-                        {SCOPE_SHORT[thread.scope] ?? thread.scope}
-                        {thread.context_id ? ` · ${thread.context_id.slice(0, 8)}` : ""}
+                        {threadHistoryLabel(
+                          thread.scope,
+                          thread.context_id,
+                          historyLabels
+                        )}
                       </p>
                       <p className="mt-0.5 line-clamp-2 text-sm text-stone-800">
                         {threadPreview(thread)}
@@ -642,7 +673,7 @@ export default function SodieLauncher() {
                 )}
                 {items.map((item, index) =>
                   item.kind === "message" ? (
-                    <p
+                    <div
                       key={`m-${index}`}
                       className={cn(
                         "max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
@@ -651,8 +682,10 @@ export default function SodieLauncher() {
                           : "ml-auto bg-[hsl(var(--paprika))] text-white"
                       )}
                     >
-                      {item.content}
-                    </p>
+                      {item.sender === "ai"
+                        ? renderSodieMessageContent(item.content)
+                        : item.content}
+                    </div>
                   ) : (
                     <ProposalCard
                       key={item.proposal.id}
@@ -662,6 +695,11 @@ export default function SodieLauncher() {
                       onReject={() => void reject(item.proposal.id)}
                     />
                   )
+                )}
+                {sending && (
+                  <p className="max-w-[95%] rounded-2xl bg-amber-50/80 px-4 py-3 text-sm text-stone-500">
+                    Sodie is thinking…
+                  </p>
                 )}
               </div>
 
