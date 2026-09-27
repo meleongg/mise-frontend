@@ -183,6 +183,10 @@ export interface SodieActionProposal {
     plan_schedule?: string;
     shopping_list?: string;
     list_reconciliation_queued?: boolean;
+    allergen_conflict?: boolean;
+    diet_conflict?: boolean;
+    safety_notes?: string;
+    confidence?: string;
   };
   rationale?: string | null;
   idempotency_key: string;

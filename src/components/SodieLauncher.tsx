@@ -430,7 +430,12 @@ export default function SodieLauncher() {
     // Stay in edit mode for follow-ups after an edit-class reply.
     setEditRecipeId(targetRecipeId);
 
-    if (response.kind === "clarify" || response.kind === "needs_more_info") {
+    if (
+      response.kind === "clarify" ||
+      response.kind === "needs_more_info" ||
+      response.kind === "suggest_swap" ||
+      response.kind === "out_of_scope"
+    ) {
       setItems((old) => [
         ...old,
         {
@@ -438,7 +443,11 @@ export default function SodieLauncher() {
           sender: "ai",
           content:
             response.assistant_message ||
-            "Tell me the change you want and I’ll draft a proposal.",
+            (response.kind === "suggest_swap"
+              ? "Use Swap on the plan or recipe card for a different dish."
+              : response.kind === "out_of_scope"
+                ? "That sits outside a recipe edit — try Weekly Plan, Shopping, or Settings."
+                : "Tell me the change you want and I’ll draft a proposal."),
         },
       ]);
       return true;
