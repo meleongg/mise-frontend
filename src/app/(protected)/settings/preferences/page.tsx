@@ -557,8 +557,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Submit Button */}
-                <CookingContextSettings />
                 <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
                   <BackNavButton
                     type="button"
@@ -581,6 +579,8 @@ export default function SettingsPage() {
               </form>
             </CardContent>
           </Card>
+
+          <CookingContextSettings />
         </div>
       </div>
     </>
