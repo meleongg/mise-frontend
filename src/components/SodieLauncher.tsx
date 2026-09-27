@@ -27,11 +27,6 @@ type ChatItem =
 type PageScope = "global" | "plan" | "recipe" | "kitchen" | "shopping";
 type PanelView = "chat" | "history";
 
-function recipeIdFromPath(pathname: string): string | null {
-  const match = pathname.match(/^\/recipe\/([^/]+)/);
-  return match?.[1] ?? null;
-}
-
 function pageContextFromPath(
   pathname: string,
   currentWeek: number
@@ -109,7 +104,6 @@ export default function SodieLauncher() {
   const router = useRouter();
   const { state } = useApp();
   const queryClient = useQueryClient();
-  const recipeId = useMemo(() => recipeIdFromPath(pathname), [pathname]);
   const pageContext = useMemo(
     () => pageContextFromPath(pathname, state.currentWeek),
     [pathname, state.currentWeek]
@@ -131,8 +125,10 @@ export default function SodieLauncher() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [resuming, setResuming] = useState(false);
 
-  const activeRecipeId = editRecipeId || recipeId;
+  // Explicit Edit-with-Sodie session only — recipe pages default to coach chat.
+  const editingRecipeId = editRecipeId;
   const pageScopeKey = `${pageContext.scope}:${pageContext.contextId ?? ""}`;
+  const prevPageScopeKeyRef = useRef(pageScopeKey);
 
   useEffect(() => {
     const node = transcriptRef.current;
@@ -141,9 +137,15 @@ export default function SodieLauncher() {
   }, [items, open, view]);
 
   // Re-scope on navigation so chat does not keep a stale global/recipe thread.
+  // Only clear skipAutoResume when the *page* changes — New chat clears
+  // threadScopeKey and must not immediately re-attach the previous durable thread.
   useEffect(() => {
-    if (editRecipeId) return;
-    skipAutoResumeRef.current = false;
+    if (editingRecipeId) return;
+    const pageChanged = prevPageScopeKeyRef.current !== pageScopeKey;
+    prevPageScopeKeyRef.current = pageScopeKey;
+    if (pageChanged) {
+      skipAutoResumeRef.current = false;
+    }
     if (threadScopeKey && threadScopeKey !== pageScopeKey) {
       setThreadId(null);
       setThreadScopeKey(null);
@@ -152,7 +154,7 @@ export default function SodieLauncher() {
       setInput("");
       setView("chat");
     }
-  }, [pageScopeKey, threadScopeKey, editRecipeId]);
+  }, [pageScopeKey, threadScopeKey, editingRecipeId]);
 
   function applyThread(thread: SodieThread) {
     setThreadId(thread.id);
@@ -165,7 +167,7 @@ export default function SodieLauncher() {
   }
 
   async function resumeMatchingThread() {
-    if (temporary || editRecipeId || skipAutoResumeRef.current) return;
+    if (temporary || editingRecipeId || skipAutoResumeRef.current) return;
     setResuming(true);
     setError("");
     try {
@@ -189,10 +191,12 @@ export default function SodieLauncher() {
 
   // Auto-resume durable thread for this page when opening the panel.
   useEffect(() => {
-    if (!open || temporary || editRecipeId || threadId || view !== "chat") return;
+    if (!open || temporary || editingRecipeId || threadId || view !== "chat")
+      return;
+    if (skipAutoResumeRef.current) return;
     void resumeMatchingThread();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when panel opens / scope clears thread
-  }, [open, temporary, editRecipeId, threadId, pageScopeKey, view]);
+  }, [open, temporary, editingRecipeId, threadId, pageScopeKey, view]);
 
   async function loadHistory() {
     setHistoryLoading(true);
@@ -266,13 +270,13 @@ export default function SodieLauncher() {
         /* create below */
       }
     }
-    const scopeRecipeId = forRecipeId || activeRecipeId;
-    const scope: PageScope = scopeRecipeId
+    // Edit sessions attach a recipe-scoped thread; coach uses the active page.
+    const scope: PageScope = forRecipeId
       ? pageContext.scope === "kitchen"
         ? "kitchen"
         : "recipe"
       : pageContext.scope;
-    const contextId = scopeRecipeId || pageContext.contextId;
+    const contextId = forRecipeId || pageContext.contextId;
     const thread = await api.createSodieThread(scope, temporary, contextId);
     setThreadId(thread.id);
     setThreadScopeKey(`${scope}:${contextId ?? ""}`);
@@ -306,13 +310,13 @@ export default function SodieLauncher() {
     );
 
   async function handleEditFollowUp(userText: string) {
-    if (!activeRecipeId) return;
-    const id = await ensureThread(activeRecipeId);
+    if (!editingRecipeId) return;
+    const id = await ensureThread(editingRecipeId);
     const replacedId = pendingProposal?.proposal.id;
     const response = await api.proposeRecipeEditFromRequest({
-      source_recipe_id: activeRecipeId,
+      source_recipe_id: editingRecipeId,
       thread_id: id,
-      idempotency_key: `edit-${activeRecipeId}-${Date.now()}`,
+      idempotency_key: `edit-${editingRecipeId}-${Date.now()}`,
       request: userText,
       pending_proposal_id: replacedId,
     });
@@ -367,7 +371,7 @@ export default function SodieLauncher() {
     setError("");
     setInput("");
     try {
-      if (activeRecipeId) {
+      if (editingRecipeId) {
         setItems((old) => [
           ...old,
           { kind: "message", sender: "user", content: userText },
@@ -492,14 +496,14 @@ export default function SodieLauncher() {
                 <p className="truncate text-xs text-stone-500">
                   {view === "history"
                     ? "Saved chats (private sessions stay out)"
-                    : activeRecipeId
+                    : editingRecipeId
                       ? "Editing this recipe — personal copy on approve"
                       : SCOPE_LABEL[pageContext.scope]}
                 </p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
-              {view === "chat" && !temporary && !editRecipeId && (
+              {view === "chat" && !temporary && !editingRecipeId && (
                 <>
                   <Button
                     size="icon"
@@ -628,8 +632,12 @@ export default function SodieLauncher() {
                 )}
                 {!resuming && items.length === 0 && (
                   <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-stone-700">
-                    Ask about prep, timing, or techniques — or open a recipe and tap{" "}
-                    <strong>Edit with Sodie</strong> to change ingredients.
+                    {editingRecipeId
+                      ? "Tell me what to change — I’ll draft a before/after proposal you can approve or reject."
+                      : pageContext.scope === "recipe" ||
+                          pageContext.scope === "kitchen"
+                        ? "Ask about timing, technique, or ingredients for this dish. To change the recipe itself, tap Edit with Sodie on the page."
+                        : "Ask about prep, timing, or techniques — or open a recipe and tap Edit with Sodie to change ingredients."}
                   </p>
                 )}
                 {items.map((item, index) =>
@@ -669,9 +677,12 @@ export default function SodieLauncher() {
                     }
                   }}
                   placeholder={
-                    activeRecipeId
+                    editingRecipeId
                       ? "e.g. Scale for 2 more people, or make steps clearer"
-                      : "Ask about what you’re cooking…"
+                      : pageContext.scope === "recipe" ||
+                          pageContext.scope === "kitchen"
+                        ? "e.g. How long does this take? What’s tricky?"
+                        : "Ask about what you’re cooking…"
                   }
                 />
                 {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
