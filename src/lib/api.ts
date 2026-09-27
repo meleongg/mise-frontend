@@ -457,7 +457,13 @@ export const api = {
     thread_id?: string;
     pending_proposal_id?: string;
   }): Promise<{
-    kind: "proposal" | "clarify" | "needs_more_info" | "coach_qa";
+    kind:
+      | "proposal"
+      | "clarify"
+      | "needs_more_info"
+      | "coach_qa"
+      | "suggest_swap"
+      | "out_of_scope";
     proposal?: SodieActionProposal | null;
     assistant_message?: string;
   }> {

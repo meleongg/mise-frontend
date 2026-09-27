@@ -126,6 +126,16 @@ export default function ProposalCard({
             {proposal.rationale}
           </p>
         )}
+        {(proposal.impact?.allergen_conflict ||
+          proposal.impact?.diet_conflict ||
+          proposal.impact?.safety_notes) && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-950">
+            {proposal.impact.safety_notes ||
+              (proposal.impact.allergen_conflict
+                ? "This edit may conflict with your allergens — review carefully before Approving."
+                : "This edit may conflict with your dietary restrictions — review carefully before Approving.")}
+          </p>
+        )}
       </header>
 
       <div className="space-y-3">
