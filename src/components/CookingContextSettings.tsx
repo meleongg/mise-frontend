@@ -140,7 +140,7 @@ export default function CookingContextSettings() {
               id="retailer"
               value={retailer}
               onChange={(e) => setRetailer(e.target.value)}
-              placeholder="e.g., No Frills"
+              placeholder="e.g., Costco"
               className="border-2 focus:border-primary"
             />
           </div>
