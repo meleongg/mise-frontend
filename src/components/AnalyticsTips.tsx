@@ -93,6 +93,16 @@ function buildTips(props: AnalyticsTipsProps): Tip[] {
     });
   }
 
+  if ((feedbackTotal > 0 || completedRecipes > 0) && tips.length < 3) {
+    tips.push({
+      id: "recipe-pick",
+      title: "Recipe idea",
+      body: "Ask Sodie for a catalog recipe suggestion you can open after Approve.",
+      askDraft:
+        "Based on my analytics, propose one catalog recipe I can approve to open — something that fits my cuisine and time prefs.",
+    });
+  }
+
   if (currentStreak > 0 && tips.length < 3) {
     tips.push({
       id: "streak",

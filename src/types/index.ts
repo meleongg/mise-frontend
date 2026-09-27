@@ -171,7 +171,12 @@ export interface SodieActionProposal {
   status: "pending" | "approved" | "rejected" | "expired" | "applied";
   source_recipe_id?: string | null;
   personal_recipe_id?: string | null;
-  payload: { before?: Record<string, unknown>; after?: Record<string, unknown>; patch?: RecipeEditPatch };
+  payload: {
+    before?: Record<string, unknown> | null;
+    after?: Record<string, unknown> | null;
+    patch?: RecipeEditPatch;
+    recipe_id?: string;
+  };
   diff: { fields?: Record<string, { before: unknown; after: unknown }> };
   impact: {
     serving_text?: string;

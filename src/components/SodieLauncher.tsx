@@ -535,6 +535,67 @@ export default function SodieLauncher() {
     return true;
   }
 
+  async function handleRecipePickFollowUp(userText: string) {
+    const id = await ensureThread();
+    const replacedId =
+      pendingProposal?.proposal.action_type === "propose_recipe_pick"
+        ? pendingProposal.proposal.id
+        : undefined;
+    const response = await api.proposeRecipePickFromRequest({
+      thread_id: id,
+      idempotency_key: `pick-${Date.now()}`,
+      request: userText,
+      pending_proposal_id: replacedId,
+    });
+
+    if (response.kind === "coach_qa") {
+      return false;
+    }
+
+    if (response.kind === "clarify" || response.kind === "needs_more_info") {
+      setItems((old) => [
+        ...old,
+        {
+          kind: "message",
+          sender: "ai",
+          content:
+            response.assistant_message ||
+            "What kind of recipe should I suggest — cuisine, time, or difficulty?",
+        },
+      ]);
+      return true;
+    }
+
+    if (!response.proposal) {
+      setItems((old) => [
+        ...old,
+        {
+          kind: "message",
+          sender: "ai",
+          content: "I couldn’t pick a catalog recipe just now. Try a cuisine or time limit.",
+        },
+      ]);
+      return true;
+    }
+
+    const proposal = response.proposal;
+    const assistantMessage =
+      response.assistant_message || "Here’s a recipe suggestion for your review.";
+    setItems((old) => [
+      ...old.filter(
+        (item) =>
+          !(replacedId && item.kind === "proposal" && item.proposal.id === replacedId)
+      ),
+      {
+        kind: "message",
+        sender: "ai",
+        content: assistantMessage,
+      },
+      { kind: "proposal", proposal },
+    ]);
+    return true;
+  }
+
   async function send() {
     if (!input.trim() || sending) return;
     const userText = input.trim();
@@ -563,8 +624,15 @@ export default function SodieLauncher() {
           if (handled) return;
         }
         if (pageContext.scope === "analytics") {
-          const handled = await handlePreferenceFollowUp(userText);
-          if (handled) return;
+          if (pendingProposal?.proposal.action_type === "propose_recipe_pick") {
+            const handled = await handleRecipePickFollowUp(userText);
+            if (handled) return;
+          } else {
+            const prefHandled = await handlePreferenceFollowUp(userText);
+            if (prefHandled) return;
+            const pickHandled = await handleRecipePickFollowUp(userText);
+            if (pickHandled) return;
+          }
         }
       }
 
@@ -639,6 +707,22 @@ export default function SodieLauncher() {
             sender: "ai",
             content:
               "Preferences updated. Review them anytime under Settings → Preferences.",
+          },
+        ]);
+        return;
+      }
+      if (next.action_type === "propose_recipe_pick") {
+        if (next.source_recipe_id) {
+          router.push(`/recipe/${next.source_recipe_id}`);
+        }
+        setItems((old) => [
+          ...old,
+          {
+            kind: "message",
+            sender: "ai",
+            content: next.source_recipe_id
+              ? "Opened that recipe. Your weekly plan is unchanged for now."
+              : "Suggestion saved.",
           },
         ]);
         return;
@@ -859,7 +943,7 @@ export default function SodieLauncher() {
                         : pageContext.scope === "settings"
                         ? "Ask about Preferences or Account settings. These chats stay private and don’t use your cooking plan."
                         : pageContext.scope === "analytics"
-                          ? "Ask about your progress — or request a preference tweak and I’ll show a before/after card to approve."
+                          ? "Ask about progress, request a preference tweak, or ask for a catalog recipe suggestion to approve."
                         : pageContext.scope === "personal_recipe"
                           ? "Ask about this personal recipe — ingredients, technique, or how it differs from the catalog version."
                           : pageContext.scope === "recipe" ||
