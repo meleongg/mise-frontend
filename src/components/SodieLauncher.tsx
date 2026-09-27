@@ -192,14 +192,39 @@ export default function SodieLauncher() {
     }
   }, [pageScopeKey, threadScopeKey, editingRecipeId]);
 
-  function applyThread(thread: SodieThread) {
+  async function applyThread(thread: SodieThread) {
     setThreadId(thread.id);
     setThreadScopeKey(`${thread.scope}:${thread.context_id ?? ""}`);
     setTemporary(Boolean(thread.is_temporary));
     setEditRecipeId(null);
-    setItems(messagesToItems(thread.messages ?? []));
+    const messageItems = messagesToItems(thread.messages ?? []);
+    setItems(messageItems);
     setError("");
     setView("chat");
+
+    // Reconstitute pending proposal cards (messages alone don't include them).
+    try {
+      const pending = await api.listSodieThreadProposals(thread.id, {
+        status: "pending",
+      });
+      if (pending.length === 0) return;
+      setItems((prev) => {
+        const existingIds = new Set(
+          prev
+            .filter(
+              (item): item is { kind: "proposal"; proposal: SodieActionProposal } =>
+                item.kind === "proposal"
+            )
+            .map((item) => item.proposal.id)
+        );
+        const extras = pending
+          .filter((proposal) => !existingIds.has(proposal.id))
+          .map((proposal) => ({ kind: "proposal" as const, proposal }));
+        return extras.length ? [...prev, ...extras] : prev;
+      });
+    } catch {
+      /* resume messages even if proposal list fails */
+    }
   }
 
   async function resumeMatchingThread() {
@@ -217,7 +242,7 @@ export default function SodieLauncher() {
       if (!latest) return;
       // Prefer a full get so message order is authoritative.
       const full = await api.getSodieThread(latest.id);
-      applyThread(full);
+      await applyThread(full);
     } catch {
       // Stay on empty chat if history cannot load.
     } finally {
@@ -300,7 +325,7 @@ export default function SodieLauncher() {
     try {
       const full = await api.getSodieThread(id);
       skipAutoResumeRef.current = false;
-      applyThread(full);
+      await applyThread(full);
     } catch {
       setError("Could not open that chat.");
     } finally {
@@ -337,7 +362,7 @@ export default function SodieLauncher() {
         });
         if (matches[0]) {
           const full = await api.getSodieThread(matches[0].id);
-          applyThread(full);
+          await applyThread(full);
           return full.id;
         }
       } catch {
