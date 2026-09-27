@@ -92,14 +92,6 @@ const SCOPE_LABEL: Record<PageScope, string> = {
   shopping: "Shopping help",
 };
 
-const SCOPE_SHORT: Record<string, string> = {
-  global: "General",
-  plan: "Weekly plan",
-  recipe: "Recipe",
-  kitchen: "Kitchen",
-  shopping: "Shopping",
-};
-
 const EDIT_PROMPT =
   "What would you like to change about this recipe? I’ll show a before/after proposal you can reject or approve. Keep chatting if you want to tweak it.";
 
