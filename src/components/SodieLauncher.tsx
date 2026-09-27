@@ -519,11 +519,11 @@ export default function SodieLauncher() {
       {open && (
         <section
           className={cn(
-            "mb-3 flex max-h-[min(40rem,calc(100dvh-7.5rem))] w-[min(28rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-3xl border border-stone-200/90 bg-white shadow-2xl",
+            "mb-3 flex h-[min(36rem,calc(100dvh-7.5rem))] w-[min(28rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-3xl border border-stone-200/90 bg-white shadow-2xl",
             "sm:w-[min(32rem,calc(100vw-2.5rem))]"
           )}
         >
-          <header className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-3 sm:px-5">
+          <header className="flex shrink-0 items-center justify-between gap-3 border-b border-stone-100 px-4 py-3 sm:px-5">
             <div className="flex min-w-0 items-center gap-2.5">
               <SodieAvatar size="sm" animate="none" />
               <div className="min-w-0">
@@ -586,7 +586,7 @@ export default function SodieLauncher() {
           </header>
 
           {view === "chat" && (
-            <div className="flex items-start justify-between gap-3 border-b border-stone-100 px-4 py-3 sm:px-5">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-stone-100 px-4 py-3 sm:px-5">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-stone-900">Private session</p>
                 <p className="text-xs leading-snug text-stone-600">
@@ -723,7 +723,7 @@ export default function SodieLauncher() {
                 )}
               </div>
 
-              <div className="border-t border-stone-100 bg-stone-50/80 px-4 py-3 sm:px-5 sm:py-4">
+              <div className="shrink-0 border-t border-stone-100 bg-stone-50/80 px-4 py-3 sm:px-5 sm:py-4">
                 <Textarea
                   className="min-h-24 resize-none border-stone-200 bg-white text-sm leading-relaxed shadow-sm"
                   value={input}
