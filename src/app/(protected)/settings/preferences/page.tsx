@@ -583,9 +583,9 @@ export default function SettingsPage() {
           <div className="flex justify-start">
             <BackNavButton
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={() => router.push("/weekly-plan")}
-              className="w-full sm:w-auto border-[hsl(var(--paprika))]/30 font-body"
+              className="w-full sm:w-auto border-2 border-[hsl(var(--paprika))]/30 bg-white font-body shadow-sm hover:bg-white/95"
             >
               Back to weekly plan
             </BackNavButton>
