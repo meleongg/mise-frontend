@@ -31,6 +31,7 @@ import {
   UserRecipeProgress,
   WeeklyPlan,
   WeeklyPlanResponse,
+  ShoppingList,
 } from "@/types";
 import { formatIngredientDisplay } from "@/lib/formatIngredient";
 
@@ -662,6 +663,59 @@ export const api = {
     };
     const response = await fetch(url, options);
     return handleResponse<WeeklyPlan[]>(response, createRetryFn(url, options));
+  },
+
+  async getActiveShoppingList(weekNumber?: number): Promise<ShoppingList | null> {
+    const qs =
+      weekNumber != null ? `?week_number=${weekNumber}` : "";
+    const url = `${API_BASE_URL}/shopping-lists/active${qs}`;
+    const options: RequestInit = {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    };
+    const response = await fetch(url, options);
+    return handleResponse<ShoppingList | null>(
+      response,
+      createRetryFn(url, options)
+    );
+  },
+
+  async generateShoppingList(weekNumber: number): Promise<ShoppingList> {
+    const url = `${API_BASE_URL}/shopping-lists/generate`;
+    const options: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ week_number: weekNumber }),
+    };
+    const response = await fetch(url, options);
+    return handleResponse<ShoppingList>(response, createRetryFn(url, options));
+  },
+
+  async updateShoppingListItem(
+    itemId: string,
+    updates: {
+      is_checked?: boolean;
+      display_text?: string;
+      quantity?: number;
+      unit?: string;
+    }
+  ): Promise<ShoppingList> {
+    const url = `${API_BASE_URL}/shopping-lists/items/${itemId}`;
+    const options: RequestInit = {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(updates),
+    };
+    const response = await fetch(url, options);
+    return handleResponse<ShoppingList>(response, createRetryFn(url, options));
   },
 
   // Recipes
