@@ -193,9 +193,8 @@ export default function CookingContextSettings() {
 
         <Button
           type="button"
-          variant="outline"
           disabled={savingShopping}
-          className="border-[hsl(var(--paprika))]/30"
+          className="bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--paprika))]/90"
           onClick={() => void saveShopping()}
         >
           {savingShopping ? "Saving…" : "Save shopping & pantry"}
@@ -250,9 +249,8 @@ export default function CookingContextSettings() {
 
         <Button
           type="button"
-          variant="outline"
           disabled={savingSodie}
-          className="border-[hsl(var(--sage))]/40"
+          className="bg-[hsl(var(--sage))] text-white hover:bg-[hsl(var(--sage))]/90"
           onClick={() => void saveSodie()}
         >
           {savingSodie ? "Saving…" : "Save Sodie privacy"}
