@@ -131,11 +131,6 @@ export interface GeneralChatResponse {
   response: string;
 }
 
-export interface AdaptiveChatResponse {
-  response: string;
-  intent: "general_knowledge" | "analytics";
-}
-
 export interface GenerateWeeklyPlanRequest {
   initial_intent: string;
   confirm_regeneration?: boolean;

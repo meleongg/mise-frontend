@@ -35,7 +35,14 @@ type ChatItem =
   | { kind: "message"; sender: "user" | "ai"; content: string }
   | { kind: "proposal"; proposal: SodieActionProposal };
 
-type PageScope = "global" | "plan" | "recipe" | "kitchen" | "shopping";
+type PageScope =
+  | "global"
+  | "plan"
+  | "recipe"
+  | "kitchen"
+  | "shopping"
+  | "personal_recipe"
+  | "settings";
 type PanelView = "chat" | "history";
 
 function pageContextFromPath(
@@ -58,6 +65,19 @@ function pageContextFromPath(
   }
   if (pathname.startsWith("/shopping")) {
     return { scope: "shopping" };
+  }
+  const personalMatch = pathname.match(/^\/my-recipes\/([^/]+)/);
+  if (personalMatch) {
+    return { scope: "personal_recipe", contextId: personalMatch[1] };
+  }
+  if (pathname.startsWith("/my-recipes")) {
+    return { scope: "personal_recipe" };
+  }
+  if (
+    pathname.startsWith("/settings/preferences") ||
+    pathname.startsWith("/settings/account")
+  ) {
+    return { scope: "settings" };
   }
   return { scope: "global" };
 }
@@ -97,6 +117,8 @@ const SCOPE_LABEL: Record<PageScope, string> = {
   recipe: "Helping with this recipe",
   kitchen: "Kitchen Mode help",
   shopping: "Shopping help",
+  personal_recipe: "Helping with your My Recipes copy",
+  settings: "Settings help (private)",
 };
 
 const EDIT_PROMPT =
@@ -135,6 +157,9 @@ export default function SodieLauncher() {
   const editingRecipeId = editRecipeId;
   const pageScopeKey = `${pageContext.scope}:${pageContext.contextId ?? ""}`;
   const prevPageScopeKeyRef = useRef(pageScopeKey);
+  // Settings routes never get durable coach context or history.
+  const forcePrivate = pageContext.scope === "settings";
+  const isPrivate = temporary || forcePrivate;
 
   useEffect(() => {
     const node = transcriptRef.current;
@@ -173,7 +198,7 @@ export default function SodieLauncher() {
   }
 
   async function resumeMatchingThread() {
-    if (temporary || editingRecipeId || skipAutoResumeRef.current) return;
+    if (isPrivate || editingRecipeId || skipAutoResumeRef.current) return;
     setResuming(true);
     setError("");
     try {
@@ -197,12 +222,12 @@ export default function SodieLauncher() {
 
   // Auto-resume durable thread for this page when opening the panel.
   useEffect(() => {
-    if (!open || temporary || editingRecipeId || threadId || view !== "chat")
+    if (!open || isPrivate || editingRecipeId || threadId || view !== "chat")
       return;
     if (skipAutoResumeRef.current) return;
     void resumeMatchingThread();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when panel opens / scope clears thread
-  }, [open, temporary, editingRecipeId, threadId, pageScopeKey, view]);
+  }, [open, isPrivate, editingRecipeId, threadId, pageScopeKey, view]);
 
   async function loadHistory() {
     setHistoryLoading(true);
@@ -210,24 +235,33 @@ export default function SodieLauncher() {
     try {
       const threads = await api.listSodieThreads();
       setHistory(threads);
-      const recipeIds = [
-        ...new Set(
+      const labelTargets = [
+        ...new Map(
           threads
             .filter(
               (t) =>
-                (t.scope === "recipe" || t.scope === "kitchen") && t.context_id
+                (t.scope === "recipe" ||
+                  t.scope === "kitchen" ||
+                  t.scope === "personal_recipe") &&
+                t.context_id
             )
-            .map((t) => t.context_id as string)
-        ),
+            .map((t) => [`${t.scope}:${t.context_id}`, t] as const)
+        ).values(),
       ];
       const names: Record<string, string> = {};
       await Promise.all(
-        recipeIds.map(async (id) => {
+        labelTargets.map(async (thread) => {
+          const id = thread.context_id as string;
           try {
-            const recipe = await api.getRecipe(id);
-            if (recipe?.name) names[id] = recipe.name;
+            if (thread.scope === "personal_recipe") {
+              const personal = await api.getPersonalRecipe(id);
+              if (personal?.name) names[id] = personal.name;
+            } else {
+              const recipe = await api.getRecipe(id);
+              if (recipe?.name) names[id] = recipe.name;
+            }
           } catch {
-            /* keep generic Recipe/Kitchen label */
+            /* keep generic Recipe/Kitchen/My Recipes label */
           }
         })
       );
@@ -288,7 +322,7 @@ export default function SodieLauncher() {
 
   async function ensureThread(forRecipeId?: string | null) {
     if (threadId) return threadId;
-    if (!temporary && !forRecipeId && !skipAutoResumeRef.current) {
+    if (!isPrivate && !forRecipeId && !skipAutoResumeRef.current) {
       try {
         const matches = await api.listSodieThreads({
           scope: pageContext.scope,
@@ -312,7 +346,7 @@ export default function SodieLauncher() {
         : "recipe"
       : pageContext.scope;
     const contextId = forRecipeId || pageContext.contextId;
-    const thread = await api.createSodieThread(scope, temporary, contextId);
+    const thread = await api.createSodieThread(scope, isPrivate, contextId);
     setThreadId(thread.id);
     setThreadScopeKey(`${scope}:${contextId ?? ""}`);
     skipAutoResumeRef.current = false;
@@ -538,7 +572,7 @@ export default function SodieLauncher() {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
-              {view === "chat" && !temporary && !editingRecipeId && (
+              {view === "chat" && !isPrivate && !editingRecipeId && (
                 <>
                   <Button
                     size="icon"
@@ -590,12 +624,14 @@ export default function SodieLauncher() {
               <div className="min-w-0">
                 <p className="text-sm font-medium text-stone-900">Private session</p>
                 <p className="text-xs leading-snug text-stone-600">
-                  Not shown in history or used for memory
+                  {forcePrivate
+                    ? "Settings chats stay private and never use cooking memory"
+                    : "Not shown in history or used for memory"}
                 </p>
               </div>
               <Switch
-                checked={temporary}
-                disabled={!!threadId}
+                checked={isPrivate}
+                disabled={!!threadId || forcePrivate}
                 aria-label="Private session"
                 onCheckedChange={(next) => {
                   setTemporary(next);
@@ -633,12 +669,12 @@ export default function SodieLauncher() {
                 history.map((thread) => (
                   <div
                     key={thread.id}
-                    className="flex items-stretch gap-1 rounded-2xl border border-stone-200/80 bg-stone-50/80"
+                    className="flex items-stretch overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-50/80 transition-colors hover:border-stone-300 hover:bg-white"
                   >
                     <button
                       type="button"
                       onClick={() => void selectHistoryThread(thread.id)}
-                      className="min-w-0 flex-1 px-3 py-3 text-left transition-colors hover:bg-white"
+                      className="min-w-0 flex-1 px-3 py-3 text-left"
                     >
                       <p className="text-xs font-medium text-[hsl(var(--paprika))]">
                         {threadHistoryLabel(
@@ -661,7 +697,7 @@ export default function SodieLauncher() {
                         setError("");
                         setPendingDelete(thread);
                       }}
-                      className="shrink-0 px-3 text-stone-400 transition-colors hover:text-red-600"
+                      className="shrink-0 border-l border-stone-200/80 px-3 text-stone-400 transition-colors hover:text-red-600"
                       aria-label="Delete chat"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -683,10 +719,14 @@ export default function SodieLauncher() {
                   <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-stone-700">
                     {editingRecipeId
                       ? "Tell me what to change — I’ll draft a before/after proposal you can approve or reject."
-                      : pageContext.scope === "recipe" ||
-                          pageContext.scope === "kitchen"
-                        ? "Ask about timing, technique, or ingredients for this dish. To change the recipe itself, tap Edit with Sodie on the page."
-                        : "Ask about prep, timing, or techniques — or open a recipe and tap Edit with Sodie to change ingredients."}
+                      : pageContext.scope === "settings"
+                        ? "Ask about Preferences or Account settings. These chats stay private and don’t use your cooking plan."
+                        : pageContext.scope === "personal_recipe"
+                          ? "Ask about this personal recipe — ingredients, technique, or how it differs from the catalog version."
+                          : pageContext.scope === "recipe" ||
+                              pageContext.scope === "kitchen"
+                            ? "Ask about timing, technique, or ingredients for this dish. To change the recipe itself, tap Edit with Sodie on the page."
+                            : "Ask about prep, timing, or techniques — or open a recipe and tap Edit with Sodie to change ingredients."}
                   </p>
                 )}
                 {items.map((item, index) =>
@@ -737,10 +777,14 @@ export default function SodieLauncher() {
                   placeholder={
                     editingRecipeId
                       ? "e.g. Scale for 2 more people, or make steps clearer"
-                      : pageContext.scope === "recipe" ||
-                          pageContext.scope === "kitchen"
-                        ? "e.g. How long does this take? What’s tricky?"
-                        : "Ask about what you’re cooking…"
+                      : pageContext.scope === "settings"
+                        ? "e.g. Where do I change dietary preferences?"
+                        : pageContext.scope === "personal_recipe"
+                          ? "e.g. How do I cook this version tonight?"
+                          : pageContext.scope === "recipe" ||
+                              pageContext.scope === "kitchen"
+                            ? "e.g. How long does this take? What’s tricky?"
+                            : "Ask about what you’re cooking…"
                   }
                 />
                 {error && (

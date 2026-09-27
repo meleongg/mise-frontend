@@ -5,7 +5,6 @@ import {
   setRefreshToken,
 } from "@/contexts/AuthContext";
 import {
-  AdaptiveChatResponse,
   ChangePasswordRequest,
   GeneralChatRequest,
   GeneralChatResponse,
@@ -195,26 +194,6 @@ export const api = {
     };
     const response = await fetch(url, options);
     return handleResponse<GeneralChatResponse>(
-      response,
-      createRetryFn(url, options)
-    );
-  },
-
-  async adaptiveChat(
-    userId: string,
-    chatInput: GeneralChatRequest
-  ): Promise<AdaptiveChatResponse> {
-    const url = `${PLAN_BASE_URL}/adaptive_chat/${userId}`;
-    const options: RequestInit = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(chatInput),
-    };
-    const response = await fetch(url, options);
-    return handleResponse<AdaptiveChatResponse>(
       response,
       createRetryFn(url, options)
     );
