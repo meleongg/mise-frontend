@@ -3,6 +3,13 @@
 import ProposalCard from "@/components/ProposalCard";
 import SodieAvatar from "@/components/SodieAvatar";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexts/AppContext";
@@ -121,6 +128,8 @@ export default function SodieLauncher() {
   const [historyLabels, setHistoryLabels] = useState<Record<string, string>>({});
   const [historyLoading, setHistoryLoading] = useState(false);
   const [resuming, setResuming] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<SodieThread | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   // Explicit Edit-with-Sodie session only — recipe pages default to coach chat.
   const editingRecipeId = editRecipeId;
@@ -260,14 +269,20 @@ export default function SodieLauncher() {
     }
   }
 
-  async function deleteHistoryThread(id: string) {
+  async function confirmDeleteHistoryThread() {
+    if (!pendingDelete || deleteBusy) return;
+    const id = pendingDelete.id;
+    setDeleteBusy(true);
     setError("");
     try {
       await api.deleteSodieThread(id);
       if (threadId === id) startNewChat();
       setHistory((prev) => prev.filter((t) => t.id !== id));
+      setPendingDelete(null);
     } catch {
-      setError("Could not delete that chat.");
+      setError("Could not delete that chat. Check your connection and try again.");
+    } finally {
+      setDeleteBusy(false);
     }
   }
 
@@ -599,6 +614,14 @@ export default function SodieLauncher() {
 
           {view === "history" ? (
             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
+              {error && (
+                <div
+                  role="alert"
+                  className="rounded-xl border-2 border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700"
+                >
+                  {error}
+                </div>
+              )}
               {historyLoading || resuming ? (
                 <p className="text-sm text-stone-500">Loading…</p>
               ) : history.length === 0 ? (
@@ -633,7 +656,11 @@ export default function SodieLauncher() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => void deleteHistoryThread(thread.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setError("");
+                        setPendingDelete(thread);
+                      }}
                       className="shrink-0 px-3 text-stone-400 transition-colors hover:text-red-600"
                       aria-label="Delete chat"
                     >
@@ -642,7 +669,6 @@ export default function SodieLauncher() {
                   </div>
                 ))
               )}
-              {error && <p className="text-xs text-red-600">{error}</p>}
             </div>
           ) : (
             <>
@@ -715,7 +741,14 @@ export default function SodieLauncher() {
                         : "Ask about what you’re cooking…"
                   }
                 />
-                {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+                {error && (
+                  <div
+                    role="alert"
+                    className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+                  >
+                    {error}
+                  </div>
+                )}
                 <Button
                   className="mt-3 min-h-11 w-full bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--paprika))]/90"
                   disabled={!input.trim() || sending}
@@ -732,6 +765,59 @@ export default function SodieLauncher() {
           )}
         </section>
       )}
+
+      <Dialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => {
+          if (!open && !deleteBusy) {
+            setPendingDelete(null);
+          }
+        }}
+      >
+        <DialogContent
+          showCloseButton={false}
+          className="z-[60] border-2 border-[hsl(var(--paprika))]/40 bg-white sm:max-w-md"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-[hsl(var(--paprika))]">
+              Delete this chat?
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-stone-600">
+              {pendingDelete
+                ? `“${threadPreview(pendingDelete)}” will be removed from history. This can’t be undone.`
+                : "This chat will be removed from history. This can’t be undone."}
+            </DialogDescription>
+          </DialogHeader>
+          {error && (
+            <div
+              role="alert"
+              className="rounded-lg border-2 border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+            >
+              {error}
+            </div>
+          )}
+          <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full min-w-[100px] border-[hsl(var(--paprika))]/30 sm:w-auto"
+              disabled={deleteBusy}
+              onClick={() => setPendingDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="w-full min-w-[120px] bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--paprika))]/90 sm:w-auto"
+              disabled={deleteBusy}
+              onClick={() => void confirmDeleteHistoryThread()}
+            >
+              {deleteBusy ? "Deleting…" : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <button
         type="button"
         onClick={() => setOpen(!open)}
