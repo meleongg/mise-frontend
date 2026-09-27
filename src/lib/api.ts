@@ -408,6 +408,49 @@ export const api = {
     return handleResponse<SodieThread>(await fetch(url, options), createRetryFn(url, options));
   },
 
+  async listSodieThreads(filters?: {
+    scope?: string;
+    context_id?: string;
+  }): Promise<SodieThread[]> {
+    const params = new URLSearchParams();
+    if (filters?.scope) params.set("scope", filters.scope);
+    if (filters?.context_id) params.set("context_id", filters.context_id);
+    const qs = params.toString();
+    const url = `${API_BASE_URL}/sodie/threads${qs ? `?${qs}` : ""}`;
+    const options: RequestInit = {
+      method: "GET",
+      headers: { ...getAuthHeaders() },
+    };
+    return handleResponse<SodieThread[]>(
+      await fetch(url, options),
+      createRetryFn(url, options)
+    );
+  },
+
+  async getSodieThread(threadId: string): Promise<SodieThread> {
+    const url = `${API_BASE_URL}/sodie/threads/${threadId}`;
+    const options: RequestInit = {
+      method: "GET",
+      headers: { ...getAuthHeaders() },
+    };
+    return handleResponse<SodieThread>(
+      await fetch(url, options),
+      createRetryFn(url, options)
+    );
+  },
+
+  async deleteSodieThread(threadId: string): Promise<void> {
+    const url = `${API_BASE_URL}/sodie/threads/${threadId}`;
+    const options: RequestInit = {
+      method: "DELETE",
+      headers: { ...getAuthHeaders() },
+    };
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      await handleResponse(response, createRetryFn(url, options));
+    }
+  },
+
   async sendSodieMessage(threadId: string, content: string): Promise<SodieChatResponse> {
     const url = `${API_BASE_URL}/sodie/threads/${threadId}/chat`;
     const options: RequestInit = { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify({ content }) };
