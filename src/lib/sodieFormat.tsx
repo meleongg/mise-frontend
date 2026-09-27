@@ -1,66 +1,48 @@
-import { Fragment, type ReactNode } from "react";
+"use client";
 
-/** Soften run-on numbered tips into separate lines for chat bubbles. */
-export function normalizeSodieProse(text: string): string {
+import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+/**
+ * Light normalization for common LLM quirks before markdown parse.
+ * Does not invent list structure — only restores newlines so GFM can see
+ * numbered/bulleted items that were jammed into one paragraph.
+ */
+export function prepareSodieMarkdown(text: string): string {
   return text
     .replace(/\r\n/g, "\n")
+    // "…tips: 1. Foo 2. Bar" → break before numbered markers
     .replace(/([^\n])\s+(\d+)\.\s+/g, "$1\n\n$2. ")
+    // "…tips: - Foo - Bar" / "* Foo" jammed inline
+    .replace(/([^\n])\s+([-*])\s+/g, "$1\n\n$2 ")
     .trim();
 }
 
-function renderInlineMarkdown(text: string): ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, index) => {
-    const bold = part.match(/^\*\*([^*]+)\*\*$/);
-    if (bold) {
-      return (
-        <strong key={index} className="font-semibold">
-          {bold[1]}
-        </strong>
-      );
-    }
-    return <Fragment key={index}>{part}</Fragment>;
-  });
-}
+type SodieMarkdownProps = {
+  text: string;
+  className?: string;
+};
 
 /**
- * Lightweight markdown for Sodie coach replies (bold + paragraphs/lists).
- * No extra dependency — enough for MVP chat formatting.
+ * Full markdown render for Sodie coach replies (GFM lists, emphasis, etc.).
  */
-export function renderSodieMessageContent(text: string): ReactNode {
-  const normalized = normalizeSodieProse(text);
-  const blocks = normalized.split(/\n{2,}/).filter(Boolean);
-
+export function SodieMarkdown({ text, className }: SodieMarkdownProps) {
   return (
-    <div className="space-y-2">
-      {blocks.map((block, blockIndex) => {
-        const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-        const listItems = lines.every((line) => /^\d+\.\s+/.test(line));
-        if (listItems) {
-          return (
-            <ol
-              key={blockIndex}
-              className="list-decimal space-y-1.5 pl-5 marker:font-semibold"
-            >
-              {lines.map((line, lineIndex) => (
-                <li key={lineIndex} className="pl-0.5">
-                  {renderInlineMarkdown(line.replace(/^\d+\.\s+/, ""))}
-                </li>
-              ))}
-            </ol>
-          );
-        }
-        return (
-          <p key={blockIndex} className="whitespace-pre-wrap">
-            {lines.map((line, lineIndex) => (
-              <Fragment key={lineIndex}>
-                {lineIndex > 0 ? <br /> : null}
-                {renderInlineMarkdown(line)}
-              </Fragment>
-            ))}
-          </p>
-        );
-      })}
+    <div
+      className={cn(
+        "sodie-md text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0",
+        "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5",
+        "[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1.5 [&_ol]:pl-5",
+        "[&_li]:pl-0.5 [&_strong]:font-semibold",
+        "[&_a]:underline [&_code]:rounded [&_code]:bg-black/5 [&_code]:px-1 [&_code]:text-[0.9em]",
+        "[&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-black/5 [&_pre]:p-2",
+        className
+      )}
+    >
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        {prepareSodieMarkdown(text)}
+      </ReactMarkdown>
     </div>
   );
 }

@@ -16,7 +16,7 @@ import { useApp } from "@/contexts/AppContext";
 import { queryKeys } from "@/hooks/queries";
 import { api } from "@/lib/api";
 import {
-  renderSodieMessageContent,
+  SodieMarkdown,
   threadHistoryLabel,
 } from "@/lib/sodieFormat";
 import {
@@ -700,9 +700,11 @@ export default function SodieLauncher() {
                           : "ml-auto bg-[hsl(var(--paprika))] text-white"
                       )}
                     >
-                      {item.sender === "ai"
-                        ? renderSodieMessageContent(item.content)
-                        : item.content}
+                      {item.sender === "ai" ? (
+                        <SodieMarkdown text={item.content} />
+                      ) : (
+                        item.content
+                      )}
                     </div>
                   ) : (
                     <ProposalCard
