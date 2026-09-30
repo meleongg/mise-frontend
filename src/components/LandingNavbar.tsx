@@ -22,18 +22,13 @@ export default function LandingNavbar() {
 
   const closeMenu = () => setMobileMenuOpen(false);
 
-  const handleGetStarted = () => {
-    closeMenu();
-    router.push("/onboarding");
-  };
-
   return (
     <nav className={navShellClassName}>
       <div className={navContainerClassName}>
         <div className={navRowClassName}>
           <BrandLogo href="/" size="md" onClick={closeMenu} />
 
-          {/* Desktop */}
+          {/* Desktop: Login + Register only */}
           <div className="hidden md:flex items-center gap-1 lg:gap-2 shrink-0">
             <Button
               variant="outline"
@@ -44,18 +39,11 @@ export default function LandingNavbar() {
               Login
             </Button>
             <Button
-              variant="outline"
               onClick={() => router.push("/register")}
-              className={`${navGhostButtonClassName} px-3 sm:px-4`}
+              className={`${navCtaClassName} px-5 lg:px-6 py-2 text-sm lg:text-base`}
               aria-label="Register for Mise"
             >
               Register
-            </Button>
-            <Button
-              onClick={handleGetStarted}
-              className={`${navCtaClassName} px-5 lg:px-6 py-2 text-sm lg:text-base`}
-            >
-              Get Started Free
             </Button>
           </div>
 
@@ -63,11 +51,12 @@ export default function LandingNavbar() {
           <div className="flex md:hidden items-center gap-2 shrink-0">
             {!mobileMenuOpen && (
               <Button
-                onClick={handleGetStarted}
+                onClick={() => router.push("/register")}
                 size="sm"
                 className={`${navCtaClassName} px-3 py-2 text-sm whitespace-nowrap`}
+                aria-label="Register for Mise"
               >
-                Get Started
+                Register
               </Button>
             )}
             <button
@@ -100,20 +89,13 @@ export default function LandingNavbar() {
                 Login
               </Button>
               <Button
-                variant="outline"
                 onClick={() => {
                   closeMenu();
                   router.push("/register");
                 }}
-                className={navMobileLinkClassName}
-              >
-                Register
-              </Button>
-              <Button
-                onClick={handleGetStarted}
                 className={`${navCtaClassName} w-full h-11 mt-1 text-base`}
               >
-                Get Started Free
+                Register
               </Button>
             </div>
           </div>
