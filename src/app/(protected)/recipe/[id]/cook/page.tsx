@@ -2,6 +2,7 @@
 
 import IngredientChecklist from "@/components/kitchen/IngredientChecklist";
 import KitchenModeShell from "@/components/kitchen/KitchenModeShell";
+import KitchenSodieQuickActions from "@/components/kitchen/KitchenSodieQuickActions";
 import MiseEnPlaceIntroDialog from "@/components/kitchen/MiseEnPlaceIntroDialog";
 import StepNavigator from "@/components/kitchen/StepNavigator";
 import BackNavButton from "@/components/BackNavButton";
@@ -27,6 +28,7 @@ import { useCookExitGuard } from "@/hooks/useCookExitGuard";
 import { useKitchenSession } from "@/hooks/useKitchenSession";
 import { parseHelpers } from "@/lib/api";
 import { hasSeenMiseIntro, markMiseIntroSeen } from "@/lib/kitchenIntroStorage";
+import { publishSodieKitchenState } from "@/lib/sodieEvents";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useCallback, useEffect, useMemo, useState } from "react";
@@ -70,12 +72,18 @@ export default function KitchenCookPage({
     handleBackAttempt
   );
 
-  const ingredients = recipe
-    ? parseHelpers.parseRecipeIngredients(recipe.ingredients)
-    : [];
-  const steps = recipe
-    ? parseHelpers.parseRecipeInstructionsStructured(recipe.instructions)
-    : [];
+  const ingredients = useMemo(
+    () =>
+      recipe ? parseHelpers.parseRecipeIngredients(recipe.ingredients) : [],
+    [recipe]
+  );
+  const steps = useMemo(
+    () =>
+      recipe
+        ? parseHelpers.parseRecipeInstructionsStructured(recipe.instructions)
+        : [],
+    [recipe]
+  );
 
   const session = useKitchenSession({
     recipeId,
@@ -122,6 +130,31 @@ export default function KitchenCookPage({
       router.replace(recipeHref);
     }
   }, [user?.id, progressLoaded, progressStatus, router, recipeHref]);
+
+  useEffect(() => {
+    if (phase !== "cooking" || !session.hydrated) {
+      publishSodieKitchenState(null);
+      return;
+    }
+    const current = steps[session.currentStepIndex];
+    publishSodieKitchenState({
+      current_step_index: session.currentStepIndex,
+      total_steps: steps.length,
+      current_step_text: current?.text ?? null,
+      checked_ingredients: session.checkedIngredients.size,
+      total_ingredients: ingredients.length,
+    });
+    return () => {
+      publishSodieKitchenState(null);
+    };
+  }, [
+    phase,
+    session.hydrated,
+    session.currentStepIndex,
+    session.checkedIngredients,
+    steps,
+    ingredients.length,
+  ]);
 
   const markInProgress = useCallback(() => {
     if (isPreview || !user?.id) return;
@@ -310,6 +343,7 @@ export default function KitchenCookPage({
             setPhase("feedback");
           }}
         />
+        <KitchenSodieQuickActions stepLabel={stepLabel} />
       </KitchenModeShell>
 
       <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>

@@ -21,8 +21,10 @@ import {
   threadHistoryLabel,
 } from "@/lib/sodieFormat";
 import {
+  SODIE_KITCHEN_STATE_EVENT,
   SODIE_OPEN_EVENT,
   SODIE_START_RECIPE_EDIT_EVENT,
+  type SodieKitchenState,
   type SodieOpenDetail,
 } from "@/lib/sodieEvents";
 import { cn } from "@/lib/utils";
@@ -159,6 +161,9 @@ export default function SodieLauncher() {
   const [resuming, setResuming] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<SodieThread | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [kitchenState, setKitchenState] = useState<SodieKitchenState | null>(
+    null
+  );
 
   // Explicit Edit-with-Sodie session only — recipe pages default to coach chat.
   const editingRecipeId = editRecipeId;
@@ -646,7 +651,10 @@ export default function SodieLauncher() {
       }
 
       const id = await ensureThread();
-      const response = await api.sendSodieMessage(id, userText);
+      const response = await api.sendSodieMessage(id, userText, {
+        kitchen_state:
+          pageContext.scope === "kitchen" ? kitchenState : null,
+      });
       setItems((old) => [
         ...old,
         { kind: "message", sender: "ai", content: response.ai_message.content },
@@ -679,9 +687,15 @@ export default function SodieLauncher() {
     }
     window.addEventListener(SODIE_START_RECIPE_EDIT_EVENT, onStartRecipeEdit);
     window.addEventListener(SODIE_OPEN_EVENT, onOpen);
+    function onKitchenState(event: Event) {
+      const detail = (event as CustomEvent<SodieKitchenState | null>).detail;
+      setKitchenState(detail ?? null);
+    }
+    window.addEventListener(SODIE_KITCHEN_STATE_EVENT, onKitchenState);
     return () => {
       window.removeEventListener(SODIE_START_RECIPE_EDIT_EVENT, onStartRecipeEdit);
       window.removeEventListener(SODIE_OPEN_EVENT, onOpen);
+      window.removeEventListener(SODIE_KITCHEN_STATE_EVENT, onKitchenState);
     };
   }, []);
 
@@ -955,8 +969,9 @@ export default function SodieLauncher() {
                           ? "Ask about progress, request a preference tweak, or ask for a catalog recipe suggestion to approve."
                         : pageContext.scope === "personal_recipe"
                           ? "Ask about this personal recipe — ingredients, technique, or how it differs from the catalog version."
-                          : pageContext.scope === "recipe" ||
-                              pageContext.scope === "kitchen"
+                          : pageContext.scope === "kitchen"
+                            ? "Ask about the step you're on — timing, technique, or what to prep next."
+                          : pageContext.scope === "recipe"
                             ? "Ask about timing or technique — or tell me what to change and I’ll draft a before/after proposal you can approve."
                             : "Ask about prep, timing, or techniques — or open a recipe and ask Sodie to change ingredients."}
                   </p>
