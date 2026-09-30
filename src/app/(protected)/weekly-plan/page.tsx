@@ -440,20 +440,20 @@ export default function WeeklyPlanPage() {
       </div>
       <Card className="w-full max-w-3xl shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
-            Your Weekly Meal Plan
-          </CardTitle>
-          {currentPlan && (
-            <div className="pt-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
+              Your Weekly Meal Plan
+            </CardTitle>
+            {currentPlan && (
               <Button
                 asChild
                 size="sm"
-                className="bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))]"
+                className="shrink-0 self-start sm:self-auto bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))]"
               >
                 <Link href="/shopping">Open shopping list</Link>
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {error && (
