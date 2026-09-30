@@ -190,7 +190,7 @@ export default function AccountSettingsPage() {
     <>
       <Toaster position="top-center" expand={true} richColors />
       <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-4 py-8 pb-16">
-        <div className="max-w-2xl mx-auto space-y-6 mb-8">
+        <div className="mx-auto max-w-3xl space-y-6 mb-8">
           <PageHeader
             title="Account Settings"
             description="Manage your personal information and password."

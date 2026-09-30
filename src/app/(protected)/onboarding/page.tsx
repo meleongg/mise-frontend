@@ -160,7 +160,7 @@ export default function OnboardingPage() {
       <Toaster position="top-center" expand={true} richColors />
       <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-4 py-8 pb-16 transition-opacity duration-300">
         {!isPending && (
-          <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in duration-300">
+          <div className="mx-auto max-w-3xl space-y-6 animate-in fade-in duration-300">
             <SodiePageIntro
               title="Welcome to Mise!"
               description="I'm Sodie — answer a few questions and I'll shape your first weekly meal plan."

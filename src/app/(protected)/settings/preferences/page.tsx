@@ -210,7 +210,7 @@ export default function SettingsPage() {
     <>
       <Toaster position="top-center" expand={true} richColors />
       <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-4 py-8 pb-16">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="mx-auto max-w-3xl space-y-6">
           <PageHeader
             title="Cooking Preferences"
             description="Tell Sodie how you like to cook — we'll tailor your meal plans to match."
