@@ -26,7 +26,7 @@ import {
   useWeeklyPlansQuery,
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, planGenerateUserMessage } from "@/lib/api";
 import { clearKitchenSession } from "@/lib/kitchenSessionStorage";
 import {
   formSelectContentClass,
@@ -62,6 +62,9 @@ import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 export default function WeeklyPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState("");
+  const [generatePhase, setGeneratePhase] = useState<"picking" | "verifying">(
+    "picking"
+  );
   const [generatedPlan, setGeneratedPlan] = useState<WeeklyPlanResponse | null>(
     null
   );
@@ -88,6 +91,16 @@ export default function WeeklyPlanPage() {
   useLayoutEffect(() => {
     scrollToTop();
   }, []);
+
+  useEffect(() => {
+    if (!isGenerating) {
+      setGeneratePhase("picking");
+      return;
+    }
+    setGeneratePhase("picking");
+    const timer = window.setTimeout(() => setGeneratePhase("verifying"), 8000);
+    return () => window.clearTimeout(timer);
+  }, [isGenerating]);
 
   // TanStack Query hooks - automatically cached from layout
   const {
@@ -298,7 +311,10 @@ export default function WeeklyPlanPage() {
             ? err
             : new Error(String(err));
       setGenerateError(
-        error.message || "Failed to generate next week plan. Please try again."
+        error instanceof ApiError
+          ? planGenerateUserMessage(error)
+          : error.message ||
+              "Failed to generate next week plan. Please try again."
       );
     } finally {
       setIsGenerating(false);
@@ -313,7 +329,22 @@ export default function WeeklyPlanPage() {
 
     try {
       const initialIntent = `Create a weekly meal plan for week ${nextWeek} for a user who prefers ${user.cuisine} cuisine, wants ${user.frequency} meals per week, is a ${user.skill_level} cook, and whose goal is ${user.user_goal}.`;
-      const plan = await api.generateWeeklyPlan(user.id, initialIntent);
+      let plan: WeeklyPlanResponse;
+      try {
+        plan = await api.generateWeeklyPlan(user.id, initialIntent);
+      } catch (firstErr: unknown) {
+        if (firstErr instanceof ApiError && firstErr.status === 409) {
+          const confirmed = window.confirm(
+            "Week 1 already exists. Regenerate and reset that week’s progress?"
+          );
+          if (!confirmed) {
+            return;
+          }
+          plan = await api.generateWeeklyPlan(user.id, initialIntent, true);
+        } else {
+          throw firstErr;
+        }
+      }
       setGeneratedPlan(plan);
 
       // Update currentWeek to the newly generated week
@@ -343,7 +374,9 @@ export default function WeeklyPlanPage() {
             ? err
             : new Error(String(err));
       setGenerateError(
-        error.message || "Failed to generate weekly plan. Please try again."
+        error instanceof ApiError
+          ? planGenerateUserMessage(error)
+          : error.message || "Failed to generate weekly plan. Please try again."
       );
     } finally {
       setIsGenerating(false);
@@ -860,8 +893,16 @@ export default function WeeklyPlanPage() {
       {isGenerating && (
         <SodieAiLoading
           overlay
-          message={generatingText}
-          submessage="Sodie is picking recipes just for you"
+          message={
+            generatePhase === "verifying"
+              ? "Checking allergies and recipe details…"
+              : generatingText
+          }
+          submessage={
+            generatePhase === "verifying"
+              ? "Sodie verifies the plan before saving — candidates stay hidden until it passes"
+              : "Sodie is picking recipes just for you"
+          }
         />
       )}
 

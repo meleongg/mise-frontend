@@ -51,6 +51,43 @@ class ApiError extends Error {
   }
 }
 
+/** User-facing copy for plan generate/next-week failures (no candidate leak). */
+export function planGenerateUserMessage(error: ApiError): string {
+  if (error.status === 409) {
+    return "Week 1 already exists. Confirm to regenerate and reset that week’s progress.";
+  }
+
+  const jsonStart = error.message.indexOf("{");
+  if (jsonStart >= 0) {
+    try {
+      const body = JSON.parse(error.message.slice(jsonStart)) as {
+        detail?: unknown;
+      };
+      const detail = body.detail;
+      if (
+        detail &&
+        typeof detail === "object" &&
+        detail !== null &&
+        "message" in detail &&
+        typeof (detail as { message: unknown }).message === "string"
+      ) {
+        return (detail as { message: string }).message;
+      }
+      if (typeof detail === "string") {
+        return detail;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  if (error.status === 422) {
+    return "This plan could not be verified against your preferences. No recipes were saved. Try generating again.";
+  }
+
+  return error.message || "Failed to generate weekly plan. Please try again.";
+}
+
 /**
  * Get authorization headers with in-memory access token
  */
