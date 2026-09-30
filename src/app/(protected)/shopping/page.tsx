@@ -18,6 +18,7 @@ import {
   useUpdateShoppingListItemMutation,
   useWeeklyPlansQuery,
 } from "@/hooks/queries";
+import { useShoppingOfflineChecks } from "@/hooks/useShoppingOfflineChecks";
 import type { ShoppingListItem } from "@/types";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -32,12 +33,14 @@ export default function ShoppingPage() {
   }, [weeklyPlans]);
 
   const {
-    data: shoppingList,
+    data: shoppingListRaw,
     isLoading,
     isError,
   } = useActiveShoppingListQuery(latestWeek, !!latestWeek);
   const generateMutation = useGenerateShoppingListMutation();
   const updateMutation = useUpdateShoppingListItemMutation(latestWeek);
+  const offline = useShoppingOfflineChecks(latestWeek);
+  const shoppingList = offline.applyQueueToList(shoppingListRaw) ?? shoppingListRaw;
   const [omitItem, setOmitItem] = useState<ShoppingListItem | null>(null);
 
   const isGenerating = generateMutation.isPending;
@@ -169,6 +172,18 @@ export default function ShoppingPage() {
 
         {shoppingList && !isGenerating && (
           <div className="mt-6 space-y-3">
+            {(!offline.online || offline.pendingCount > 0) && (
+              <p
+                className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950"
+                role="status"
+              >
+                {!offline.online
+                  ? "You're offline — checks are saved on this device and will sync when you're back online."
+                  : offline.flushing
+                    ? `Syncing ${offline.pendingCount} queued check${offline.pendingCount === 1 ? "" : "s"}…`
+                    : `${offline.pendingCount} check${offline.pendingCount === 1 ? "" : "s"} waiting to sync.`}
+              </p>
+            )}
             <div className="flex items-center justify-between text-sm text-stone-600">
               <p className="font-medium text-stone-800">{shoppingList.title}</p>
               <p>
@@ -185,13 +200,10 @@ export default function ShoppingPage() {
                     type="checkbox"
                     className="h-5 w-5 shrink-0 accent-[hsl(var(--paprika))]"
                     checked={item.is_checked}
-                    disabled={updateMutation.isPending}
-                    onChange={(event) =>
-                      updateMutation.mutate({
-                        itemId: item.id,
-                        updates: { is_checked: event.target.checked },
-                      })
-                    }
+                    disabled={offline.flushing}
+                    onChange={(event) => {
+                      void offline.toggleChecked(item, event.target.checked);
+                    }}
                   />
                   <span className="min-w-0 flex-1">
                     <span

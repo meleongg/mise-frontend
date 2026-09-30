@@ -873,6 +873,26 @@ export const api = {
     return handleResponse<ShoppingList>(response, createRetryFn(url, options));
   },
 
+  async syncShoppingChecks(
+    updates: Array<{
+      item_id: string;
+      is_checked: boolean;
+      client_updated_at: string;
+    }>
+  ): Promise<ShoppingList> {
+    const url = `${API_BASE_URL}/shopping-lists/sync-checks`;
+    const options: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ updates }),
+    };
+    const response = await fetch(url, options);
+    return handleResponse<ShoppingList>(response, createRetryFn(url, options));
+  },
+
   async patchPlanEntryServings(
     entryId: string,
     selectedServings: string | null
