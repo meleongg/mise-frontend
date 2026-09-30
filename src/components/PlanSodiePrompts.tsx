@@ -73,48 +73,42 @@ export default function PlanSodiePrompts({
 
   return (
     <section
-      className="mx-auto mb-6 w-full max-w-3xl rounded-2xl border border-[hsl(var(--paprika))]/20 bg-white/85 px-5 py-5 shadow-sm backdrop-blur-sm sm:px-6 sm:py-6"
+      className="mx-auto mb-6 w-full max-w-3xl rounded-2xl border border-[hsl(var(--paprika))]/20 bg-white/85 px-4 py-4 shadow-sm backdrop-blur-sm sm:px-5"
       aria-label="Ask Sodie suggestions"
     >
-      <div className="flex items-start gap-3 sm:gap-4">
-        <SodieAvatar size="md" animate="none" className="mt-0.5 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-body text-sm font-medium text-[#262218] sm:text-base">
-                Not sure where to start? Ask Sodie about this week
-              </p>
-              <p className="mt-1 font-body text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                Opens the chat button in the corner — your plan stays in
-                context.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={dismiss}
-              className="shrink-0 rounded-md p-2 text-muted-foreground transition-colors hover:bg-[hsl(var(--paprika))]/10 hover:text-[#262218]"
-              aria-label="Dismiss Sodie suggestions"
-            >
-              <X className="h-4 w-4" aria-hidden />
-            </button>
-          </div>
-          <div
-            className="mt-4 flex flex-wrap gap-2.5"
-            role="group"
-            aria-label="Suggested questions for Sodie"
-          >
-            {PLAN_PROMPT_SUGGESTIONS.map((suggestion) => (
-              <button
-                key={suggestion}
-                type="button"
-                onClick={() => requestSodieOpen({ draft: suggestion })}
-                className="max-w-full rounded-full border border-[hsl(var(--paprika))]/25 bg-[hsl(var(--paprika))]/5 px-3.5 py-2 text-left font-body text-xs text-[#262218] transition-colors hover:bg-[hsl(var(--paprika))]/10 sm:text-sm"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-body text-sm font-medium text-[#262218] sm:text-base">
+            Not sure where to start? Ask Sodie about this week
+          </p>
+          <p className="mt-1 font-body text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            Opens the chat button in the corner — your plan stays in context.
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={dismiss}
+          className="shrink-0 rounded-md p-2 text-muted-foreground transition-colors hover:bg-[hsl(var(--paprika))]/10 hover:text-[#262218]"
+          aria-label="Dismiss Sodie suggestions"
+        >
+          <X className="h-4 w-4" aria-hidden />
+        </button>
+      </div>
+      <div
+        className="mt-3 grid grid-cols-3 gap-2"
+        role="group"
+        aria-label="Suggested questions for Sodie"
+      >
+        {PLAN_PROMPT_SUGGESTIONS.map((suggestion) => (
+          <button
+            key={suggestion}
+            type="button"
+            onClick={() => requestSodieOpen({ draft: suggestion })}
+            className="w-full rounded-full border border-[hsl(var(--paprika))]/25 bg-[hsl(var(--paprika))]/5 px-3 py-2 text-center font-body text-xs leading-snug text-[#262218] transition-colors hover:bg-[hsl(var(--paprika))]/10 sm:px-2.5 sm:text-[13px]"
+          >
+            {suggestion}
+          </button>
+        ))}
       </div>
     </section>
   );
