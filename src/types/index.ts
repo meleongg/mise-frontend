@@ -301,12 +301,21 @@ export interface SubmitFeedbackResponse {
   next_week_unlocked: boolean;
 }
 
+export interface LastGenerationVerification {
+  final_status: "failed";
+  failure_codes: string[];
+  target_week_number: number;
+  failed_at?: string | null;
+  verification_run_id?: string;
+}
+
 export interface NextWeekEligibility {
   can_generate: boolean;
   current_week: number | null;
   next_week: number | null;
   completion_status: string;
   message: string;
+  last_generation_verification?: LastGenerationVerification | null;
 }
 
 // Parsed helper types (for JSON string fields)

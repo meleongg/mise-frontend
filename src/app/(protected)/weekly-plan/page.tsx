@@ -26,7 +26,7 @@ import {
   useWeeklyPlansQuery,
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
-import { api, ApiError, planGenerateUserMessage } from "@/lib/api";
+import { api, ApiError, lastVerificationHint, planGenerateUserMessage } from "@/lib/api";
 import { clearKitchenSession } from "@/lib/kitchenSessionStorage";
 import {
   formSelectContentClass,
@@ -270,10 +270,14 @@ export default function WeeklyPlanPage() {
     swapCount >= 3
       ? "bg-destructive/15 text-destructive"
       : "bg-[hsl(var(--turmeric))]/20 text-[#262218]";
+  const lastAttemptHint = lastVerificationHint(
+    nextWeekEligibility?.last_generation_verification
+  );
   const targetWeekNumber =
     nextWeekEligibility?.current_week === null
       ? nextWeek
       : (nextWeekEligibility?.next_week ?? nextWeek);
+
   const nextWeekPlanText = `Generate Week ${targetWeekNumber} Plan`;
   const generatingText = `Generating Week ${targetWeekNumber}...`;
 
@@ -494,8 +498,15 @@ export default function WeeklyPlanPage() {
             <div className="text-red-600 text-center mb-4">{String(error)}</div>
           )}
           {generateError && (
-            <div className="text-red-600 text-center mb-4">{generateError}</div>
+            <div className="mb-4 whitespace-pre-line text-center text-red-600">
+              {generateError}
+            </div>
           )}
+          {!generateError && !isGenerating && lastAttemptHint && (
+              <div className="mb-4 whitespace-pre-line text-center text-amber-800">
+                {lastAttemptHint}
+              </div>
+            )}
 
           {/* Show loading state while data is being fetched */}
           {isLoading || isInitializing ? (

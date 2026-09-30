@@ -52,6 +52,29 @@ class ApiError extends Error {
 }
 
 /** User-facing copy for plan generate/next-week failures (no candidate leak). */
+const PLAN_VERIFICATION_CODE_MESSAGES: Record<string, string> = {
+  recipe_count_mismatch: "The plan didn’t include the right number of meals.",
+  recipe_missing: "A selected recipe couldn’t be loaded.",
+  incomplete_ingredients: "A recipe was missing usable ingredients.",
+  incomplete_instructions: "A recipe was missing instructions.",
+  missing_allergen_metadata:
+    "A recipe was missing allergen info needed for your avoid list.",
+  allergen_conflict: "A recipe conflicted with your allergen avoid list.",
+  missing_dietary_metadata:
+    "A recipe was missing dietary tags needed for your restrictions.",
+  dietary_conflict: "A recipe didn’t match your dietary restrictions.",
+  prep_time_exceeded: "A recipe went over your max prep time.",
+  cook_time_exceeded: "A recipe went over your max cook time.",
+};
+
+function formatVerificationCodes(codes: string[]): string {
+  const hints = codes
+    .map((code) => PLAN_VERIFICATION_CODE_MESSAGES[code])
+    .filter(Boolean);
+  if (hints.length === 0) return "";
+  return hints.map((hint) => `• ${hint}`).join("\n");
+}
+
 export function planGenerateUserMessage(error: ApiError): string {
   if (error.status === 409) {
     return "Week 1 already exists. Confirm to regenerate and reset that week’s progress.";
@@ -71,7 +94,15 @@ export function planGenerateUserMessage(error: ApiError): string {
         "message" in detail &&
         typeof (detail as { message: unknown }).message === "string"
       ) {
-        return (detail as { message: string }).message;
+        const typed = detail as {
+          message: string;
+          failure_codes?: unknown;
+        };
+        const codes = Array.isArray(typed.failure_codes)
+          ? typed.failure_codes.map(String)
+          : [];
+        const bullets = formatVerificationCodes(codes);
+        return bullets ? `${typed.message}\n${bullets}` : typed.message;
       }
       if (typeof detail === "string") {
         return detail;
@@ -86,6 +117,17 @@ export function planGenerateUserMessage(error: ApiError): string {
   }
 
   return error.message || "Failed to generate weekly plan. Please try again.";
+}
+
+export function lastVerificationHint(
+  verification: {
+    failure_codes?: string[] | null;
+  } | null | undefined
+): string | null {
+  if (!verification?.failure_codes?.length) return null;
+  const bullets = formatVerificationCodes(verification.failure_codes);
+  if (!bullets) return null;
+  return `Last attempt couldn’t be verified:\n${bullets}`;
 }
 
 /**
