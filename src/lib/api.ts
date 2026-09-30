@@ -555,10 +555,33 @@ export const api = {
     }
   },
 
-  async sendSodieMessage(threadId: string, content: string): Promise<SodieChatResponse> {
+  async sendSodieMessage(
+    threadId: string,
+    content: string,
+    options?: {
+      kitchen_state?: {
+        current_step_index: number;
+        total_steps: number;
+        current_step_text?: string | null;
+        checked_ingredients: number;
+        total_ingredients: number;
+      } | null;
+    }
+  ): Promise<SodieChatResponse> {
     const url = `${API_BASE_URL}/sodie/threads/${threadId}/chat`;
-    const options: RequestInit = { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify({ content }) };
-    return handleResponse<SodieChatResponse>(await fetch(url, options), createRetryFn(url, options));
+    const body: Record<string, unknown> = { content };
+    if (options?.kitchen_state) {
+      body.kitchen_state = options.kitchen_state;
+    }
+    const request: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify(body),
+    };
+    return handleResponse<SodieChatResponse>(
+      await fetch(url, request),
+      createRetryFn(url, request)
+    );
   },
 
   async proposeRecipeEdit(input: {
