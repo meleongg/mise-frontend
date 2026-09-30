@@ -30,6 +30,7 @@ import {
   UserProgress,
   UserRecipeProgress,
   WeeklyPlan,
+  WeeklyPlanEntry,
   WeeklyPlanResponse,
   ShoppingList,
 } from "@/types";
@@ -703,6 +704,8 @@ export const api = {
       display_text?: string;
       quantity?: number;
       unit?: string;
+      omitted_by_pantry?: boolean;
+      confirm_pantry_omit?: boolean;
     }
   ): Promise<ShoppingList> {
     const url = `${API_BASE_URL}/shopping-lists/items/${itemId}`;
@@ -716,6 +719,26 @@ export const api = {
     };
     const response = await fetch(url, options);
     return handleResponse<ShoppingList>(response, createRetryFn(url, options));
+  },
+
+  async patchPlanEntryServings(
+    entryId: string,
+    selectedServings: string | null
+  ): Promise<WeeklyPlanEntry> {
+    const url = `${API_BASE_URL}/weekly-plan/entries/${entryId}`;
+    const options: RequestInit = {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ selected_servings: selectedServings }),
+    };
+    const response = await fetch(url, options);
+    return handleResponse<WeeklyPlanEntry>(
+      response,
+      createRetryFn(url, options)
+    );
   },
 
   // Recipes

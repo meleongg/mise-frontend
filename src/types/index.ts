@@ -103,6 +103,9 @@ export interface ShoppingListItem {
   is_checked: boolean;
   is_user_edit: boolean;
   needs_review: boolean;
+  omitted_by_pantry?: boolean;
+  pantry_omit_confirmed_at?: string | null;
+  pantry_match?: boolean;
   confidence?: string | null;
   reason?: string | null;
   sort_order: number;

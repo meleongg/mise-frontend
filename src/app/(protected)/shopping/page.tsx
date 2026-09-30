@@ -31,9 +31,12 @@ export default function ShoppingPage() {
   const updateMutation = useUpdateShoppingListItemMutation(latestWeek);
 
   const isGenerating = generateMutation.isPending;
-  const checkedCount =
-    shoppingList?.items.filter((item) => item.is_checked).length ?? 0;
-  const totalCount = shoppingList?.items.length ?? 0;
+  const activeItems =
+    shoppingList?.items.filter((item) => !item.omitted_by_pantry) ?? [];
+  const omittedItems =
+    shoppingList?.items.filter((item) => item.omitted_by_pantry) ?? [];
+  const checkedCount = activeItems.filter((item) => item.is_checked).length;
+  const totalCount = activeItems.length;
 
   const locationLabel = [
     shoppingList?.retailer_snapshot || user?.preferred_retailer,
@@ -153,59 +156,102 @@ export default function ShoppingPage() {
                 {checkedCount}/{totalCount} checked
               </p>
             </div>
-            {shoppingList.items.map((item) => (
-              <label
+            {activeItems.map((item) => (
+              <div
                 key={item.id}
-                className="flex cursor-pointer items-start gap-3 rounded-xl border border-[hsl(var(--paprika))]/20 bg-white/80 px-4 py-3 shadow-sm transition hover:border-[hsl(var(--paprika))]/40"
+                className="flex items-start gap-3 rounded-xl border border-[hsl(var(--paprika))]/20 bg-white/80 px-4 py-3 shadow-sm"
               >
-                <input
-                  type="checkbox"
-                  className="mt-1 h-5 w-5 accent-[hsl(var(--paprika))]"
-                  checked={item.is_checked}
+                <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-5 w-5 accent-[hsl(var(--paprika))]"
+                    checked={item.is_checked}
+                    disabled={updateMutation.isPending}
+                    onChange={(event) =>
+                      updateMutation.mutate({
+                        itemId: item.id,
+                        updates: { is_checked: event.target.checked },
+                      })
+                    }
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span
+                      className={`block text-base font-medium ${
+                        item.is_checked
+                          ? "text-stone-400 line-through"
+                          : "text-stone-900"
+                      }`}
+                    >
+                      {item.display_text}
+                    </span>
+                    {item.needs_review && (
+                      <span className="mt-0.5 block text-xs text-amber-700">
+                        Needs review
+                        {item.reason ? `: ${item.reason}` : ""}
+                      </span>
+                    )}
+                    {item.sources.length > 0 && (
+                      <span className="mt-1 block text-xs text-stone-500">
+                        From {item.sources.length} recipe
+                        {item.sources.length === 1 ? "" : "s"}
+                      </span>
+                    )}
+                  </span>
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   disabled={updateMutation.isPending}
-                  onChange={(event) =>
+                  className="shrink-0 border-[hsl(var(--paprika))]/30 text-xs"
+                  onClick={() => {
+                    const ok = window.confirm(
+                      `Omit “${item.display_text}” from this shopping list? Your pantry baseline is not changed.`
+                    );
+                    if (!ok) return;
                     updateMutation.mutate({
                       itemId: item.id,
-                      updates: { is_checked: event.target.checked },
-                    })
-                  }
-                />
-                <span className="min-w-0 flex-1">
-                  <span
-                    className={`block text-base font-medium ${
-                      item.is_checked
-                        ? "text-stone-400 line-through"
-                        : "text-stone-900"
-                    }`}
-                  >
-                    {item.display_text}
-                  </span>
-                  {item.needs_review && (
-                    <span className="mt-0.5 block text-xs text-amber-700">
-                      Needs review
-                      {item.reason ? `: ${item.reason}` : ""}
-                    </span>
-                  )}
-                  {item.sources.length > 0 && (
-                    <span className="mt-1 block text-xs text-stone-500">
-                      From {item.sources.length} recipe
-                      {item.sources.length === 1 ? "" : "s"}
-                      {item.sources
-                        .map((source) => source.source_amount)
-                        .filter(Boolean)
-                        .slice(0, 3)
-                        .join(" · ")
-                        ? ` · ${item.sources
-                            .map((source) => source.source_amount)
-                            .filter(Boolean)
-                            .slice(0, 3)
-                            .join(" · ")}`
-                        : ""}
-                    </span>
-                  )}
-                </span>
-              </label>
+                      updates: {
+                        omitted_by_pantry: true,
+                        confirm_pantry_omit: true,
+                      },
+                    });
+                  }}
+                >
+                  {item.pantry_match ? "I have this" : "Omit"}
+                </Button>
+              </div>
             ))}
+
+            {omittedItems.length > 0 && (
+              <div className="mt-6 space-y-2">
+                <p className="text-sm font-semibold text-stone-600">
+                  Hidden (in pantry)
+                </p>
+                {omittedItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-sm text-stone-600"
+                  >
+                    <span className="line-through">{item.display_text}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={updateMutation.isPending}
+                      onClick={() =>
+                        updateMutation.mutate({
+                          itemId: item.id,
+                          updates: { omitted_by_pantry: false },
+                        })
+                      }
+                    >
+                      Undo
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
