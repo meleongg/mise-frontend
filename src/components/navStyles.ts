@@ -52,4 +52,4 @@ export function navMobileNavLinkClassName(isActive: boolean): string {
 }
 
 export const navLogoutButtonClassName =
-  "border-2 border-[hsl(var(--paprika))]/40 text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))] hover:text-white hover:border-[hsl(var(--paprika))] transition-all duration-200 font-semibold";
+  "bg-[hsl(var(--paprika))] text-white border border-[hsl(var(--paprika))] hover:bg-orange-700 hover:border-orange-700 shadow-sm transition-all duration-200 font-semibold";
