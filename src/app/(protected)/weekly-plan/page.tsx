@@ -7,6 +7,7 @@ import SodieEmptyState from "@/components/SodieEmptyState";
 import PlanSodiePrompts from "@/components/PlanSodiePrompts";
 import PageHeader from "@/components/PageHeader";
 import PrepTimelinePanel from "@/components/PrepTimelinePanel";
+import PlanServingsScale from "@/components/PlanServingsScale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -84,7 +85,6 @@ export default function WeeklyPlanPage() {
   } | null>(null);
   const [swapError, setSwapError] = useState("");
   const [toggleError, setToggleError] = useState("");
-  const [servingsSavingId, setServingsSavingId] = useState<string | null>(null);
 
   const { user, isLoading: userLoading } = useUser();
   const { state, dispatch } = useApp();
@@ -737,63 +737,15 @@ export default function WeeklyPlanPage() {
                             ? entry.recipe_snapshot.portion_size
                             : recipe.portion_size;
                         return (
-                          <div className="mb-3 pointer-events-auto flex items-center gap-2 text-sm">
-                            <label
-                              className="shrink-0 text-muted-foreground"
-                              htmlFor={`servings-${entry.id}`}
-                            >
-                              Servings
-                            </label>
-                            <input
-                              id={`servings-${entry.id}`}
-                              type="text"
-                              inputMode="decimal"
-                              defaultValue={entry.selected_servings ?? ""}
-                              placeholder={baseline || "e.g. 4"}
-                              disabled={servingsSavingId === entry.id}
-                              className="w-20 rounded-md border border-stone-300 bg-white px-2 py-1.5 text-stone-900"
-                              onBlur={async (event) => {
-                                const next = event.target.value.trim();
-                                const prev = (
-                                  entry.selected_servings ?? ""
-                                ).trim();
-                                if (next === prev) return;
-                                const ok = window.confirm(
-                                  `Update servings for ${recipe.name}? Refresh the shopping list afterward to rescale quantities.`
-                                );
-                                if (!ok) {
-                                  event.target.value = prev;
-                                  return;
-                                }
-                                try {
-                                  setServingsSavingId(entry.id);
-                                  await api.patchPlanEntryServings(
-                                    entry.id,
-                                    next || null
-                                  );
-                                  if (user?.id) {
-                                    await queryClient.invalidateQueries({
-                                      queryKey: queryKeys.weeklyPlans(user.id),
-                                    });
-                                  }
-                                } catch (err) {
-                                  event.target.value = prev;
-                                  setToggleError(
-                                    err instanceof Error
-                                      ? err.message
-                                      : "Could not update servings"
-                                  );
-                                } finally {
-                                  setServingsSavingId(null);
-                                }
-                              }}
-                            />
-                            {baseline ? (
-                              <span className="text-xs text-muted-foreground">
-                                recipe {baseline}
-                              </span>
-                            ) : null}
-                          </div>
+                          <PlanServingsScale
+                            entryId={entry.id}
+                            recipeName={recipe.name}
+                            weekNumber={currentPlan.week_number}
+                            userId={user?.id}
+                            baseline={baseline}
+                            selectedServings={entry.selected_servings}
+                            onError={setToggleError}
+                          />
                         );
                       })()}
 
