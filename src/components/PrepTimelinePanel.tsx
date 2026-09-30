@@ -11,43 +11,24 @@ const KIND_ICON = {
   cook: CookingPot,
 } as const;
 
+/** Soft brand accents only — paprika / sage / turmeric — not a rainbow per day. */
 const KIND_STYLE = {
   shop: {
-    card: "border-[hsl(var(--turmeric))]/35 bg-gradient-to-br from-amber-50 to-yellow-50/80",
-    icon: "border-[hsl(var(--turmeric))]/40 bg-[hsl(var(--turmeric))]/15 text-amber-800",
-    chip: "bg-[hsl(var(--turmeric))]/20 text-amber-900",
+    card: "border-[hsl(var(--turmeric))]/30 bg-amber-50/60",
+    icon: "border-[hsl(var(--turmeric))]/35 bg-[hsl(var(--turmeric))]/10 text-amber-900",
+    chip: "bg-amber-100/80 text-amber-900",
   },
   advance_prep: {
-    card: "border-[hsl(var(--sage))]/35 bg-gradient-to-br from-[hsl(var(--sage))]/10 to-emerald-50/70",
-    icon: "border-[hsl(var(--sage))]/40 bg-[hsl(var(--sage))]/15 text-[hsl(var(--sage))]",
-    chip: "bg-[hsl(var(--sage))]/20 text-[hsl(var(--sage))]",
+    card: "border-[hsl(var(--sage))]/30 bg-[hsl(var(--sage))]/8",
+    icon: "border-[hsl(var(--sage))]/35 bg-[hsl(var(--sage))]/12 text-[hsl(var(--sage))]",
+    chip: "bg-[hsl(var(--sage))]/15 text-[hsl(var(--sage))]",
   },
   cook: {
-    card: "border-[hsl(var(--paprika))]/30 bg-gradient-to-br from-orange-50 to-rose-50/60",
-    icon: "border-[hsl(var(--paprika))]/35 bg-[hsl(var(--paprika))]/10 text-[hsl(var(--paprika))]",
-    chip: "bg-[hsl(var(--paprika))]/15 text-[hsl(var(--paprika))]",
+    card: "border-[hsl(var(--paprika))]/25 bg-orange-50/50",
+    icon: "border-[hsl(var(--paprika))]/30 bg-[hsl(var(--paprika))]/10 text-[hsl(var(--paprika))]",
+    chip: "bg-[hsl(var(--paprika))]/10 text-[hsl(var(--paprika))]",
   },
 } as const;
-
-const DAY_COLUMN_TONES = [
-  "border-amber-200/80 bg-gradient-to-b from-amber-50/90 to-white",
-  "border-[hsl(var(--sage))]/30 bg-gradient-to-b from-[hsl(var(--sage))]/10 to-white",
-  "border-[hsl(var(--paprika))]/25 bg-gradient-to-b from-orange-50/90 to-white",
-  "border-sky-200/80 bg-gradient-to-b from-sky-50/90 to-white",
-  "border-[hsl(var(--turmeric))]/35 bg-gradient-to-b from-yellow-50/90 to-white",
-  "border-rose-200/70 bg-gradient-to-b from-rose-50/80 to-white",
-  "border-teal-200/70 bg-gradient-to-b from-teal-50/80 to-white",
-] as const;
-
-const DAY_HEADER_TONES = [
-  "text-amber-800",
-  "text-[hsl(var(--sage))]",
-  "text-[hsl(var(--paprika))]",
-  "text-sky-800",
-  "text-amber-900",
-  "text-rose-800",
-  "text-teal-800",
-] as const;
 
 function kindStyle(kind: string) {
   if (kind === "shop" || kind === "advance_prep" || kind === "cook") {
@@ -63,12 +44,7 @@ function TimelineCard({ item }: { item: PrepTimelineItem }) {
       : Clock3;
   const style = kindStyle(item.kind);
   return (
-    <article
-      className={cn(
-        "rounded-lg border p-2.5 shadow-sm",
-        style.card
-      )}
-    >
+    <article className={cn("rounded-lg border p-2.5", style.card)}>
       <div className="mb-1.5 flex items-center gap-2">
         <span
           className={cn(
@@ -132,7 +108,7 @@ export default function PrepTimelinePanel({ timeline }: PrepTimelinePanelProps) 
 
   return (
     <section
-      className="mt-6 rounded-xl border border-[hsl(var(--paprika))]/25 bg-gradient-to-br from-orange-50/50 via-white/90 to-[hsl(var(--sage))]/10 px-4 py-4 shadow-sm"
+      className="mt-6 rounded-xl border border-[hsl(var(--paprika))]/25 bg-white/90 px-4 py-4 shadow-sm"
       aria-label="Prep timeline"
     >
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -149,57 +125,45 @@ export default function PrepTimelinePanel({ timeline }: PrepTimelinePanelProps) 
           </p>
         </div>
         {timeline.total_active_minutes > 0 ? (
-          <p className="rounded-full bg-[hsl(var(--paprika))]/10 px-3 py-1 text-sm font-medium text-[hsl(var(--paprika))]">
+          <p className="text-sm text-stone-600">
             ~{timeline.total_active_minutes} min active
           </p>
         ) : null}
       </div>
       {timeline.notes?.length ? (
-        <ul className="mb-3 space-y-1 rounded-lg border border-amber-300/70 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+        <ul className="mb-3 space-y-1 rounded-lg border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs text-amber-900">
           {timeline.notes.map((note) => (
             <li key={note}>{note}</li>
           ))}
         </ul>
       ) : null}
 
-      {/* Equal-width day columns; horizontal scroll when a full week (or more) won't fit. */}
       <div className="-mx-1 overflow-x-auto pb-1">
         <div
           className="flex min-h-[14rem] items-stretch gap-3 px-1"
-          style={{ minWidth: manyDays ? `${dayGroups.length * 11}rem` : undefined }}
+          style={{
+            minWidth: manyDays ? `${dayGroups.length * 11}rem` : undefined,
+          }}
         >
-          {dayGroups.map((group, groupIndex) => {
-            const tone = DAY_COLUMN_TONES[groupIndex % DAY_COLUMN_TONES.length];
-            const headerTone =
-              DAY_HEADER_TONES[groupIndex % DAY_HEADER_TONES.length];
-            return (
-              <div
-                key={group.dayLabel}
-                className={cn(
-                  "flex w-[10.5rem] shrink-0 flex-col rounded-xl border p-2.5 shadow-sm sm:w-44",
-                  tone
-                )}
-              >
-                <h3
-                  className={cn(
-                    "mb-2 shrink-0 text-xs font-semibold uppercase tracking-wide",
-                    headerTone
-                  )}
-                >
-                  {group.dayLabel}
-                </h3>
-                <div className="flex flex-1 flex-col gap-2">
-                  {group.items.map((item, index) => (
-                    <TimelineCard
-                      key={`${item.kind}-${item.recipe_id ?? item.title}-${index}`}
-                      item={item}
-                    />
-                  ))}
-                  <div className="flex-1" aria-hidden />
-                </div>
+          {dayGroups.map((group) => (
+            <div
+              key={group.dayLabel}
+              className="flex w-[10.5rem] shrink-0 flex-col rounded-xl border border-[hsl(var(--paprika))]/20 bg-gradient-to-b from-orange-50/40 to-white p-2.5 sm:w-44"
+            >
+              <h3 className="mb-2 shrink-0 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--paprika))]">
+                {group.dayLabel}
+              </h3>
+              <div className="flex flex-1 flex-col gap-2">
+                {group.items.map((item, index) => (
+                  <TimelineCard
+                    key={`${item.kind}-${item.recipe_id ?? item.title}-${index}`}
+                    item={item}
+                  />
+                ))}
+                <div className="flex-1" aria-hidden />
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </section>
