@@ -6,6 +6,7 @@ import SodieAiLoading from "@/components/SodieAiLoading";
 import SodieEmptyState from "@/components/SodieEmptyState";
 import PlanSodiePrompts from "@/components/PlanSodiePrompts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -439,20 +440,20 @@ export default function WeeklyPlanPage() {
       </div>
       <Card className="w-full max-w-3xl shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
-            Your Weekly Meal Plan
-          </CardTitle>
-          {currentPlan && (
-            <p className="pt-1 text-sm text-stone-600">
-              <Link
-                href="/shopping"
-                className="font-medium text-[hsl(var(--paprika))] underline-offset-2 hover:underline"
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
+              Your Weekly Meal Plan
+            </CardTitle>
+            {currentPlan && (
+              <Button
+                asChild
+                size="sm"
+                className="shrink-0 self-start sm:self-auto bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))]"
               >
-                Open shopping list
-              </Link>{" "}
-              for this week’s ingredients.
-            </p>
-          )}
+                <Link href="/shopping">Open shopping list</Link>
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {error && (

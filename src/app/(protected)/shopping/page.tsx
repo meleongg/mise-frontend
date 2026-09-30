@@ -10,7 +10,7 @@ import {
   useUpdateShoppingListItemMutation,
   useWeeklyPlansQuery,
 } from "@/hooks/queries";
-import { ShoppingBasket } from "lucide-react";
+import { Loader2, ShoppingBasket } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -30,6 +30,7 @@ export default function ShoppingPage() {
   const generateMutation = useGenerateShoppingListMutation();
   const updateMutation = useUpdateShoppingListItemMutation(latestWeek);
 
+  const isGenerating = generateMutation.isPending;
   const checkedCount =
     shoppingList?.items.filter((item) => item.is_checked).length ?? 0;
   const totalCount = shoppingList?.items.length ?? 0;
@@ -61,10 +62,20 @@ export default function ShoppingPage() {
           {latestWeek != null && (
             <Button
               onClick={() => generateMutation.mutate(latestWeek)}
-              disabled={generateMutation.isPending}
+              disabled={isGenerating}
+              aria-busy={isGenerating}
               className="shrink-0 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))]"
             >
-              {shoppingList ? "Refresh list" : "Generate list"}
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {shoppingList ? "Refreshing…" : "Generating…"}
+                </>
+              ) : shoppingList ? (
+                "Refresh list"
+              ) : (
+                "Generate list"
+              )}
             </Button>
           )}
         </div>
@@ -88,7 +99,7 @@ export default function ShoppingPage() {
           </Card>
         )}
 
-        {latestWeek != null && isLoading && (
+        {latestWeek != null && isLoading && !isGenerating && (
           <p className="mt-6 text-sm text-muted-foreground">Loading shopping list…</p>
         )}
         {isError && (
@@ -101,7 +112,25 @@ export default function ShoppingPage() {
           </p>
         )}
 
-        {latestWeek != null && !isLoading && !shoppingList && (
+        {isGenerating && (
+          <Card className="mt-6 border-2 border-[hsl(var(--paprika))]/25 bg-gradient-to-br from-amber-50 via-white to-orange-50/60 shadow-md">
+            <CardContent className="flex items-center gap-3 py-8 text-sm text-stone-700">
+              <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--paprika))]" />
+              <div>
+                <p className="font-medium text-stone-900">
+                  {shoppingList
+                    ? "Refreshing your shopping list…"
+                    : "Building your shopping list…"}
+                </p>
+                <p className="mt-1 text-stone-600">
+                  Aggregating ingredients from this week’s plan entries.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {latestWeek != null && !isLoading && !isGenerating && !shoppingList && (
           <Card className="mt-6 border-2 border-[hsl(var(--paprika))]/25 bg-gradient-to-br from-amber-50 via-white to-orange-50/60 shadow-md">
             <CardHeader>
               <CardTitle className="text-[hsl(var(--paprika))]">
@@ -116,7 +145,7 @@ export default function ShoppingPage() {
           </Card>
         )}
 
-        {shoppingList && (
+        {shoppingList && !isGenerating && (
           <div className="mt-6 space-y-3">
             <div className="flex items-center justify-between text-sm text-stone-600">
               <p className="font-medium text-stone-800">{shoppingList.title}</p>

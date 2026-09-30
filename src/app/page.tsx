@@ -30,7 +30,7 @@ export default function Home() {
   const router = useRouter();
   const { isLoading } = useUser();
   const handleGetStarted = () => {
-    router.push("/onboarding");
+    router.push("/register");
   };
 
   if (isLoading) {
