@@ -32,8 +32,8 @@ export default function PageHeader({
       )}
     >
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[hsl(var(--paprika))]/25 bg-gradient-to-br from-orange-50 to-amber-100">
-          <SodieAvatar size="chip" animate="none" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[hsl(var(--paprika))]/25 bg-gradient-to-br from-orange-50 to-amber-100 p-0.5">
+          <SodieAvatar size="sm" animate="none" />
         </div>
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-stone-900">{title}</h1>
