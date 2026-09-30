@@ -97,12 +97,19 @@ export function planGenerateUserMessage(error: ApiError): string {
         const typed = detail as {
           message: string;
           failure_codes?: unknown;
+          auto_repair_exhausted?: unknown;
+          attempt_number?: unknown;
         };
         const codes = Array.isArray(typed.failure_codes)
           ? typed.failure_codes.map(String)
           : [];
         const bullets = formatVerificationCodes(codes);
-        return bullets ? `${typed.message}\n${bullets}` : typed.message;
+        let message = bullets ? `${typed.message}\n${bullets}` : typed.message;
+        if (typed.auto_repair_exhausted === true || typed.attempt_number === 2) {
+          message +=
+            "\nWe already retried automatically once with a repaired request.";
+        }
+        return message;
       }
       if (typeof detail === "string") {
         return detail;
@@ -122,12 +129,51 @@ export function planGenerateUserMessage(error: ApiError): string {
 export function lastVerificationHint(
   verification: {
     failure_codes?: string[] | null;
+    auto_repair_exhausted?: boolean | null;
+    attempt_number?: number | null;
   } | null | undefined
 ): string | null {
   if (!verification?.failure_codes?.length) return null;
   const bullets = formatVerificationCodes(verification.failure_codes);
   if (!bullets) return null;
-  return `Last attempt couldn’t be verified:\n${bullets}`;
+  let message = `Last attempt couldn’t be verified:\n${bullets}`;
+  if (
+    verification.auto_repair_exhausted ||
+    verification.attempt_number === 2
+  ) {
+    message += "\nWe already retried automatically once.";
+  }
+  return message;
+}
+
+export function formatGenerationConfidence(
+  summary:
+    | {
+        confidence?: string | null;
+        confidence_reasons?: string[] | null;
+        auto_repaired?: boolean | null;
+      }
+    | null
+    | undefined
+): string | null {
+  if (!summary?.confidence) return null;
+  const label =
+    summary.confidence === "high"
+      ? "High"
+      : summary.confidence === "medium"
+        ? "Medium"
+        : summary.confidence === "low"
+          ? "Low"
+          : summary.confidence;
+  const reasons = (summary.confidence_reasons || []).filter(Boolean);
+  const lines = [`Plan confidence: ${label}`];
+  if (summary.auto_repaired) {
+    lines.push("Saved after one automatic verification retry.");
+  }
+  for (const reason of reasons.slice(0, 3)) {
+    lines.push(`• ${reason}`);
+  }
+  return lines.join("\n");
 }
 
 /**
