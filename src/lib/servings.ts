@@ -1,0 +1,75 @@
+/** Client-side servings parse/scale helpers (mirrors backend servings.py). */
+
+const FRACTION_RE = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/;
+const LEADING_NUMBER_RE =
+  /^\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*(?:servings?)?\s*$/i;
+const RANGE_RE = /\d+\s*-\s*\d+/;
+
+export function parseServings(value?: string | null): number | null {
+  if (value == null) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const lowered = raw.toLowerCase();
+  if (raw.includes("+") || RANGE_RE.test(raw) || lowered.includes("family")) {
+    return null;
+  }
+
+  const frac = raw.match(FRACTION_RE);
+  if (frac) {
+    const num = Number(frac[1]);
+    const den = Number(frac[2]);
+    if (!den) return null;
+    return num / den;
+  }
+
+  const match = raw.match(LEADING_NUMBER_RE);
+  if (!match) return null;
+  const token = match[1].replace(/\s+/g, "");
+  if (token.includes("/")) {
+    const [a, b] = token.split("/", 2);
+    const num = Number(a);
+    const den = Number(b);
+    if (!den || Number.isNaN(num) || Number.isNaN(den)) return null;
+    return num / den;
+  }
+  const n = Number(token);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function scaleFactor(
+  selected?: string | null,
+  baseline?: string | null
+): { factor: number; needsReview: boolean; reason: string | null } {
+  const selectedN = parseServings(selected);
+  const baselineN = parseServings(baseline);
+  if (selectedN != null && baselineN != null && baselineN !== 0) {
+    return { factor: selectedN / baselineN, needsReview: false, reason: null };
+  }
+  if ((selected && selectedN == null) || (baseline && baselineN == null)) {
+    return {
+      factor: 1,
+      needsReview: true,
+      reason: "servings not scaled; unparseable selected or baseline",
+    };
+  }
+  return { factor: 1, needsReview: false, reason: null };
+}
+
+export function formatServingsAmount(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return "";
+  const rounded = Math.round(n * 100) / 100;
+  if (Number.isInteger(rounded)) return String(rounded);
+  return String(rounded);
+}
+
+export function formatScaleFactor(factor: number): string {
+  const rounded = Math.round(factor * 100) / 100;
+  if (rounded === 0.5) return "½×";
+  if (rounded === 1) return "1×";
+  if (rounded === 1.5) return "1½×";
+  if (rounded === 2) return "2×";
+  if (Number.isInteger(rounded)) return `${rounded}×`;
+  return `${rounded}×`;
+}
+
+export const SCALE_PRESETS = [0.5, 1, 1.5, 2] as const;
