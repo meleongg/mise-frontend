@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PageHeader from "@/components/PageHeader";
 import { useUser } from "@/hooks";
 import { api } from "@/lib/api";
 import {
@@ -190,14 +191,18 @@ export default function AccountSettingsPage() {
       <Toaster position="top-center" expand={true} richColors />
       <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-4 py-8 pb-16">
         <div className="max-w-2xl mx-auto space-y-6 mb-8">
+          <PageHeader
+            title="Account Settings"
+            description="Manage your personal information and password."
+          />
           {/* Account Details Card */}
           <Card className="shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm">
             <CardHeader className="space-y-2">
               <CardTitle className="font-heading text-2xl font-bold text-[#262218]">
-                Account Settings
+                Profile
               </CardTitle>
               <CardDescription className="font-body">
-                Manage your personal information
+                Name and email for your Mise account
               </CardDescription>
             </CardHeader>
             <CardContent>

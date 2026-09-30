@@ -1,7 +1,7 @@
 "use client";
 
 import AnalyticsTips from "@/components/AnalyticsTips";
-import SodiePageIntro from "@/components/SodiePageIntro";
+import PageHeader from "@/components/PageHeader";
 import {
   Card,
   CardContent,
@@ -237,7 +237,7 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-6 md:p-8 py-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <SodiePageIntro
+        <PageHeader
           title="Your Cooking Journey"
           description="See how you're growing in the kitchen — Sodie cheers on every milestone."
         />

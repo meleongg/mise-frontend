@@ -139,6 +139,7 @@ export interface WeeklyPlan {
   created_at: string;
   recipes: Recipe[]; // Populated in responses
   entries?: WeeklyPlanEntry[];
+  prep_timeline?: PrepTimeline | null;
 }
 
 export interface UserRecipeProgress {
@@ -177,6 +178,23 @@ export interface GenerationSummary {
   confidence_reasons: string[];
 }
 
+export interface PrepTimelineItem {
+  kind: "shop" | "advance_prep" | "cook" | string;
+  title: string;
+  detail: string;
+  day_label: string;
+  duration_minutes?: number | null;
+  recipe_id?: string | null;
+  reasons?: string[];
+}
+
+export interface PrepTimeline {
+  kind: string;
+  total_active_minutes: number;
+  notes: string[];
+  items: PrepTimelineItem[];
+}
+
 export interface WeeklyPlanResponse {
   id: string;
   user_id: string;
@@ -189,6 +207,7 @@ export interface WeeklyPlanResponse {
   recipes: Recipe[]; // Already sorted by order via backend
   entries?: WeeklyPlanEntry[];
   generation_summary?: GenerationSummary | null;
+  prep_timeline?: PrepTimeline | null;
 }
 export interface GenerateWeeklyPlanRequest {
   initial_intent: string;

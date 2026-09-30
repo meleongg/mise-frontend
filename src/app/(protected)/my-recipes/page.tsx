@@ -1,10 +1,10 @@
 "use client";
 
 import BackNavButton from "@/components/BackNavButton";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePersonalRecipesQuery } from "@/hooks/queries";
-import { BookHeart } from "lucide-react";
 import Link from "next/link";
 
 function previewText(value: unknown): string {
@@ -31,17 +31,11 @@ export default function MyRecipesPage() {
     <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20">
       <div className="mx-auto max-w-3xl px-4 py-6 pb-16">
         <BackNavButton href="/weekly-plan">Back to weekly plan</BackNavButton>
-        <div className="mt-4 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[hsl(var(--paprika))]/25 bg-gradient-to-br from-orange-50 to-amber-100">
-            <BookHeart className="h-6 w-6 text-[hsl(var(--paprika))]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-stone-900">My Recipes</h1>
-            <p className="text-sm text-stone-600">
-              Recipes you’ve edited with Sodie and saved for reuse.
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          className="mt-4"
+          title="My Recipes"
+          description="Recipes you've edited with Sodie and saved for reuse."
+        />
 
         {isLoading && (
           <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
