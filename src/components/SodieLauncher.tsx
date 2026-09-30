@@ -179,9 +179,9 @@ export default function SodieLauncher() {
     node.scrollTop = node.scrollHeight;
   }, [items, open, view]);
 
-  // Kitchen Mode is coach-only: drop any in-progress Edit with Sodie session.
+  // Edit with Sodie is recipe-page only: drop the session when leaving /recipe.
   useEffect(() => {
-    if (pageContext.scope === "kitchen" && editRecipeId) {
+    if (pageContext.scope !== "recipe" && editRecipeId) {
       setEditRecipeId(null);
     }
   }, [pageContext.scope, editRecipeId]);
@@ -674,8 +674,8 @@ export default function SodieLauncher() {
 
   useEffect(() => {
     function onStartRecipeEdit(event: Event) {
-      // Kitchen Mode is coach-only — edits start from the recipe page.
-      if (pageContext.scope === "kitchen") return;
+      // Edit with Sodie starts from the catalog recipe page only.
+      if (pageContext.scope !== "recipe") return;
       const detail = (event as CustomEvent<{ recipeId?: string }>).detail;
       if (!detail?.recipeId) return;
       startRecipeEdit(detail.recipeId);
