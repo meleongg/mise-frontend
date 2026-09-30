@@ -164,6 +164,8 @@ export function useUpdateShoppingListItemMutation(weekNumber?: number) {
         display_text?: string;
         quantity?: number;
         unit?: string;
+        omitted_by_pantry?: boolean;
+        confirm_pantry_omit?: boolean;
       };
     }) => api.updateShoppingListItem(itemId, updates),
     onSuccess: (list) => {

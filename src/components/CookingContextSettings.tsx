@@ -163,7 +163,9 @@ export default function CookingContextSettings() {
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Pantry baseline</Label>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Remove items you do not normally keep; add your staples.
+              Staples you usually keep. Baseline items do not auto-hide from
+              shopping lists — use “I have this” on the list to omit with
+              confirmation.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
               {items.map((name) => (
