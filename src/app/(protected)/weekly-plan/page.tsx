@@ -442,6 +442,17 @@ export default function WeeklyPlanPage() {
           <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
             Your Weekly Meal Plan
           </CardTitle>
+          {currentPlan && (
+            <p className="pt-1 text-sm text-stone-600">
+              <Link
+                href="/shopping"
+                className="font-medium text-[hsl(var(--paprika))] underline-offset-2 hover:underline"
+              >
+                Open shopping list
+              </Link>{" "}
+              for this week’s ingredients.
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           {error && (

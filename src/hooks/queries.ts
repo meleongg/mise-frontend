@@ -33,6 +33,8 @@ export const queryKeys = {
   userProgress: (userId: string) => ["userProgress", userId] as const,
   nextWeekEligibility: (userId: string) =>
     ["nextWeekEligibility", userId] as const,
+  shoppingList: (weekNumber?: number) =>
+    ["shoppingList", weekNumber ?? "active"] as const,
 };
 
 /**
@@ -126,6 +128,48 @@ export function usePersonalRecipeQuery(personalRecipeId: string | undefined) {
     queryFn: () => api.getPersonalRecipe(personalRecipeId!),
     enabled: !!personalRecipeId,
     staleTime: 30 * 1000,
+  });
+}
+
+export function useActiveShoppingListQuery(weekNumber?: number, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.shoppingList(weekNumber),
+    queryFn: () => api.getActiveShoppingList(weekNumber),
+    enabled,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useGenerateShoppingListMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (weekNumber: number) => api.generateShoppingList(weekNumber),
+    onSuccess: (list, weekNumber) => {
+      queryClient.setQueryData(queryKeys.shoppingList(weekNumber), list);
+      queryClient.invalidateQueries({ queryKey: ["shoppingList"] });
+    },
+  });
+}
+
+export function useUpdateShoppingListItemMutation(weekNumber?: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      updates,
+    }: {
+      itemId: string;
+      updates: {
+        is_checked?: boolean;
+        display_text?: string;
+        quantity?: number;
+        unit?: string;
+      };
+    }) => api.updateShoppingListItem(itemId, updates),
+    onSuccess: (list) => {
+      queryClient.setQueryData(queryKeys.shoppingList(weekNumber), list);
+      queryClient.invalidateQueries({ queryKey: ["shoppingList"] });
+    },
   });
 }
 

@@ -84,6 +84,47 @@ export interface WeeklyPlanEntry {
   updated_at?: string | null;
 }
 
+export interface ShoppingListItemSource {
+  id: string;
+  shopping_list_item_id: string;
+  weekly_plan_entry_id: string;
+  source_amount?: string | null;
+  inclusion_state: string;
+}
+
+export interface ShoppingListItem {
+  id: string;
+  shopping_list_id: string;
+  normalized_name: string;
+  display_text: string;
+  quantity?: number | null;
+  unit?: string | null;
+  aisle?: string | null;
+  is_checked: boolean;
+  is_user_edit: boolean;
+  needs_review: boolean;
+  confidence?: string | null;
+  reason?: string | null;
+  sort_order: number;
+  sources: ShoppingListItemSource[];
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface ShoppingList {
+  id: string;
+  user_id: string;
+  weekly_plan_id?: string | null;
+  title: string;
+  status: string;
+  retailer_snapshot?: string | null;
+  location_snapshot?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  archived_at?: string | null;
+  items: ShoppingListItem[];
+}
+
 export interface WeeklyPlan {
   id: string;
   user_id: string;
