@@ -3,6 +3,13 @@
 import BackNavButton from "@/components/BackNavButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useActiveShoppingListQuery,
@@ -10,9 +17,10 @@ import {
   useUpdateShoppingListItemMutation,
   useWeeklyPlansQuery,
 } from "@/hooks/queries";
+import type { ShoppingListItem } from "@/types";
 import { Loader2, ShoppingBasket } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export default function ShoppingPage() {
   const { user } = useAuth();
@@ -29,6 +37,7 @@ export default function ShoppingPage() {
   } = useActiveShoppingListQuery(latestWeek, !!latestWeek);
   const generateMutation = useGenerateShoppingListMutation();
   const updateMutation = useUpdateShoppingListItemMutation(latestWeek);
+  const [omitItem, setOmitItem] = useState<ShoppingListItem | null>(null);
 
   const isGenerating = generateMutation.isPending;
   const activeItems =
@@ -44,6 +53,22 @@ export default function ShoppingPage() {
   ]
     .filter(Boolean)
     .join(" · ");
+
+  const confirmOmit = () => {
+    if (!omitItem) return;
+    updateMutation.mutate(
+      {
+        itemId: omitItem.id,
+        updates: {
+          omitted_by_pantry: true,
+          confirm_pantry_omit: true,
+        },
+      },
+      {
+        onSuccess: () => setOmitItem(null),
+      }
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20">
@@ -204,19 +229,7 @@ export default function ShoppingPage() {
                   size="sm"
                   disabled={updateMutation.isPending}
                   className="shrink-0 border-[hsl(var(--paprika))]/30 text-xs"
-                  onClick={() => {
-                    const ok = window.confirm(
-                      `Omit “${item.display_text}” from this shopping list? Your pantry baseline is not changed.`
-                    );
-                    if (!ok) return;
-                    updateMutation.mutate({
-                      itemId: item.id,
-                      updates: {
-                        omitted_by_pantry: true,
-                        confirm_pantry_omit: true,
-                      },
-                    });
-                  }}
+                  onClick={() => setOmitItem(item)}
                 >
                   {item.pantry_match ? "I have this" : "Omit"}
                 </Button>
@@ -255,6 +268,48 @@ export default function ShoppingPage() {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={omitItem != null}
+        onOpenChange={(open) => {
+          if (!open) setOmitItem(null);
+        }}
+      >
+        <DialogContent
+          showCloseButton={false}
+          className="bg-white border-2 border-[hsl(var(--paprika))]/40 sm:max-w-md"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-[hsl(var(--paprika))]">
+              Omit from shopping list?
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-stone-600">
+              {omitItem
+                ? `“${omitItem.display_text}” will be hidden on this list. Your pantry baseline is not changed.`
+                : "This item will be hidden on this list."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full min-w-[100px] border-[hsl(var(--paprika))]/30 sm:w-auto"
+              disabled={updateMutation.isPending}
+              onClick={() => setOmitItem(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="w-full min-w-[120px] bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--paprika))]/90 sm:w-auto"
+              disabled={updateMutation.isPending}
+              onClick={confirmOmit}
+            >
+              {updateMutation.isPending ? "Omitting…" : "Omit item"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
