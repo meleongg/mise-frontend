@@ -22,6 +22,10 @@ export type SodieKitchenState = {
   current_step_text?: string | null;
   checked_ingredients: number;
   total_ingredients: number;
+  active_timers?: Array<{
+    label: string;
+    remaining_seconds: number;
+  }>;
 };
 
 export function requestSodieRecipeEdit(recipeId: string) {

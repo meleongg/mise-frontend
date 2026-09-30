@@ -565,6 +565,10 @@ export const api = {
         current_step_text?: string | null;
         checked_ingredients: number;
         total_ingredients: number;
+        active_timers?: Array<{
+          label: string;
+          remaining_seconds: number;
+        }>;
       } | null;
     }
   ): Promise<SodieChatResponse> {

@@ -3,6 +3,7 @@
 import IngredientChecklist from "@/components/kitchen/IngredientChecklist";
 import KitchenModeShell from "@/components/kitchen/KitchenModeShell";
 import KitchenSodieQuickActions from "@/components/kitchen/KitchenSodieQuickActions";
+import KitchenTimersPanel from "@/components/kitchen/KitchenTimersPanel";
 import MiseEnPlaceIntroDialog from "@/components/kitchen/MiseEnPlaceIntroDialog";
 import StepNavigator from "@/components/kitchen/StepNavigator";
 import BackNavButton from "@/components/BackNavButton";
@@ -26,8 +27,13 @@ import {
 } from "@/hooks/queries";
 import { useCookExitGuard } from "@/hooks/useCookExitGuard";
 import { useKitchenSession } from "@/hooks/useKitchenSession";
+import { useKitchenTimers } from "@/hooks/useKitchenTimers";
 import { parseHelpers } from "@/lib/api";
 import { hasSeenMiseIntro, markMiseIntroSeen } from "@/lib/kitchenIntroStorage";
+import {
+  loadKitchenSession,
+  saveKitchenSession,
+} from "@/lib/kitchenSessionStorage";
 import { publishSodieKitchenState } from "@/lib/sodieEvents";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -91,6 +97,38 @@ export default function KitchenCookPage({
     stepCount: steps.length,
   });
 
+  const initialTimers = useMemo(() => {
+    const saved = loadKitchenSession(recipeId, weekNumber);
+    // Keep recently finished timers briefly so unlock-after-done can still cue.
+    const cutoff = Date.now() - 15 * 60 * 1000;
+    return (saved?.timers || []).filter((t) => t.endsAt > cutoff);
+  }, [recipeId, weekNumber]);
+
+  const persistTimers = useCallback(
+    (
+      timers: Array<{
+        id: string;
+        label: string;
+        endsAt: number;
+        totalSeconds: number;
+      }>
+    ) => {
+      const saved = loadKitchenSession(recipeId, weekNumber);
+      saveKitchenSession(recipeId, weekNumber, {
+        currentStepIndex: saved?.currentStepIndex ?? session.currentStepIndex,
+        checkedIngredients:
+          saved?.checkedIngredients ?? Array.from(session.checkedIngredients),
+        timers,
+      });
+    },
+    [recipeId, weekNumber, session.currentStepIndex, session.checkedIngredients]
+  );
+
+  const kitchenTimers = useKitchenTimers({
+    initial: initialTimers,
+    onChange: persistTimers,
+  });
+
   const progressEntry = recipeProgress?.find((p) => p.recipe_id === recipeId);
   const existingFeedback = progressEntry?.feedback
     ? {
@@ -143,6 +181,7 @@ export default function KitchenCookPage({
       current_step_text: current?.text ?? null,
       checked_ingredients: session.checkedIngredients.size,
       total_ingredients: ingredients.length,
+      active_timers: kitchenTimers.activeForSodie,
     });
     return () => {
       publishSodieKitchenState(null);
@@ -154,6 +193,7 @@ export default function KitchenCookPage({
     session.checkedIngredients,
     steps,
     ingredients.length,
+    kitchenTimers.activeForSodie,
   ]);
 
   const markInProgress = useCallback(() => {
@@ -342,6 +382,12 @@ export default function KitchenCookPage({
             markInProgress();
             setPhase("feedback");
           }}
+        />
+        <KitchenTimersPanel
+          stepText={steps[session.currentStepIndex]?.text ?? ""}
+          timers={kitchenTimers.timers}
+          onStart={kitchenTimers.startTimer}
+          onDismiss={kitchenTimers.dismissTimer}
         />
         <KitchenSodieQuickActions stepLabel={stepLabel} />
       </KitchenModeShell>
