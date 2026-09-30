@@ -193,6 +193,8 @@ export interface PrepTimeline {
   total_active_minutes: number;
   notes: string[];
   items: PrepTimelineItem[];
+  source?: "snapshot" | "computed" | string | null;
+  snapshotted_at?: string | null;
 }
 
 export interface WeeklyPlanResponse {
