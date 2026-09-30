@@ -10,6 +10,13 @@ export function kitchenSessionKey(
 export interface KitchenSessionState {
   currentStepIndex: number;
   checkedIngredients: number[];
+  /** Running timers persisted as absolute end times (ms epoch). */
+  timers?: Array<{
+    id: string;
+    label: string;
+    endsAt: number;
+    totalSeconds: number;
+  }>;
 }
 
 export function loadKitchenSession(

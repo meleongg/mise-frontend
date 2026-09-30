@@ -43,9 +43,11 @@ export function useKitchenSession({
 
   const persist = useCallback(
     (stepIndex: number, checked: Set<number>) => {
+      const existing = loadKitchenSession(recipeId, weekNumber);
       const state: KitchenSessionState = {
         currentStepIndex: stepIndex,
         checkedIngredients: Array.from(checked),
+        timers: existing?.timers,
       };
       saveKitchenSession(recipeId, weekNumber, state);
     },
