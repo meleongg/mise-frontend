@@ -184,12 +184,12 @@ export default function ShoppingPage() {
             {activeItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-start gap-3 rounded-xl border border-[hsl(var(--paprika))]/20 bg-white/80 px-4 py-3 shadow-sm"
+                className="flex items-center gap-3 rounded-xl border border-[hsl(var(--paprika))]/20 bg-white/80 px-4 py-3 shadow-sm"
               >
-                <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
+                <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
                   <input
                     type="checkbox"
-                    className="mt-1 h-5 w-5 accent-[hsl(var(--paprika))]"
+                    className="h-5 w-5 shrink-0 accent-[hsl(var(--paprika))]"
                     checked={item.is_checked}
                     disabled={updateMutation.isPending}
                     onChange={(event) =>
@@ -201,7 +201,7 @@ export default function ShoppingPage() {
                   />
                   <span className="min-w-0 flex-1">
                     <span
-                      className={`block text-base font-medium ${
+                      className={`block text-base font-medium leading-5 ${
                         item.is_checked
                           ? "text-stone-400 line-through"
                           : "text-stone-900"
@@ -228,7 +228,7 @@ export default function ShoppingPage() {
                   variant="outline"
                   size="sm"
                   disabled={updateMutation.isPending}
-                  className="shrink-0 border-[hsl(var(--paprika))]/30 text-xs"
+                  className="h-8 shrink-0 self-center border-[hsl(var(--paprika))]/30 px-3 text-xs"
                   onClick={() => setOmitItem(item)}
                 >
                   {item.pantry_match ? "I have this" : "Omit"}
