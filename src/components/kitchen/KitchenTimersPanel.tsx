@@ -54,7 +54,8 @@ export default function KitchenTimersPanel({
         </p>
       </div>
       <p className="mt-0.5 text-[11px] text-stone-500">
-        Local countdowns for this cook — Sodie can see running ones.
+        Beep and vibrate when a timer ends while this screen is open. Locked-phone
+        wake needs notifications later — Sodie can still see running timers.
       </p>
 
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -77,13 +78,16 @@ export default function KitchenTimersPanel({
               key={timer.id}
               className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-sm ${
                 timer.done
-                  ? "bg-[hsl(var(--paprika))]/10 text-[hsl(var(--paprika))]"
+                  ? "bg-[hsl(var(--paprika))]/15 text-[hsl(var(--paprika))] ring-1 ring-[hsl(var(--paprika))]/30"
                   : "bg-stone-50 text-stone-800"
               }`}
             >
               <div className="min-w-0">
                 <p className="truncate font-medium">{timer.label}</p>
-                <p className="font-mono text-xs tabular-nums text-stone-600">
+                <p
+                  className="font-mono text-xs tabular-nums text-stone-600"
+                  aria-live="polite"
+                >
                   {timer.done
                     ? "Done"
                     : formatCountdown(timer.remainingSeconds)}

@@ -99,7 +99,9 @@ export default function KitchenCookPage({
 
   const initialTimers = useMemo(() => {
     const saved = loadKitchenSession(recipeId, weekNumber);
-    return (saved?.timers || []).filter((t) => t.endsAt > Date.now() - 1000);
+    // Keep recently finished timers briefly so unlock-after-done can still cue.
+    const cutoff = Date.now() - 15 * 60 * 1000;
+    return (saved?.timers || []).filter((t) => t.endsAt > cutoff);
   }, [recipeId, weekNumber]);
 
   const persistTimers = useCallback(

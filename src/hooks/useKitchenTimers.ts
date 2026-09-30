@@ -1,7 +1,10 @@
 "use client";
 
-import { formatDurationLabel } from "@/lib/kitchenTimers";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  formatDurationLabel,
+  notifyKitchenTimerDone,
+} from "@/lib/kitchenTimers";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type KitchenTimer = {
   id: string;
@@ -38,10 +41,25 @@ export function useKitchenTimers({
       done: t.endsAt <= Date.now(),
     }))
   );
+  const announcedDoneRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(id);
+  }, []);
+
+  // Catch up immediately when returning from lock / background (JS was throttled).
+  useEffect(() => {
+    const syncNow = () => setNow(Date.now());
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") syncNow();
+    };
+    window.addEventListener("focus", syncNow);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", syncNow);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
   useEffect(() => {
@@ -58,16 +76,26 @@ export function useKitchenTimers({
     });
   }, [now]);
 
+  // Foreground cue when a timer newly completes (incl. catch-up after unlock).
   useEffect(() => {
+    for (const timer of timers) {
+      if (!timer.done) continue;
+      if (announcedDoneRef.current.has(timer.id)) continue;
+      announcedDoneRef.current.add(timer.id);
+      notifyKitchenTimerDone(timer.label);
+    }
+  }, [timers]);
+
+  useEffect(() => {
+    // Persist running and recently completed (until dismissed) so unlock/relaunch
+    // can still show Done and fire the foreground cue.
     onChange?.(
-      timers
-        .filter((t) => !t.done)
-        .map(({ id, label, endsAt, totalSeconds }) => ({
-          id,
-          label,
-          endsAt,
-          totalSeconds,
-        }))
+      timers.map(({ id, label, endsAt, totalSeconds }) => ({
+        id,
+        label,
+        endsAt,
+        totalSeconds,
+      }))
     );
   }, [timers, onChange]);
 
@@ -80,14 +108,18 @@ export function useKitchenTimers({
       totalSeconds: seconds,
       done: false,
     };
-    setTimers((prev) => [...prev.filter((t) => !t.done), entry].slice(-8));
+    setTimers((prev) => [...prev, entry].slice(-8));
   }, []);
 
   const dismissTimer = useCallback((id: string) => {
+    announcedDoneRef.current.delete(id);
     setTimers((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const clearAll = useCallback(() => setTimers([]), []);
+  const clearAll = useCallback(() => {
+    announcedDoneRef.current.clear();
+    setTimers([]);
+  }, []);
 
   const live = useMemo(
     () =>
