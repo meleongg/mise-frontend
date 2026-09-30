@@ -39,6 +39,10 @@ export default function KitchenSodieQuickActions({
         Ask Sodie
       </p>
       <p className="mt-0.5 text-[11px] text-stone-500">{stepLabel}</p>
+      <p className="mt-1 text-[11px] leading-snug text-stone-500">
+        Coach-only while cooking — recipe edits use Edit with Sodie on the recipe
+        page.
+      </p>
       <div className="mt-2 grid grid-cols-3 gap-1.5">
         {KITCHEN_QUICK_PROMPTS.map((prompt) => (
           <button

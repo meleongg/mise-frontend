@@ -179,6 +179,13 @@ export default function SodieLauncher() {
     node.scrollTop = node.scrollHeight;
   }, [items, open, view]);
 
+  // Kitchen Mode is coach-only: drop any in-progress Edit with Sodie session.
+  useEffect(() => {
+    if (pageContext.scope === "kitchen" && editRecipeId) {
+      setEditRecipeId(null);
+    }
+  }, [pageContext.scope, editRecipeId]);
+
   // Re-scope on navigation so chat does not keep a stale global/recipe thread.
   // Only clear skipAutoResume when the *page* changes — New chat clears
   // threadScopeKey and must not immediately re-attach the previous durable thread.
@@ -377,11 +384,7 @@ export default function SodieLauncher() {
       }
     }
     // Edit sessions attach a recipe-scoped thread; coach uses the active page.
-    const scope: PageScope = forRecipeId
-      ? pageContext.scope === "kitchen"
-        ? "kitchen"
-        : "recipe"
-      : pageContext.scope;
+    const scope: PageScope = forRecipeId ? "recipe" : pageContext.scope;
     const contextId = forRecipeId || pageContext.contextId;
     const thread = await api.createSodieThread(scope, isPrivate, contextId);
     setThreadId(thread.id);
@@ -626,11 +629,11 @@ export default function SodieLauncher() {
         const handled = await handleEditFollowUp(userText);
         if (handled) return;
       } else {
-        // FAB on recipe/kitchen pages: classify edit vs coach so "add more salt"
+        // FAB on recipe pages: classify edit vs coach so "add more salt"
         // creates a real proposal without requiring Edit with Sodie first.
+        // Kitchen Mode stays coach-only (no edit proposals mid-cook).
         const pageRecipeId =
-          (pageContext.scope === "recipe" || pageContext.scope === "kitchen") &&
-          pageContext.contextId
+          pageContext.scope === "recipe" && pageContext.contextId
             ? pageContext.contextId
             : undefined;
         if (pageRecipeId) {
@@ -671,6 +674,8 @@ export default function SodieLauncher() {
 
   useEffect(() => {
     function onStartRecipeEdit(event: Event) {
+      // Kitchen Mode is coach-only — edits start from the recipe page.
+      if (pageContext.scope === "kitchen") return;
       const detail = (event as CustomEvent<{ recipeId?: string }>).detail;
       if (!detail?.recipeId) return;
       startRecipeEdit(detail.recipeId);
@@ -697,7 +702,7 @@ export default function SodieLauncher() {
       window.removeEventListener(SODIE_OPEN_EVENT, onOpen);
       window.removeEventListener(SODIE_KITCHEN_STATE_EVENT, onKitchenState);
     };
-  }, []);
+  }, [pageContext.scope]);
 
   function replaceProposal(next: SodieActionProposal) {
     setItems((old) =>
@@ -970,7 +975,7 @@ export default function SodieLauncher() {
                         : pageContext.scope === "personal_recipe"
                           ? "Ask about this personal recipe — ingredients, technique, or how it differs from the catalog version."
                           : pageContext.scope === "kitchen"
-                            ? "Ask about the step you're on — timing, technique, or what to prep next."
+                            ? "Ask about the step you're on — timing, technique, or what to prep next. Recipe edits stay on the recipe page via Edit with Sodie."
                           : pageContext.scope === "recipe"
                             ? "Ask about timing or technique — or tell me what to change and I’ll draft a before/after proposal you can approve."
                             : "Ask about prep, timing, or techniques — or open a recipe and ask Sodie to change ingredients."}
