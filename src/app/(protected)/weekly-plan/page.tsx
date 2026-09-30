@@ -5,6 +5,8 @@ import SwapRecipeModal from "@/components/SwapRecipeModal";
 import SodieAiLoading from "@/components/SodieAiLoading";
 import SodieEmptyState from "@/components/SodieEmptyState";
 import PlanSodiePrompts from "@/components/PlanSodiePrompts";
+import PageHeader from "@/components/PageHeader";
+import PrepTimelinePanel from "@/components/PrepTimelinePanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -487,24 +489,29 @@ export default function WeeklyPlanPage() {
   return (
     <div className="min-h-screen flex flex-col items-center p-4 py-8 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20">
       <div className="w-full max-w-3xl">
+        <PageHeader
+          className="mb-6"
+          title="Weekly Plan"
+          description="Your verified recipes for the week — shop, prep, and cook with Sodie."
+          action={
+            currentPlan ? (
+              <Button
+                asChild
+                size="sm"
+                className="shrink-0 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))]"
+              >
+                <Link href="/shopping">Open shopping list</Link>
+              </Button>
+            ) : undefined
+          }
+        />
         <PlanSodiePrompts hasActivePlan={Boolean(currentPlan)} />
       </div>
       <Card className="w-full max-w-3xl shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
         <CardHeader>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <CardTitle className="font-heading font-bold text-3xl text-[#262218]">
-              Your Weekly Meal Plan
-            </CardTitle>
-            {currentPlan && (
-              <Button
-                asChild
-                size="sm"
-                className="shrink-0 self-start sm:self-auto bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white hover:from-orange-600 hover:to-[hsl(var(--paprika))]"
-              >
-                <Link href="/shopping">Open shopping list</Link>
-              </Button>
-            )}
-          </div>
+          <CardTitle className="font-heading font-bold text-2xl text-[#262218]">
+            This week&apos;s recipes
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {error && (
@@ -873,6 +880,9 @@ export default function WeeklyPlanPage() {
                   </Card>
                 ))}
               </div>
+              {currentPlan.prep_timeline ? (
+                <PrepTimelinePanel timeline={currentPlan.prep_timeline} />
+              ) : null}
             </div>
           ) : (
             /* Only show "no plan" UI when we know for sure there are no plans */
