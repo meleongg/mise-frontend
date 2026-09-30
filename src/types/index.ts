@@ -169,6 +169,14 @@ export interface RecipeScheduleItem {
 }
 
 // Agent API Endpoints
+export interface GenerationSummary {
+  verification_run_id: string;
+  attempt_number: number;
+  auto_repaired: boolean;
+  confidence: "high" | "medium" | "low" | string;
+  confidence_reasons: string[];
+}
+
 export interface WeeklyPlanResponse {
   id: string;
   user_id: string;
@@ -180,6 +188,7 @@ export interface WeeklyPlanResponse {
   is_unlocked: boolean;
   recipes: Recipe[]; // Already sorted by order via backend
   entries?: WeeklyPlanEntry[];
+  generation_summary?: GenerationSummary | null;
 }
 export interface GenerateWeeklyPlanRequest {
   initial_intent: string;
@@ -307,6 +316,8 @@ export interface LastGenerationVerification {
   target_week_number: number;
   failed_at?: string | null;
   verification_run_id?: string;
+  attempt_number?: number;
+  auto_repair_exhausted?: boolean;
 }
 
 export interface NextWeekEligibility {

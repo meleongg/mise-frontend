@@ -26,7 +26,13 @@ import {
   useWeeklyPlansQuery,
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
-import { api, ApiError, lastVerificationHint, planGenerateUserMessage } from "@/lib/api";
+import {
+  api,
+  ApiError,
+  formatGenerationConfidence,
+  lastVerificationHint,
+  planGenerateUserMessage,
+} from "@/lib/api";
 import { clearKitchenSession } from "@/lib/kitchenSessionStorage";
 import {
   formSelectContentClass,
@@ -65,6 +71,7 @@ export default function WeeklyPlanPage() {
   const [generatePhase, setGeneratePhase] = useState<"picking" | "verifying">(
     "picking"
   );
+  const [generationSummaryText, setGenerationSummaryText] = useState("");
   const [generatedPlan, setGeneratedPlan] = useState<WeeklyPlanResponse | null>(
     null
   );
@@ -290,6 +297,9 @@ export default function WeeklyPlanPage() {
     try {
       const plan = await api.generateNextWeekPlan(user.id);
       setGeneratedPlan(plan);
+      setGenerationSummaryText(
+        formatGenerationConfidence(plan.generation_summary) || ""
+      );
 
       // Update currentWeek to the newly generated week
       dispatch({ type: "SET_CURRENT_WEEK", payload: plan.week_number });
@@ -350,6 +360,9 @@ export default function WeeklyPlanPage() {
         }
       }
       setGeneratedPlan(plan);
+      setGenerationSummaryText(
+        formatGenerationConfidence(plan.generation_summary) || ""
+      );
 
       // Update currentWeek to the newly generated week
       dispatch({ type: "SET_CURRENT_WEEK", payload: plan.week_number });
@@ -500,6 +513,11 @@ export default function WeeklyPlanPage() {
           {generateError && (
             <div className="mb-4 whitespace-pre-line text-center text-red-600">
               {generateError}
+            </div>
+          )}
+          {!generateError && generationSummaryText && (
+            <div className="mb-4 whitespace-pre-line rounded-lg border border-[hsl(var(--sage))]/30 bg-[hsl(var(--sage))]/10 px-4 py-3 text-center text-sm text-stone-800">
+              {generationSummaryText}
             </div>
           )}
           {!generateError && !isGenerating && lastAttemptHint && (
@@ -911,8 +929,8 @@ export default function WeeklyPlanPage() {
           }
           submessage={
             generatePhase === "verifying"
-              ? "Sodie verifies the plan before saving — candidates stay hidden until it passes"
-              : "Sodie is picking recipes just for you"
+              ? "Sodie verifies the plan before saving — and may retry once if needed"
+              : "Sodie is picking recipes just for you (may retry once if verification fails)"
           }
         />
       )}
