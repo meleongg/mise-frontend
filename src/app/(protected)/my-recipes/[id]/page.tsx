@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { queryKeys, usePersonalRecipeQuery } from "@/hooks/queries";
 import { api } from "@/lib/api";
+import { formatServingsLabel } from "@/lib/servings";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
@@ -102,7 +103,9 @@ export default function PersonalRecipeDetailPage({
               </div>
               <p className="text-sm text-muted-foreground">
                 Revision {recipe.current_revision}
-                {recipe.portion_size ? ` · ${recipe.portion_size}` : ""}
+                {recipe.portion_size != null
+                  ? ` · ${formatServingsLabel(recipe.portion_size)}`
+                  : ""}
                 {recipe.cuisine ? ` · ${recipe.cuisine}` : ""}
               </p>
               {(dietary.length > 0 || allergens.length > 0) && (

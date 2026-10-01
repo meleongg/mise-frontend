@@ -431,11 +431,15 @@ export default function SettingsPage() {
                     Preferred Portion Size
                   </Label>
                   <Select
-                    value={formData.preferred_portion_size || ""}
+                    value={
+                      formData.preferred_portion_size != null
+                        ? String(formData.preferred_portion_size)
+                        : ""
+                    }
                     onValueChange={(value) =>
                       updateFormData(
                         "preferred_portion_size",
-                        value || undefined
+                        value ? Number(value) : undefined
                       )
                     }
                   >

@@ -747,9 +747,8 @@ export default function WeeklyPlanPage() {
                         const entry = planEntry;
                         if (!entry) return null;
                         const baseline =
-                          typeof entry.recipe_snapshot?.portion_size === "string"
-                            ? entry.recipe_snapshot.portion_size
-                            : recipe.portion_size;
+                          entry.recipe_snapshot?.portion_size ??
+                          recipe.portion_size;
                         return (
                           <PlanServingsScale
                             entryId={entry.id}

@@ -713,7 +713,7 @@ export const api = {
       name?: string;
       ingredients?: unknown;
       instructions?: unknown;
-      portion_size?: string;
+      portion_size?: number;
       notes?: string;
     }
   ): Promise<PersonalRecipe> {
@@ -900,7 +900,7 @@ export const api = {
 
   async patchPlanEntryServings(
     entryId: string,
-    selectedServings: string | null
+    selectedServings: number | null
   ): Promise<WeeklyPlanEntry> {
     const url = `${API_BASE_URL}/weekly-plan/entries/${entryId}`;
     const options: RequestInit = {

@@ -36,7 +36,7 @@ export interface User {
   user_goal: string; // e.g., 'Learn New Techniques', 'Master a Cuisine', etc.
   dietary_restrictions?: string; // JSON array of dietary restrictions (e.g., ['vegetarian', 'gluten-free'])
   allergens?: string; // JSON array of allergens to avoid (e.g., ['nuts', 'shellfish'])
-  preferred_portion_size?: string; // Preferred serving size (e.g., '2-3', '4', 'family')
+  preferred_portion_size?: number; // Preferred serving count (e.g. 2, 4)
   max_prep_time_minutes?: number; // Maximum acceptable prep time in minutes
   max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
   recipe_repeat_preference?: "standard" | "sooner";
@@ -64,7 +64,7 @@ export interface Recipe {
   image_url?: string;
   dietary_tags?: string; // JSON array of dietary tags (e.g., ['vegetarian', 'gluten-free'])
   allergens?: string; // JSON array of allergens present (e.g., ['nuts', 'dairy'])
-  portion_size?: string; // Portion size (e.g., '2-3', '4', 'family')
+  portion_size?: number; // Serving count (numeric)
   prep_time_minutes?: number; // Preparation time in minutes
   cook_time_minutes?: number; // Cooking time in minutes
   skill_level_validated?: string; // Validated skill level for this recipe
@@ -81,7 +81,7 @@ export interface WeeklyPlanEntry {
   catalog_recipe_id?: string | null;
   personal_recipe_id?: string | null;
   recipe_snapshot: Record<string, unknown>;
-  selected_servings?: string | null;
+  selected_servings?: number | null;
   lifecycle_state: string;
   created_at?: string | null;
   updated_at?: string | null;
@@ -232,7 +232,7 @@ export interface UserProfileRequest {
   user_goal: string;
   dietary_restrictions?: string; // JSON array of dietary restrictions
   allergens?: string; // JSON array of allergens to avoid
-  preferred_portion_size?: string; // Preferred serving size (e.g., '2-3', '4', 'family')
+  preferred_portion_size?: number; // Preferred serving count (e.g. 2, 4)
   max_prep_time_minutes?: number; // Maximum acceptable prep time in minutes
   max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
   recipe_repeat_preference?: "standard" | "sooner";
@@ -303,7 +303,7 @@ export interface PersonalRecipe {
   name: string;
   ingredients: unknown;
   instructions: unknown;
-  portion_size?: string | null;
+  portion_size?: number | null;
   notes?: string | null;
   metadata?: Record<string, unknown> | null;
   current_revision: number;

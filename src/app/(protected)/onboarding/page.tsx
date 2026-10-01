@@ -432,9 +432,16 @@ export default function OnboardingPage() {
                       </span>
                     </Label>
                     <Select
-                      value={preferred_portion_size}
+                      value={
+                        preferred_portion_size != null
+                          ? String(preferred_portion_size)
+                          : ""
+                      }
                       onValueChange={(value) =>
-                        updateFormData("preferred_portion_size", value)
+                        updateFormData(
+                          "preferred_portion_size",
+                          value ? Number(value) : undefined
+                        )
                       }
                     >
                       <SelectTrigger className="h-12 w-full text-base">

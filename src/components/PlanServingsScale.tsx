@@ -12,6 +12,7 @@ import {
   formatServingsAmount,
   parseServings,
   scaleFactor,
+  type ServingsInput,
 } from "@/lib/servings";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,10 +23,15 @@ type PlanServingsScaleProps = {
   recipeName: string;
   weekNumber: number;
   userId?: string;
-  baseline?: string | null;
-  selectedServings?: string | null;
+  baseline?: ServingsInput;
+  selectedServings?: ServingsInput;
   onError?: (message: string) => void;
 };
+
+function servingsDraft(value: ServingsInput): string {
+  const n = parseServings(value);
+  return n != null ? formatServingsAmount(n) : "";
+}
 
 export default function PlanServingsScale({
   entryId,
@@ -41,7 +47,7 @@ export default function PlanServingsScale({
   const baselineN = parseServings(baseline);
   const canScale = baselineN != null && baselineN > 0;
 
-  const savedSelected = selectedServings ?? "";
+  const savedSelected = servingsDraft(selectedServings);
   const [draft, setDraft] = useState(savedSelected);
   const [saving, setSaving] = useState(false);
 
@@ -49,7 +55,8 @@ export default function PlanServingsScale({
     setDraft(savedSelected);
   }, [savedSelected, entryId]);
 
-  const effectiveSelected = draft.trim() || (canScale ? formatServingsAmount(baselineN) : "");
+  const effectiveSelected =
+    draft.trim() || (canScale ? formatServingsAmount(baselineN) : "");
   const { factor, needsReview } = useMemo(
     () => scaleFactor(effectiveSelected || null, baseline ?? null),
     [effectiveSelected, baseline]
@@ -67,14 +74,16 @@ export default function PlanServingsScale({
 
     const nextN = parseServings(next || null);
     if (next && nextN == null) {
-      onError?.("Enter a plain number (e.g. 4 or 6). Ranges like 2-3 aren’t supported.");
+      onError?.(
+        "Enter a plain number (e.g. 4 or 6). Ranges like 2-3 aren’t supported."
+      );
       setDraft(prev);
       return;
     }
 
     setSaving(true);
     try {
-      await api.patchPlanEntryServings(entryId, next || null);
+      await api.patchPlanEntryServings(entryId, nextN);
       if (userId) {
         await queryClient.invalidateQueries({
           queryKey: queryKeys.weeklyPlans(userId),
@@ -104,8 +113,8 @@ export default function PlanServingsScale({
       <div className="mb-3 pointer-events-auto rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs text-amber-950">
         <p className="font-medium text-amber-950">Shopping scale unavailable</p>
         <p className="mt-0.5 leading-snug text-amber-900/90">
-          {baseline
-            ? `Recipe yield “${baseline}” isn’t a plain number, so amounts can’t be scaled yet.`
+          {baseline != null && String(baseline).trim() !== ""
+            ? `Recipe yield “${baseline}” isn’t a single number, so amounts stay at 1×.`
             : "This recipe has no numeric yield, so shopping amounts stay at 1×."}
         </p>
       </div>
@@ -124,8 +133,7 @@ export default function PlanServingsScale({
           Shopping scale
         </p>
         <p className="text-[11px] text-stone-500">
-          Recipe yields {formatServingsAmount(baselineN)}
-          {baseline && /serving/i.test(baseline) ? " servings" : ""}
+          Recipe yields {formatServingsAmount(baselineN)} servings
         </p>
       </div>
 
@@ -138,76 +146,67 @@ export default function PlanServingsScale({
           const amount = formatServingsAmount(baselineN * preset);
           const selected = activePreset === preset && !dirty;
           return (
-            <button
+            <Button
               key={preset}
               type="button"
+              size="sm"
+              variant={selected ? "default" : "outline"}
               disabled={busy}
+              className={cn(
+                "h-auto flex-col gap-0.5 py-1.5 text-xs",
+                selected &&
+                  "bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))]/90"
+              )}
               onClick={() => {
                 setDraft(amount);
                 void persist(amount);
               }}
-              className={cn(
-                "rounded-md border px-1.5 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50",
-                selected
-                  ? "border-[hsl(var(--paprika))]/50 bg-[hsl(var(--paprika))] text-white"
-                  : "border-stone-200 bg-white text-stone-800 hover:border-[hsl(var(--paprika))]/35 hover:bg-orange-50"
-              )}
             >
-              {formatScaleFactor(preset)}
-            </button>
+              <span className="font-semibold">{formatScaleFactor(preset)}</span>
+              <span className="font-normal opacity-90">{amount}</span>
+            </Button>
           );
         })}
       </div>
 
       <div className="flex items-center gap-2">
-        <label
-          htmlFor={`make-for-${entryId}`}
-          className="shrink-0 text-xs text-stone-600"
-        >
-          Make for
+        <label className="sr-only" htmlFor={`servings-${entryId}`}>
+          Custom servings for {recipeName}
         </label>
         <input
-          id={`make-for-${entryId}`}
+          id={`servings-${entryId}`}
           type="text"
           inputMode="decimal"
           value={draft}
-          placeholder={formatServingsAmount(baselineN)}
           disabled={busy}
           onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => {
-            if (!dirty) return;
-            void persist(draft);
-          }}
+          onBlur={() => void persist(draft)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              e.currentTarget.blur();
+              e.preventDefault();
+              void persist(draft);
             }
           }}
-          className="w-20 rounded-md border border-stone-300 bg-white px-2 py-1 text-sm text-stone-900 disabled:opacity-50"
+          placeholder={formatServingsAmount(baselineN)}
+          className="h-8 w-20 rounded-md border border-stone-200 bg-white px-2 text-sm tabular-nums"
         />
-        {dirty ? (
+        <span className="text-xs text-stone-500">servings</span>
+        {dirty && (
           <Button
             type="button"
             size="sm"
-            variant="outline"
+            variant="ghost"
+            className="h-8 px-2 text-xs"
             disabled={busy}
-            className="h-7 px-2 text-xs"
             onClick={() => void persist(draft)}
           >
             Apply
           </Button>
-        ) : null}
+        )}
+        {needsReview && !dirty && (
+          <span className="text-[11px] text-amber-800">Check servings</span>
+        )}
       </div>
-
-      <p className="text-[11px] leading-snug text-stone-600">
-        {busy
-          ? "Updating plan + refreshing shopping list…"
-          : needsReview
-            ? "Enter a plain number to scale shopping amounts."
-            : Math.abs(factor - 1) < 0.001
-              ? "Shopping amounts at recipe yield (1×)."
-              : `Shopping amounts will use ${formatScaleFactor(factor)} of the recipe.`}
-      </p>
     </div>
   );
 }
