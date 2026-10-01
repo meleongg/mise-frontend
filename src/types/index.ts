@@ -176,6 +176,7 @@ export interface GenerationSummary {
   auto_repaired: boolean;
   confidence: "high" | "medium" | "low" | string;
   confidence_reasons: string[];
+  evaluator_kind?: string | null;
 }
 
 export interface PrepTimelineItem {
