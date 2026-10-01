@@ -779,6 +779,28 @@ export default function SodieLauncher() {
         await queryClient.invalidateQueries({
           queryKey: queryKeys.personalRecipe(next.personal_recipe_id),
         });
+      }
+      const boundCount = next.impact?.bound_count ?? 0;
+      const boundWeek = next.impact?.week_number;
+      if (user?.id) {
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.weeklyPlans(user.id),
+        });
+        await queryClient.invalidateQueries({ queryKey: ["shoppingList"] });
+      }
+      if (boundCount > 0 && boundWeek != null) {
+        setItems((old) => [
+          ...old,
+          {
+            kind: "message",
+            sender: "ai",
+            content: `Saved your edit and linked it to Week ${boundWeek}. Shopping will catch up when a list exists. Open My Recipes anytime for the library copy.`,
+          },
+        ]);
+        router.push(`/weekly-plan?week=${boundWeek}`);
+        return;
+      }
+      if (next.personal_recipe_id) {
         router.push(`/my-recipes/${next.personal_recipe_id}`);
       }
       setItems((old) => [
@@ -786,7 +808,8 @@ export default function SodieLauncher() {
         {
           kind: "message",
           sender: "ai",
-          content: "Agreed — saved to My Recipes. Anything else?",
+          content:
+            "Agreed — saved to My Recipes. No matching plan meal to bind yet. Anything else?",
         },
       ]);
     } catch {

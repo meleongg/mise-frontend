@@ -671,7 +671,16 @@ export default function WeeklyPlanPage() {
 
               {/* Recipe Cards Grid */}
               <div className="grid gap-6 md:grid-cols-2">
-                {getSortedRecipes(currentPlan).map((recipe: Recipe) => (
+                {getSortedRecipes(currentPlan).map((recipe: Recipe) => {
+                  const planEntry = currentPlan.entries?.find(
+                    (e) => e.catalog_recipe_id === recipe.id
+                  );
+                  const displayName =
+                    (typeof planEntry?.recipe_snapshot?.name === "string" &&
+                    planEntry.personal_recipe_id
+                      ? planEntry.recipe_snapshot.name
+                      : null) || recipe.name;
+                  return (
                   <Card
                     key={recipe.id}
                     className="overflow-hidden group hover:shadow-2xl hover:border-[hsl(var(--paprika))]/60 transition-all duration-300 h-full flex flex-col relative border-2 border-gray-200"
@@ -679,7 +688,7 @@ export default function WeeklyPlanPage() {
                     <Link
                       href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
                       className="absolute inset-0 z-[1] rounded-[inherit]"
-                      aria-label={`View ${recipe.name}`}
+                      aria-label={`View ${displayName}`}
                     />
                     {/* Completion Badge */}
                     {isRecipeCompleted(recipe.id, currentPlan.week_number) && (
@@ -698,13 +707,20 @@ export default function WeeklyPlanPage() {
                           <span>In progress</span>
                         </div>
                       )}
+                    {planEntry?.personal_recipe_id &&
+                      !isRecipeCompleted(recipe.id, currentPlan.week_number) &&
+                      !isRecipeInProgress(recipe.id, currentPlan.week_number) && (
+                        <div className="absolute top-3 right-3 z-[2] pointer-events-none bg-white/95 text-[hsl(var(--sage))] border border-[hsl(var(--sage))]/40 px-3 py-1.5 rounded-full font-body font-semibold tracking-wider uppercase text-xs shadow-lg">
+                          Your edit
+                        </div>
+                      )}
 
                     {recipe.image_url ? (
                       <div className="relative flex-shrink-0 pointer-events-none overflow-hidden">
                         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/25 to-transparent pointer-events-none group-hover:from-black/35 transition-all" />
                         <RecipeHeroImage
                           src={recipe.image_url}
-                          alt={recipe.name}
+                          alt={displayName}
                           variant="card"
                           showPexelsCredit={false}
                         />
@@ -721,16 +737,14 @@ export default function WeeklyPlanPage() {
                     )}
                     <CardContent className="relative z-[2] p-4 flex-1 flex flex-col pointer-events-none">
                       <div className="font-heading font-bold text-lg text-[#262218] mb-1 group-hover:underline line-clamp-2">
-                        {recipe.name}
+                        {displayName}
                       </div>
                       <div className="text-sm text-muted-foreground mb-4">
                         {recipe.cuisine}
                       </div>
 
                       {(() => {
-                        const entry = currentPlan.entries?.find(
-                          (e) => e.catalog_recipe_id === recipe.id
-                        );
+                        const entry = planEntry;
                         if (!entry) return null;
                         const baseline =
                           typeof entry.recipe_snapshot?.portion_size === "string"
@@ -739,7 +753,7 @@ export default function WeeklyPlanPage() {
                         return (
                           <PlanServingsScale
                             entryId={entry.id}
-                            recipeName={recipe.name}
+                            recipeName={displayName}
                             weekNumber={currentPlan.week_number}
                             userId={user?.id}
                             baseline={baseline}
@@ -830,7 +844,8 @@ export default function WeeklyPlanPage() {
                       )}
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
               {currentPlan.prep_timeline ? (
                 <PrepTimelinePanel timeline={currentPlan.prep_timeline} />
