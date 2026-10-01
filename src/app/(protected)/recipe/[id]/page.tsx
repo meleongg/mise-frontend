@@ -17,6 +17,7 @@ import {
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { ApiError, parseHelpers } from "@/lib/api";
+import { formatServingsLabel } from "@/lib/servings";
 import { requestSodieRecipeEdit } from "@/lib/sodieEvents";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { scrollToTop } from "@/lib/scroll";
@@ -238,10 +239,12 @@ export default function RecipePage({
                   </p>
                 </div>
               )}
-              {recipe.portion_size && (
+              {recipe.portion_size != null && (
                 <div>
                   <span className="font-semibold text-primary">Serves:</span>
-                  <p className="text-muted-foreground">{recipe.portion_size}</p>
+                  <p className="text-muted-foreground">
+                    {formatServingsLabel(recipe.portion_size)}
+                  </p>
                 </div>
               )}
             </div>

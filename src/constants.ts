@@ -49,9 +49,8 @@ export const COMMON_ALLERGENS = [
 export const PORTION_SIZES = [
   { value: "1", label: "1 serving (Just for me)" },
   { value: "2", label: "2 servings (Couple)" },
-  { value: "3-4", label: "3-4 servings (Small family)" },
-  { value: "5-6", label: "5-6 servings (Large family)" },
-  { value: "6+", label: "6+ servings (Meal prep/entertaining)" },
+  { value: "4", label: "4 servings (Small family)" },
+  { value: "6", label: "6 servings (Large family / meal prep)" },
 ];
 // Cooking app constants
 

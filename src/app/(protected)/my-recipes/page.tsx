@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePersonalRecipesQuery } from "@/hooks/queries";
+import { formatServingsLabel } from "@/lib/servings";
 import Link from "next/link";
 
 function previewText(value: unknown): string {
@@ -82,7 +83,9 @@ export default function MyRecipesPage() {
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Revision {recipe.current_revision}
-                  {recipe.portion_size ? ` · ${recipe.portion_size}` : ""}
+                  {recipe.portion_size != null
+                    ? ` · ${formatServingsLabel(recipe.portion_size)}`
+                    : ""}
                 </p>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">

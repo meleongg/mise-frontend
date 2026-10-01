@@ -746,9 +746,11 @@ export default function WeeklyPlanPage() {
                       {(() => {
                         const entry = planEntry;
                         if (!entry) return null;
+                        const snapPortion = entry.recipe_snapshot?.portion_size;
                         const baseline =
-                          typeof entry.recipe_snapshot?.portion_size === "string"
-                            ? entry.recipe_snapshot.portion_size
+                          typeof snapPortion === "number" ||
+                          typeof snapPortion === "string"
+                            ? snapPortion
                             : recipe.portion_size;
                         return (
                           <PlanServingsScale
