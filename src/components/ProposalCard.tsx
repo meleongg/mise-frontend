@@ -165,8 +165,8 @@ export default function ProposalCard({
                 .join(" · ")}
             </p>
             <p className="mt-2 text-xs text-stone-500">
-              Approve opens this catalog recipe. Your weekly plan is unchanged
-              until plan-entry lineage ships.
+              Approve adds this recipe to your current weekly plan. Shopping
+              refreshes when a list already exists for that week.
             </p>
           </div>
         ) : (

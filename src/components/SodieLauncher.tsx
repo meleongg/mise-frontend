@@ -740,7 +740,28 @@ export default function SodieLauncher() {
         return;
       }
       if (next.action_type === "propose_recipe_pick") {
-        if (next.source_recipe_id) {
+        const outcome = next.impact?.schedule_outcome;
+        const weekNumber = next.impact?.week_number;
+        if (user?.id) {
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.weeklyPlans(user.id),
+          });
+          await queryClient.invalidateQueries({ queryKey: ["shoppingList"] });
+          if (typeof weekNumber === "number") {
+            await queryClient.invalidateQueries({
+              queryKey: queryKeys.recipeProgress(user.id, weekNumber),
+            });
+          }
+        }
+        let content =
+          "Suggestion saved. Generate a weekly plan first to schedule recipes onto it.";
+        if (outcome === "scheduled" && weekNumber != null) {
+          content = `Added to Week ${weekNumber}. Your shopping list will catch up if one exists.`;
+          router.push(`/weekly-plan?week=${weekNumber}`);
+        } else if (outcome === "already_scheduled" && weekNumber != null) {
+          content = `That recipe was already on Week ${weekNumber}.`;
+          router.push(`/weekly-plan?week=${weekNumber}`);
+        } else if (next.source_recipe_id) {
           router.push(`/recipe/${next.source_recipe_id}`);
         }
         setItems((old) => [
@@ -748,9 +769,7 @@ export default function SodieLauncher() {
           {
             kind: "message",
             sender: "ai",
-            content: next.source_recipe_id
-              ? "Opened that recipe. Your weekly plan is unchanged for now."
-              : "Suggestion saved.",
+            content,
           },
         ]);
         return;
