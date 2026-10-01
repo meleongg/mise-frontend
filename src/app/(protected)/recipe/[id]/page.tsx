@@ -57,7 +57,7 @@ export default function RecipePage({
   const toggleStatusMutation = useToggleRecipeStatusMutation();
 
   // Fetch recipe using TanStack Query (automatic caching)
-  const { data: recipe, isLoading } = useRecipeQuery(recipeId);
+  const { data: recipe, isLoading } = useRecipeQuery(recipeId, weekNumber);
   const { data: weeklyPlans } = useWeeklyPlansQuery(user?.id);
   const { data: recipeProgress } = useWeeklyRecipeProgressQuery(
     user?.id,
@@ -170,6 +170,11 @@ export default function RecipePage({
                 <CardTitle className="font-heading font-bold text-2xl md:text-3xl text-[#262218] min-w-0">
                   {recipe.name}
                 </CardTitle>
+                {recipe.content_source === "plan_entry_personal" && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--sage))]/40 bg-[hsl(var(--sage))]/10 px-3 py-1 text-sm font-semibold text-[hsl(var(--sage))] shrink-0">
+                    Your edited version
+                  </span>
+                )}
                 {user && isCompleted && (
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--sage))]/40 bg-[hsl(var(--sage))]/10 px-3 py-1 text-sm font-semibold text-[hsl(var(--sage))] shrink-0">
                     <CircleCheck className="h-4 w-4" aria-hidden />
@@ -182,6 +187,12 @@ export default function RecipePage({
                   </span>
                 )}
               </div>
+              {recipe.content_source === "plan_entry_personal" && (
+                <p className="text-sm text-muted-foreground">
+                  Showing your personal copy for Week {weekNumber}. Progress
+                  still tracks against this plan meal.
+                </p>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">

@@ -67,7 +67,7 @@ export default function KitchenCookPage({
   const [showMiseIntro, setShowMiseIntro] = useState(false);
   const updateStatusMutation = useToggleRecipeStatusMutation();
 
-  const { data: recipe, isLoading } = useRecipeQuery(recipeId);
+  const { data: recipe, isLoading } = useRecipeQuery(recipeId, weekNumber);
   const { data: recipeProgress, isSuccess: progressLoaded } =
     useWeeklyRecipeProgressQuery(user?.id, weekNumber);
 
@@ -379,6 +379,12 @@ export default function KitchenCookPage({
           />
         }
       >
+        {recipe.content_source === "plan_entry_personal" && (
+          <p className="mb-4 rounded-lg border border-[hsl(var(--sage))]/30 bg-[hsl(var(--sage))]/10 px-3 py-2 text-sm text-stone-800">
+            Cooking your edited Week {weekNumber} version — steps and mise match
+            your personal copy.
+          </p>
+        )}
         <StepNavigator
           steps={steps}
           currentIndex={session.currentStepIndex}

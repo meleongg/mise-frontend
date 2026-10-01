@@ -919,8 +919,12 @@ export const api = {
   },
 
   // Recipes
-  async getRecipe(recipeId: string): Promise<Recipe> {
-    const url = `${API_BASE_URL}/recipe/${recipeId}`;
+  async getRecipe(recipeId: string, weekNumber?: number | null): Promise<Recipe> {
+    const params =
+      weekNumber != null && Number.isFinite(weekNumber)
+        ? `?week_number=${encodeURIComponent(String(weekNumber))}`
+        : "";
+    const url = `${API_BASE_URL}/recipe/${recipeId}${params}`;
     const options: RequestInit = {
       headers: {
         "Content-Type": "application/json",
