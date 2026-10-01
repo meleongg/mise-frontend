@@ -2,6 +2,7 @@
 
 import IngredientChecklist from "@/components/kitchen/IngredientChecklist";
 import KitchenModeShell from "@/components/kitchen/KitchenModeShell";
+import KitchenReadAloudButton from "@/components/kitchen/KitchenReadAloudButton";
 import KitchenSodieQuickActions from "@/components/kitchen/KitchenSodieQuickActions";
 import KitchenTimersPanel from "@/components/kitchen/KitchenTimersPanel";
 import MiseEnPlaceIntroDialog from "@/components/kitchen/MiseEnPlaceIntroDialog";
@@ -26,6 +27,7 @@ import {
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { useCookExitGuard } from "@/hooks/useCookExitGuard";
+import { useKitchenReadAloud } from "@/hooks/useKitchenReadAloud";
 import { useKitchenSession } from "@/hooks/useKitchenSession";
 import { useKitchenTimers } from "@/hooks/useKitchenTimers";
 import { parseHelpers } from "@/lib/api";
@@ -128,6 +130,13 @@ export default function KitchenCookPage({
     initial: initialTimers,
     onChange: persistTimers,
   });
+  const readAloud = useKitchenReadAloud();
+  const stopReadAloud = readAloud.stop;
+
+  // Stop speech when the cook advances or leaves the step.
+  useEffect(() => {
+    stopReadAloud();
+  }, [session.currentStepIndex, stopReadAloud]);
 
   const progressEntry = recipeProgress?.find((p) => p.recipe_id === recipeId);
   const existingFeedback = progressEntry?.feedback
@@ -182,6 +191,7 @@ export default function KitchenCookPage({
       checked_ingredients: session.checkedIngredients.size,
       total_ingredients: ingredients.length,
       active_timers: kitchenTimers.activeForSodie,
+      read_aloud_active: readAloud.speaking,
     });
     return () => {
       publishSodieKitchenState(null);
@@ -194,6 +204,7 @@ export default function KitchenCookPage({
     steps,
     ingredients.length,
     kitchenTimers.activeForSodie,
+    readAloud.speaking,
   ]);
 
   const markInProgress = useCallback(() => {
@@ -382,6 +393,12 @@ export default function KitchenCookPage({
             markInProgress();
             setPhase("feedback");
           }}
+        />
+        <KitchenReadAloudButton
+          supported={readAloud.supported}
+          speaking={readAloud.speaking}
+          stepText={steps[session.currentStepIndex]?.text ?? ""}
+          onToggle={readAloud.toggle}
         />
         <KitchenTimersPanel
           stepText={steps[session.currentStepIndex]?.text ?? ""}

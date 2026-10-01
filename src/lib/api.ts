@@ -569,6 +569,7 @@ export const api = {
           label: string;
           remaining_seconds: number;
         }>;
+        read_aloud_active?: boolean;
       } | null;
     }
   ): Promise<SodieChatResponse> {
