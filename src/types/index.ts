@@ -277,6 +277,12 @@ export interface SodieActionProposal {
     diet_conflict?: boolean;
     safety_notes?: string;
     confidence?: string;
+    schedule_outcome?:
+      | "scheduled"
+      | "already_scheduled"
+      | "no_active_plan"
+      | string;
+    week_number?: number | null;
   };
   rationale?: string | null;
   idempotency_key: string;
