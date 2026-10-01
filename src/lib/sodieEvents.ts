@@ -26,6 +26,7 @@ export type SodieKitchenState = {
     label: string;
     remaining_seconds: number;
   }>;
+  read_aloud_active?: boolean;
 };
 
 export function requestSodieRecipeEdit(recipeId: string) {
