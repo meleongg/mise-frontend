@@ -54,7 +54,7 @@ export interface InstructionStep {
 
 export interface Recipe {
   id: string;
-  external_id: string; // TheMealDB ID
+  external_id?: string | null;
   name: string;
   cuisine: string;
   ingredients: string; // JSON string of ingredients array
@@ -62,6 +62,8 @@ export interface Recipe {
   difficulty: string; // "easy", "medium", "hard"
   tags?: string; // JSON string of tags array
   image_url?: string;
+  image_attribution_photographer?: string | null;
+  image_attribution_url?: string | null;
   dietary_tags?: string; // JSON array of dietary tags (e.g., ['vegetarian', 'gluten-free'])
   allergens?: string; // JSON array of allergens present (e.g., ['nuts', 'dairy'])
   portion_size?: number; // Serving count (numeric)

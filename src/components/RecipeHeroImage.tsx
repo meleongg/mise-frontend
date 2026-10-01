@@ -10,6 +10,8 @@ type RecipeHeroImageProps = {
   variant?: "detail" | "card";
   className?: string;
   showPexelsCredit?: boolean;
+  photographer?: string | null;
+  attributionUrl?: string | null;
 };
 
 export default function RecipeHeroImage({
@@ -18,8 +20,13 @@ export default function RecipeHeroImage({
   variant = "detail",
   className,
   showPexelsCredit = variant === "detail",
+  photographer,
+  attributionUrl,
 }: RecipeHeroImageProps) {
   const isCard = variant === "card";
+  const creditHref =
+    (attributionUrl && attributionUrl.trim()) || "https://www.pexels.com";
+  const creditName = photographer?.trim();
 
   return (
     <div className={cn("w-full", className)}>
@@ -51,15 +58,40 @@ export default function RecipeHeroImage({
             isCard ? "px-3 py-1.5 bg-white/90" : "text-right mt-1.5"
           )}
         >
-          Photo via{" "}
-          <a
-            href="https://www.pexels.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-primary"
-          >
-            Pexels
-          </a>
+          {creditName ? (
+            <>
+              Photo by{" "}
+              <a
+                href={creditHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-primary"
+              >
+                {creditName}
+              </a>{" "}
+              on{" "}
+              <a
+                href="https://www.pexels.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-primary"
+              >
+                Pexels
+              </a>
+            </>
+          ) : (
+            <>
+              Photo via{" "}
+              <a
+                href="https://www.pexels.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-primary"
+              >
+                Pexels
+              </a>
+            </>
+          )}
         </p>
       )}
     </div>
