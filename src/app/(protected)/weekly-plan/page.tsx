@@ -722,7 +722,9 @@ export default function WeeklyPlanPage() {
                           src={recipe.image_url}
                           alt={displayName}
                           variant="card"
-                          showPexelsCredit={false}
+                          showPexelsCredit
+                          photographer={recipe.image_attribution_photographer}
+                          attributionUrl={recipe.image_attribution_url}
                         />
                       </div>
                     ) : (

@@ -202,6 +202,8 @@ export default function RecipePage({
                 src={recipe.image_url}
                 alt={recipe.name}
                 variant="detail"
+                photographer={recipe.image_attribution_photographer}
+                attributionUrl={recipe.image_attribution_url}
               />
             ) : (
               <div className="w-full h-48 md:h-64 rounded-lg shadow-md bg-gradient-to-br from-amber-100 via-orange-50 to-[hsl(var(--turmeric))]/40 flex flex-col items-center justify-center gap-3 border border-[hsl(var(--paprika))]/20">
