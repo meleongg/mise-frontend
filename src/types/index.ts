@@ -283,6 +283,9 @@ export interface SodieActionProposal {
       | "no_active_plan"
       | string;
     week_number?: number | null;
+    bound_count?: number;
+    bound_entry_ids?: string[];
+    weeks?: number[];
   };
   rationale?: string | null;
   idempotency_key: string;
