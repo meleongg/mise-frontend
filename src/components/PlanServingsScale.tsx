@@ -105,7 +105,7 @@ export default function PlanServingsScale({
         <p className="font-medium text-amber-950">Shopping scale unavailable</p>
         <p className="mt-0.5 leading-snug text-amber-900/90">
           {baseline
-            ? `Recipe yield “${baseline}” isn’t a plain number, so amounts can’t be scaled yet.`
+            ? `Recipe yield “${baseline}” isn’t a single number (ranges like 6–8 need a catalog cleanup), so amounts stay at 1×.`
             : "This recipe has no numeric yield, so shopping amounts stay at 1×."}
         </p>
       </div>

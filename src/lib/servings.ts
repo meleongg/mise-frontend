@@ -1,9 +1,30 @@
 /** Client-side servings parse/scale helpers (mirrors backend servings.py). */
 
 const FRACTION_RE = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/;
+const ABOUT_PREFIX_RE = /^\s*(?:about|approx\.?|approximately)\s+/i;
+const SERVES_PREFIX_RE = /^\s*serves?\s+/i;
 const LEADING_NUMBER_RE =
-  /^\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*(?:servings?)?\s*$/i;
+  /^\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*(?:servings?|people|persons?|ppl)?\s*$/i;
 const RANGE_RE = /\d+\s*-\s*\d+/;
+
+function stripSoftNoise(raw: string): string {
+  let s = raw.replace(ABOUT_PREFIX_RE, "").trim();
+  s = s.replace(SERVES_PREFIX_RE, "").trim();
+  return s || raw;
+}
+
+function parseNumberToken(token: string): number | null {
+  const cleaned = token.replace(/\s+/g, "");
+  if (cleaned.includes("/")) {
+    const [a, b] = cleaned.split("/", 2);
+    const num = Number(a);
+    const den = Number(b);
+    if (!den || Number.isNaN(num) || Number.isNaN(den)) return null;
+    return num / den;
+  }
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
 
 export function parseServings(value?: string | null): number | null {
   if (value == null) return null;
@@ -22,18 +43,9 @@ export function parseServings(value?: string | null): number | null {
     return num / den;
   }
 
-  const match = raw.match(LEADING_NUMBER_RE);
+  const match = stripSoftNoise(raw).match(LEADING_NUMBER_RE);
   if (!match) return null;
-  const token = match[1].replace(/\s+/g, "");
-  if (token.includes("/")) {
-    const [a, b] = token.split("/", 2);
-    const num = Number(a);
-    const den = Number(b);
-    if (!den || Number.isNaN(num) || Number.isNaN(den)) return null;
-    return num / den;
-  }
-  const n = Number(token);
-  return Number.isFinite(n) ? n : null;
+  return parseNumberToken(match[1]);
 }
 
 export function scaleFactor(
