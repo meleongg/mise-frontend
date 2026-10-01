@@ -152,6 +152,7 @@ export function formatGenerationConfidence(
         confidence?: string | null;
         confidence_reasons?: string[] | null;
         auto_repaired?: boolean | null;
+        evaluator_kind?: string | null;
       }
     | null
     | undefined
@@ -167,6 +168,9 @@ export function formatGenerationConfidence(
           : summary.confidence;
   const reasons = (summary.confidence_reasons || []).filter(Boolean);
   const lines = [`Plan confidence: ${label}`];
+  if (summary.evaluator_kind === "llm_assisted_v1") {
+    lines.push("Includes an automatic cookability review.");
+  }
   if (summary.auto_repaired) {
     lines.push("Saved after one automatic verification retry.");
   }
