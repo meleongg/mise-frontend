@@ -69,6 +69,9 @@ export interface Recipe {
   cook_time_minutes?: number; // Cooking time in minutes
   skill_level_validated?: string; // Validated skill level for this recipe
   created_at: string;
+  content_source?: "catalog" | "plan_entry_personal" | string | null;
+  personal_recipe_id?: string | null;
+  plan_entry_id?: string | null;
 }
 
 export interface WeeklyPlanEntry {

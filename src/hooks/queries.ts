@@ -26,7 +26,8 @@ export const queryKeys = {
     ["weeklyPlan", userId, weekNumber] as const,
   recipeProgress: (userId: string, weekNumber: number) =>
     ["recipeProgress", userId, weekNumber] as const,
-  recipe: (recipeId: string) => ["recipe", recipeId] as const,
+  recipe: (recipeId: string, weekNumber?: number | null) =>
+    ["recipe", recipeId, weekNumber ?? "catalog"] as const,
   personalRecipes: () => ["personalRecipes"] as const,
   personalRecipe: (personalRecipeId: string) =>
     ["personalRecipe", personalRecipeId] as const,
@@ -100,13 +101,16 @@ export function useAllWeeksRecipeProgressQueries(
 }
 
 /**
- * Fetch a single recipe by ID
- * Cached for 10 minutes as recipes don't change often
+ * Fetch a single recipe by catalog ID.
+ * When weekNumber is set, the API may overlay a personally bound plan-entry snapshot.
  */
-export function useRecipeQuery(recipeId: string | undefined) {
+export function useRecipeQuery(
+  recipeId: string | undefined,
+  weekNumber?: number | null
+) {
   return useQuery({
-    queryKey: queryKeys.recipe(recipeId!),
-    queryFn: () => api.getRecipe(recipeId!),
+    queryKey: queryKeys.recipe(recipeId!, weekNumber),
+    queryFn: () => api.getRecipe(recipeId!, weekNumber),
     enabled: !!recipeId,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
