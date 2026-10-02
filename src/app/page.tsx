@@ -7,15 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@/hooks";
 import {
+  BarChart3,
   Check,
   Clock,
-  FileText,
   Lock,
+  MessageCircle,
+  ShoppingCart,
   Smartphone,
   Sparkles,
   Target,
-  TrendingUp,
-  Trophy,
+  Timer,
+  UtensilsCrossed,
   Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -63,8 +65,9 @@ export default function Home() {
                 </span>
               </h1>
               <p className="font-body text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Meet Sodie — your culinary companion. Get adaptive weekly meal
-                plans that grow with your skill, taste, and feedback.
+                Meet Sodie — your culinary companion. Verified weekly plans,
+                shopping lists scaled to your servings, Kitchen Mode coaching,
+                and Analytics Tips that can land on your plan.
               </p>
             </div>
 
@@ -85,15 +88,15 @@ export default function Home() {
             <div className="flex flex-wrap gap-x-6 gap-y-3 pt-2 justify-center lg:justify-start">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Check className="w-5 h-5 shrink-0 text-[hsl(var(--paprika))]" />
-                <span className="text-gray-700">Personalized plans</span>
+                <span className="text-gray-700">Verified weekly plans</span>
               </div>
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Check className="w-5 h-5 shrink-0 text-[hsl(var(--turmeric))]" />
-                <span className="text-gray-700">Adaptive difficulty</span>
+                <span className="text-gray-700">Ask Sodie anywhere</span>
               </div>
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Check className="w-5 h-5 shrink-0 text-[hsl(var(--sage))]" />
-                <span className="text-gray-700">Progress tracking</span>
+                <span className="text-gray-700">Shop & cook with confidence</span>
               </div>
             </div>
           </div>
@@ -201,56 +204,82 @@ export default function Home() {
               ?
             </h2>
             <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto px-2">
-              Sodie adapts with you — every meal is a chance to learn, swap, and
-              get better in the kitchen.
+              From plan generation through the grocery run and active cooking —
+              Sodie stays page-aware, proposes edits you approve, and respects
+              your feedback.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-16">
-            <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-amber-50 via-white to-orange-50/50 border-2 border-[hsl(var(--paprika))]/30 shadow-lg">
-              <CardContent className="p-8 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--paprika))]/20 to-orange-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--paprika))]/30">
-                  <FileText className="w-8 h-8 text-[hsl(var(--paprika))]" />
-                </div>
-                <h3 className="font-heading font-bold text-xl text-[hsl(var(--paprika))]">
-                  Personalized Plans
-                </h3>
-                <p className="text-gray-600">
-                  Get weekly meal plans tailored to your cuisine preferences and
-                  skill level
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-yellow-50 via-white to-amber-50/50 border-2 border-[hsl(var(--turmeric))]/40 shadow-lg">
-              <CardContent className="p-8 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--turmeric))]/30 to-amber-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--turmeric))]/40">
-                  <TrendingUp className="w-8 h-8 text-amber-700" />
-                </div>
-                <h3 className="font-heading font-bold text-xl text-amber-700">
-                  Adaptive Learning
-                </h3>
-                <p className="text-gray-600">
-                  Our system adapts to your feedback, making recipes easier or
-                  harder as needed
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 via-white to-emerald-50/50 border-2 border-[hsl(var(--sage))]/40 shadow-lg">
-              <CardContent className="p-8 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--sage))]/30 to-green-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--sage))]/40">
-                  <Trophy className="w-8 h-8 text-[hsl(var(--sage))]" />
-                </div>
-                <h3 className="font-heading font-bold text-xl text-[hsl(var(--sage))]">
-                  Track Progress
-                </h3>
-                <p className="text-muted-foreground">
-                  See your cooking journey progress and unlock new challenges
-                  week by week
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-16">
+            {[
+              {
+                icon: Target,
+                title: "Verified weekly plans",
+                body: "Deterministic checks before plans save, with optional repair when something looks off.",
+                accent: "paprika" as const,
+              },
+              {
+                icon: MessageCircle,
+                title: "Sodie everywhere",
+                body: "Coach and proposal chat on weekly plan, recipes, kitchen, settings, and analytics.",
+                accent: "turmeric" as const,
+              },
+              {
+                icon: ShoppingCart,
+                title: "Shopping mode",
+                body: "Lists from your plan entries, serving scale, pantry omit, and offline check sync.",
+                accent: "sage" as const,
+              },
+              {
+                icon: UtensilsCrossed,
+                title: "Kitchen Mode",
+                body: "Step-aware coach, quick actions, on-device read-aloud, and foreground timers.",
+                accent: "paprika" as const,
+              },
+              {
+                icon: Timer,
+                title: "Prep timeline",
+                body: "See when to shop and prep across the week with explanations on your plan.",
+                accent: "turmeric" as const,
+              },
+              {
+                icon: BarChart3,
+                title: "Analytics Tips",
+                body: "Opt-in insights and recipe picks you can approve onto next week’s plan.",
+                accent: "sage" as const,
+              },
+            ].map(({ icon: Icon, title, body, accent }) => (
+              <Card
+                key={title}
+                className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white via-white to-orange-50/40 border-2 border-[hsl(var(--paprika))]/20 shadow-lg"
+              >
+                <CardContent className="p-8 text-center space-y-4">
+                  <div
+                    className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center shadow-lg border-2 ${
+                      accent === "paprika"
+                        ? "bg-[hsl(var(--paprika))]/15 border-[hsl(var(--paprika))]/30"
+                        : accent === "turmeric"
+                          ? "bg-[hsl(var(--turmeric))]/20 border-[hsl(var(--turmeric))]/40"
+                          : "bg-[hsl(var(--sage))]/20 border-[hsl(var(--sage))]/40"
+                    }`}
+                  >
+                    <Icon
+                      className={`w-8 h-8 ${
+                        accent === "paprika"
+                          ? "text-[hsl(var(--paprika))]"
+                          : accent === "turmeric"
+                            ? "text-amber-700"
+                            : "text-[hsl(var(--sage))]"
+                      }`}
+                    />
+                  </div>
+                  <h3 className="font-heading font-bold text-xl text-[#262218]">
+                    {title}
+                  </h3>
+                  <p className="text-gray-600">{body}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           <div className="relative">
