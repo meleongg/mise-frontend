@@ -54,7 +54,6 @@ export interface InstructionStep {
 
 export interface Recipe {
   id: string;
-  external_id?: string | null;
   name: string;
   cuisine: string;
   ingredients: string; // JSON string of ingredients array
