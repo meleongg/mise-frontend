@@ -1,5 +1,6 @@
 "use client";
 
+import AuthLegalLinks from "@/components/AuthLegalLinks";
 import LandingNavbar from "@/components/LandingNavbar";
 import PasswordRequirements from "@/components/PasswordRequirements";
 import AuthSodieMark from "@/components/AuthSodieMark";
@@ -179,7 +180,7 @@ export default function RegisterPage() {
               </Button>
             </form>
           </CardContent>
-          <div className="text-center pb-6 -mt-2 text-sm">
+          <div className="text-center pb-2 -mt-2 text-sm">
             <span className="text-muted-foreground">
               Already have an account?
             </span>
@@ -192,6 +193,7 @@ export default function RegisterPage() {
               Login
             </Button>
           </div>
+          <AuthLegalLinks />
         </Card>
       </main>
     </div>
