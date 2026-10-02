@@ -45,7 +45,6 @@ import {
 import { touchButtonClass } from "@/lib/touchTargets";
 import {
   Recipe,
-  RecipeScheduleItem,
   WeeklyPlan,
   WeeklyPlanResponse,
 } from "@/types";
@@ -160,11 +159,10 @@ export default function WeeklyPlanPage() {
   const convertToWeeklyPlan = (response: WeeklyPlanResponse): WeeklyPlan => ({
     ...response,
     created_at: response.generated_at,
-    recipe_schedule: response.recipe_schedule,
     entries: response.entries,
   });
 
-  // Prefer plan entries order when present; fall back to recipe_schedule.
+  // Prefer plan entry order; otherwise trust backend recipes[] order.
   const getSortedRecipes = (plan: WeeklyPlan | null) => {
     if (!plan) return [];
 
@@ -186,22 +184,7 @@ export default function WeeklyPlanPage() {
       }
     }
 
-    try {
-      const schedule: RecipeScheduleItem[] = plan.recipe_schedule
-        ? JSON.parse(plan.recipe_schedule)
-        : [];
-      const sorted = [...plan.recipes].sort((a, b) => {
-        const orderA =
-          schedule.find((s) => s.recipe_id === a.id)?.order ?? Infinity;
-        const orderB =
-          schedule.find((s) => s.recipe_id === b.id)?.order ?? Infinity;
-        return orderA - orderB;
-      });
-      return sorted;
-    } catch {
-      // Fallback to original order if recipe_schedule is malformed
-      return plan.recipes;
-    }
+    return plan.recipes;
   };
 
   const getViewingWeekPlan = (): WeeklyPlan | null => {
