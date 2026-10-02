@@ -133,9 +133,7 @@ export interface WeeklyPlan {
   id: string;
   user_id: string;
   week_number: number;
-  recipe_schedule?: string; // JSON string of ordered recipe schedule
   swap_count: number; // 0-3, current swaps used this week
-  excluded_recipe_ids: string; // JSON array of swapped-out recipe IDs
   is_unlocked: boolean;
   created_at: string;
   recipes: Recipe[]; // Populated in responses
@@ -160,12 +158,6 @@ export interface UserProgress {
   completed_recipes: number;
   current_week: number;
   completion_rate: number;
-}
-
-// Recipe Schedule for ordered recipe display
-export interface RecipeScheduleItem {
-  recipe_id: string;
-  order: number;
 }
 
 // Agent API Endpoints
@@ -201,12 +193,10 @@ export interface WeeklyPlanResponse {
   id: string;
   user_id: string;
   week_number: number;
-  recipe_schedule: string; // JSON string of ordered recipe schedule
   swap_count: number; // 0-3, current swaps used this week
-  excluded_recipe_ids: string; // JSON array of swapped-out recipe IDs
   generated_at: string;
   is_unlocked: boolean;
-  recipes: Recipe[]; // Already sorted by order via backend
+  recipes: Recipe[]; // Already sorted by entry order via backend
   entries?: WeeklyPlanEntry[];
   generation_summary?: GenerationSummary | null;
   prep_timeline?: PrepTimeline | null;
@@ -360,10 +350,6 @@ export interface NextWeekEligibility {
 // Parsed helper types (for JSON string fields)
 export interface ParsedRecipe extends Omit<Recipe, "ingredients"> {
   ingredients: string[];
-}
-
-export interface ParsedWeeklyPlan extends Omit<WeeklyPlan, "recipe_ids"> {
-  recipe_ids: string[];
 }
 
 // UI State Types
