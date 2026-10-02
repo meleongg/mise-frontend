@@ -42,8 +42,6 @@ export interface User {
   recipe_repeat_preference?: "standard" | "sooner";
   city?: string;
   preferred_retailer?: string;
-  sodie_memory_enabled?: boolean;
-  chat_retention_policy?: "3_months" | "18_months" | "36_months" | "manual";
   created_at: string;
 }
 
@@ -59,7 +57,6 @@ export interface Recipe {
   ingredients: string; // JSON string of ingredients array
   instructions: string[] | InstructionStep[]; // Array of strings or structured step objects
   difficulty: string; // "easy", "medium", "hard"
-  tags?: string; // JSON string of tags array
   image_url?: string;
   image_attribution_photographer?: string | null;
   image_attribution_url?: string | null;
@@ -154,8 +151,6 @@ export interface UserRecipeProgress {
   status: string; // "not_started", "in_progress", "completed"
   feedback?: string; // "too_easy", "just_right", "too_hard"
   notes?: string;
-  satisfaction_rating?: number; // 1-5 stars, AI input field
-  difficulty_rating?: number; // 1-5 difficulty, AI input field
   completed_at: string;
   created_at: string;
 }
@@ -239,12 +234,10 @@ export interface UserProfileRequest {
   recipe_repeat_preference?: "standard" | "sooner";
   city?: string;
   preferred_retailer?: string;
-  sodie_memory_enabled?: boolean;
-  chat_retention_policy?: "3_months" | "18_months" | "36_months" | "manual";
 }
 
-export interface PantryItem { id: string; name: string; is_baseline: boolean; }
-export interface PantryItemInput { name: string; is_baseline: boolean; }
+export interface PantryItem { id: string; name: string; }
+export interface PantryItemInput { name: string; }
 export interface SodieThread { id: string; scope: string; context_id?: string; is_temporary: boolean; created_at: string; updated_at: string; messages: SodieStoredMessage[]; }
 export interface SodieStoredMessage { id: string; sender: "user" | "ai"; content: string; created_at: string; }
 export interface SodieChatResponse { user_message: SodieStoredMessage; ai_message: SodieStoredMessage; proposal?: SodieActionProposal | null; }
@@ -365,9 +358,8 @@ export interface NextWeekEligibility {
 }
 
 // Parsed helper types (for JSON string fields)
-export interface ParsedRecipe extends Omit<Recipe, "ingredients" | "tags"> {
+export interface ParsedRecipe extends Omit<Recipe, "ingredients"> {
   ingredients: string[];
-  tags: string[];
 }
 
 export interface ParsedWeeklyPlan extends Omit<WeeklyPlan, "recipe_ids"> {

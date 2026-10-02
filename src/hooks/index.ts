@@ -104,7 +104,6 @@ export function useRecipeParser() {
     return {
       ...recipe,
       ingredients: parseHelpers.parseRecipeIngredients(recipe.ingredients),
-      tags: parseHelpers.parseRecipeTags(recipe.tags || "[]"),
     };
   };
 
