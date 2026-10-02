@@ -72,7 +72,14 @@ export const privacySections: LegalSection[] = [
     title: "Your choices",
     paragraphs: [
       "You can update preferences, pantry, and account details in Settings. You can opt in or out of Analytics Tips on the Analytics page.",
-      "To request access, correction, or deletion beyond in-app controls, contact us using the email on your Mise account and describe your request.",
+      "To request access, correction, or deletion beyond in-app controls, contact Mise by opening an issue on the public GitHub repository: https://github.com/meleongg/mise-frontend. Include enough detail for us to identify your request (do not post passwords or other secrets in the issue).",
+    ],
+  },
+  {
+    id: "contact",
+    title: "Contact",
+    paragraphs: [
+      "Questions about this Privacy Policy or your data: open an issue at https://github.com/meleongg/mise-frontend.",
     ],
   },
   {
@@ -175,6 +182,13 @@ export const termsSections: LegalSection[] = [
     title: "Changes",
     paragraphs: [
       "We may update these Terms. The “Last updated” date will change when we do. Continued use after updates constitutes acceptance.",
+    ],
+  },
+  {
+    id: "contact-terms",
+    title: "Contact",
+    paragraphs: [
+      "Questions about these Terms: open an issue on the Mise GitHub repository at https://github.com/meleongg/mise-frontend. Do not post passwords or other secrets in issues.",
     ],
   },
 ];
